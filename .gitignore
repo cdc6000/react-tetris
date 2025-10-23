@@ -1,4 +1,8 @@
+.ds_store
+.vscode
 node_modules
 dev
 rel
-res
+postcss.config.js
+package-lock.json
+license

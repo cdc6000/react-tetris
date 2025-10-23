@@ -1,0 +1,28 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "usage",
+        "corejs": {
+          "version": "3.46.0",
+          "proposals": true
+        },
+        "targets": {
+          "chrome": "84", 
+          "edge": "84", 
+          "firefox": "76", 
+          "opera": "70", 
+          "safari": "13", 
+          "android": "84", 
+          "ios": "13", 
+          "samsung": "13",
+          "node": "14"
+        }
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "plugins": [
+  ]
+}

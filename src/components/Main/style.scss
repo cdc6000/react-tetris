@@ -20,7 +20,7 @@ $cupH: calc(#{$cellSize} * #{$cupSizeH});
 $fvW: calc(#{$fvCellSize} * #{$fvSizeW});
 $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
 
-#globalContainer {
+#game {
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
@@ -47,7 +47,6 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
       vertical-align: top;
 
       .container {
-        
         .tip {
           margin: 0 10px 10px 10px;
 
@@ -110,38 +109,38 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
       }
 
       &.cyan {
-        background-color: #00F0F0;
-        border-color: #B3FBFB #34E0E0 #007878 #00D8D8;
+        background-color: #00f0f0;
+        border-color: #b3fbfb #34e0e0 #007878 #00d8d8;
       }
-      
+
       &.blue {
-        background-color: #0000F0;
-        border-color: #B3B3FB #0000D8 #000078 #5454E5;
+        background-color: #0000f0;
+        border-color: #b3b3fb #0000d8 #000078 #5454e5;
       }
 
       &.orange {
-        background-color: #F0A000;
-        border-color: #FBE3B3 #D89000 #785000 #D89000;
+        background-color: #f0a000;
+        border-color: #fbe3b3 #d89000 #785000 #d89000;
       }
 
       &.yellow {
-        background-color: #F0F000;
-        border-color: #FBFBB3 #D8D800 #787800 #D8D800;
+        background-color: #f0f000;
+        border-color: #fbfbb3 #d8d800 #787800 #d8d800;
       }
 
       &.green {
-        background-color: #00F000;
-        border-color: #B3FBB3 #00D800 #007800 #00D800;
+        background-color: #00f000;
+        border-color: #b3fbb3 #00d800 #007800 #00d800;
       }
 
       &.purple {
-        background-color: #A000F0;
-        border-color: #E3B3FB #9000D8 #500078 #9000D8;
+        background-color: #a000f0;
+        border-color: #e3b3fb #9000d8 #500078 #9000d8;
       }
 
       &.red {
-        background-color: #F00000;
-        border-color: #FBB3B3 #D80000 #780000 #D80000;
+        background-color: #f00000;
+        border-color: #fbb3b3 #d80000 #780000 #d80000;
       }
     }
 

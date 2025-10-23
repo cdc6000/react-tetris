@@ -1,34 +1,43 @@
 {
-  "name": "tetris",
-  "version": "1.0.0",
-  "description": "tetris",
+  "name": "react-tetris",
+  "version": "2.0.0",
+  "description": "react tetris",
   "main": "index.js",
   "scripts": {
-    "build:vend": "webpack --config webpack.vend.config.js",
-    "build:prod": "webpack --config webpack.prod.config.js",
-    "build:dev": "webpack --config webpack.dev.config.js"
+    "build": "webpack --config ./webpack/prod.js && npm version patch --commit-hooks false --git-tag-version false",
+    "build-no-patch": "webpack --config ./webpack/prod.js",
+    "build:vend": "webpack --config ./webpack/vend.js",
+    "start:local": "node server.js ./webpack/dev.local.js",
+    "start:local:log": "node server.js ./webpack/dev.local.js > ./output_log.txt 2>&1"
   },
-  "author": "Масленников Василий",
+  "author": "Василий Масленников",
   "devDependencies": {
-    "@babel/core": "^7.0.1",
-    "@babel/plugin-proposal-class-properties": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.2",
-    "css-loader": "1.0.0",
-    "express": "^4.16.3",
-    "sass-loader": "7.1.0",
-    "style-loader": "0.23.0",
-    "uglifyjs-webpack-plugin": "^2.0.0",
-    "webpack": "^4.19.0",
-    "webpack-cli": "^3.1.0",
-    "webpack-dev-middleware": "^3.3.0",
-    "webpack-hot-middleware": "^2.24.0"
+    "@babel/core": "7.28.4",
+    "@babel/preset-env": "7.28.3",
+    "@babel/preset-react": "7.27.1",
+    "@babel/runtime": "7.28.4",
+    "babel-loader": "10.0.0",
+    "file-loader": "6.2.0",
+    "url-loader": "4.1.1",
+    "css-loader": "7.1.2",
+    "style-loader": "4.0.0",
+    "sass-loader": "16.0.5",
+    "sass": "1.93.2",
+    "webpack": "5.102.1",
+    "webpack-cli": "6.0.1",
+    "webpack-merge": "6.0.1",
+    "terser-webpack-plugin": "5.3.14",
+    "webpack-bundle-analyzer": "4.10.2",
+    "webpack-dev-middleware": "7.4.5",
+    "webpack-hot-middleware": "2.26.1",
+    "express": "5.1.0"
   },
   "dependencies": {
-    "axios": "^0.18.0",
-    "node-sass": "^4.9.3",
-    "react": "^16.5.1",
-    "react-dom": "^16.5.1"
+    "core-js": "3.46.0",
+    "axios": "1.12.2",
+    "mobx": "6.15.0",
+    "mobx-react": "9.2.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   }
 }

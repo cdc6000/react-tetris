@@ -1,20 +1,15 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import React from 'react';
+import * as ReactDOMClient from 'react-dom/client';
 
-import MainContainer from "./components/MainContainer";
+import Main from "./components/Main";
 
-require("./style.scss");
-
-if (module.hot)
-{
+if (module.hot) {
   module.hot.accept();
 }
 
-var rootElement = document.getElementById('globalContainer');
-
-ReactDOM.render(
-  <MainContainer
-    someAttr={rootElement.getAttribute("someAttr")}
-  />,
-  rootElement
+const rootSelector = "#game";
+const rootContainer = document.querySelector(rootSelector);
+const reactRoot = ReactDOMClient.createRoot(rootContainer);
+reactRoot.render(
+  <Main rootContainer={rootContainer} />
 );

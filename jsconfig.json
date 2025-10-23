@@ -1,0 +1,18 @@
+{
+  "include": ["src/*", "src"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "baseUrl": "./",
+    "allowJs": true,
+    "paths": {
+      "@assets/*": ["src/assets/*"],
+      "@packages/*": ["src/packages/*"],
+      "@components/*": ["src/components/*"],
+      "@api/*": ["src/API/*"],
+      "@constants/*": ["src/constants/*"],
+      "@utils/*": ["src/utils/*"],
+      "@stores/*": ["src/stores/*"],
+      "@/*": ["src/*"]
+    }
+  }
+}
