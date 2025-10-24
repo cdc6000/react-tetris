@@ -7,19 +7,6 @@ i {
   font-style: normal;
 }
 
-$cupSizeW: 10;
-$cupSizeH: 20;
-$fvSizeW: 4;
-$fvSizeH: 4;
-
-$cellSize: 30px;
-$fvCellSize: 20px;
-
-$cupW: calc(#{$cellSize} * #{$cupSizeW});
-$cupH: calc(#{$cellSize} * #{$cupSizeH});
-$fvW: calc(#{$fvCellSize} * #{$fvSizeW});
-$fvH: calc(#{$fvCellSize} * #{$fvSizeH});
-
 #game {
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
@@ -27,6 +14,9 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
   color: #333;
 
   .game-container {
+    --next-figure-cell-size: 20px;
+    --cup-width: calc(var(--cell-size) * var(--cup-cells-hor));
+    --cup-height: calc(var(--cell-size) * var(--cup-cells-ver));
     margin: 0;
 
     .right-col {
@@ -57,14 +47,14 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
 
         .fig {
           display: inline-block;
-          width: $fvW;
-          height: $fvH;
+          width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));
+          height: calc(var(--next-figure-cell-size) * var(--next-figure-cells-ver));
           margin: 0 0 0 10px;
-          //font-size: calc(#{$fvCellSize} - 2px);
+          //font-size: calc(var(--next-figure-cell-size) - 2px);
 
           .cell {
-            width: $fvCellSize;
-            height: $fvCellSize;
+            width: var(--next-figure-cell-size);
+            height: var(--next-figure-cell-size);
             //margin: -10px -1px 0 0;
 
             &.empty {
@@ -79,16 +69,16 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
 
     .cup {
       display: inline-block;
-      width: $cupW;
-      height: $cupH;
+      width: var(--cup-width);
+      height: var(--cup-height);
       outline: 1px solid #000;
       padding: 3px 0 0 0;
       box-sizing: border-box;
     }
 
     .cell {
-      width: $cellSize;
-      height: $cellSize;
+      width: var(--cell-size);
+      height: var(--cell-size);
       display: inline-block;
       margin: -3px 0 0 0;
       box-sizing: border-box;
@@ -99,7 +89,7 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
         border: none;
         border-right: 1px solid #999;
 
-        &:nth-child(#{$cupSizeW}n) {
+        &:last-child {
           border-right: none;
         }
 
@@ -162,7 +152,7 @@ $fvH: calc(#{$fvCellSize} * #{$fvSizeH});
       height: 90px;
       box-sizing: border-box;
       left: calc(50vw - 140px);
-      top: calc(#{$cupH} / 2 - 45px);
+      top: calc(var(--cup-height) / 2 - 45px);
       text-align: center;
       background-color: #eee;
       border: 2px solid #0099ff;

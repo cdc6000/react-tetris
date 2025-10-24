@@ -1,6 +1,16 @@
-export default [
-  // 0 [I]
-  {
+const figureType = {
+  none: 0,
+  "I-shape": 1,
+  "J-shape": 2,
+  "L-shape": 3,
+  "square-2x2": 4,
+  "S-shape": 5,
+  "T-shape": 6,
+  "Z-shape": 7,
+};
+
+const figureTypeData = {
+  [figureType["I-shape"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -17,8 +27,7 @@ export default [
       type: 1,
     },
   },
-  // 1 [J]
-  {
+  [figureType["J-shape"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -44,8 +53,7 @@ export default [
       type: 2,
     },
   },
-  // 2 [L]
-  {
+  [figureType["L-shape"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -71,8 +79,7 @@ export default [
       type: 3,
     },
   },
-  // 3 [O]
-  {
+  [figureType["square-2x2"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -84,8 +91,7 @@ export default [
       type: 4,
     },
   },
-  // 4 [S]
-  {
+  [figureType["S-shape"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -102,8 +108,7 @@ export default [
       type: 5,
     },
   },
-  // 5 [T]
-  {
+  [figureType["T-shape"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -129,8 +134,7 @@ export default [
       type: 6,
     },
   },
-  // 6 [Z]
-  {
+  [figureType["Z-shape"]]: {
     //prettier-ignore
     rotations: [
       [
@@ -147,4 +151,6 @@ export default [
       type: 7,
     },
   },
-];
+};
+
+export default Object.assign(figureType, { figureTypeData });
