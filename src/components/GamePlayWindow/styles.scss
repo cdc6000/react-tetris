@@ -108,7 +108,6 @@
         .next-figure {
           width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));
           height: calc(var(--next-figure-cell-size) * var(--next-figure-cells-ver));
-          margin: 0 0 0 10px;
 
           .figure-cell {
             width: var(--next-figure-cell-size);
