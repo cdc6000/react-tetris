@@ -9,7 +9,16 @@ import * as eventHelpers from "@utils/event-helpers";
 class Storage {
   constructor() {
     this.observables = {
-      focusedMenu: constants.menu.main,
+      currentMenu: constants.menu.main,
+      menuData: {
+        [constants.menu.main]: {
+          show: false,
+        },
+        [constants.menu.game]: {
+          show: false,
+        },
+      },
+      gameState: constants.gameState.pause,
       gameMode: constants.gameMode.classic,
       gameData: {
         [constants.gameMode.classic]: {
@@ -82,8 +91,12 @@ class Storage {
       // action
       gameStart: action,
       addScore: action,
+      moveCurrentFigureAlongX: action,
+      rotateCurrentFigure: action,
+      dropCurrentFigure: action,
       setPause: action,
-      generateNextFigure: action,
+      generateCurrentFigure: action,
+      spawnFigure: action,
       generateCupView: action,
 
       // computed
@@ -119,17 +132,21 @@ class Storage {
   //
 
   gameStart = () => {
-    this.observables.focusedMenu = constants.menu.gamePlay;
+    this.observables.currentMenu = constants.menu.game;
+    this.observables.gameState = constants.gameState.play;
     this.observables.gameMode = constants.gameMode.classic;
 
     const { gameModeData, cellsMaxSize } = this;
     const { gameMode } = this.observables;
 
     if (gameMode == constants.gameMode.classic) {
-      gameModeData.nextFigureType = this.generateFigureType();
-
       this.createGrid(gameModeData.currentFigure.cells.data, cellsMaxSize.width, cellsMaxSize.height);
       this.createGrid(gameModeData.cup.data, gameModeData.cup.width, gameModeData.cup.height);
+
+      this.generateCurrentFigure();
+      gameModeData.nextFigureType = this.generateFigureType();
+
+      this.generateCupView();
     }
   };
 
@@ -154,55 +171,46 @@ class Storage {
     }
   };
 
-  moveCurrentFigure = async (newX) => {
+  moveCurrentFigureAlongX = (newX) => {
     const { gameModeData } = this;
     const { cup, currentFigure } = gameModeData;
-    const { focusedMenu } = this.observables;
-    const _prevX = currentFigure.prevX;
+    const { gameState } = this.observables;
 
-    if (focusedMenu == constants.menu.gamePlay && newX >= 0 && newX + currentFigure.cells.width <= cup.width - 1) {
-      runInAction(() => {
+    if (currentFigure.type == constants.figureType.none) return false;
+
+    if (gameState == constants.gameState.play) {
+      if (
+        newX != currentFigure.x &&
+        newX >= 0 &&
+        newX + currentFigure.cells.width <= cup.width - 1 &&
+        !this.checkCurrentFigureTouchdown({ customX: newX })
+      ) {
         currentFigure.prevX = currentFigure.x;
         currentFigure.x = newX;
-      });
-
-      // if touchdown
-      if (await this.handleFigure()) {
-        runInAction(() => {
-          currentFigure.x = currentFigure.prevX;
-          currentFigure.prevX = _prevX;
-        });
+        this.generateCupView();
+        return true;
       }
-
-      this.generateCupView();
     }
+
+    return false;
   };
 
   moveCurrentFigureByMouse = () => {
-    const { gameModeData } = this;
-    const { cup, currentFigure } = gameModeData;
     const { lastMouseX, cellSizePx } = this.nonObservables;
-    if (!lastMouseX) return;
+    if (!lastMouseX) return false;
 
-    let newX = Math.floor(lastMouseX / cellSizePx);
-    newX =
-      newX < 0
-        ? 0
-        : newX + currentFigure.cells.width > cup.width - 1
-        ? cup.width - 1 - currentFigure.cells.width
-        : newX;
-
-    if (newX != currentFigure.x && currentFigure.type != constants.figureType.none) {
-      this.moveCurrentFigure(newX);
-    }
+    const newX = Math.floor(lastMouseX / cellSizePx);
+    return this.moveCurrentFigureAlongX(newX);
   };
 
-  rotateCurrentFigure = async () => {
+  rotateCurrentFigure = () => {
     const { gameModeData } = this;
     const { currentFigure } = gameModeData;
-    const { focusedMenu } = this.observables;
+    const { gameState } = this.observables;
 
-    if (focusedMenu == constants.menu.gamePlay && currentFigure.type != constants.figureType.none) {
+    if (currentFigure.type == constants.figureType.none) return;
+
+    if (gameState == constants.gameState.play) {
       const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
 
       let newRotation = currentFigure.rotation + 1;
@@ -211,7 +219,10 @@ class Storage {
       }
 
       let iteration = 0;
-      while ((await this.handleFigure(false, newRotation)) && iteration < figureTypeData.rotations.length) {
+      while (
+        iteration < figureTypeData.rotations.length &&
+        this.checkCurrentFigureTouchdown({ customRotation: newRotation })
+      ) {
         newRotation++;
         if (newRotation > figureTypeData.rotations.length - 1) {
           newRotation = 0;
@@ -231,27 +242,23 @@ class Storage {
         cellsH = point[1] > cellsH ? point[1] : cellsH;
       });
 
-      runInAction(() => {
-        currentFigure.cells.width = cellsW;
-        currentFigure.cells.height = cellsH;
-        currentFigure.rotation = newRotation;
-      });
-
+      currentFigure.cells.width = cellsW;
+      currentFigure.cells.height = cellsH;
+      currentFigure.rotation = newRotation;
       this.generateCupView();
     }
   };
 
-  dropCurrentFigure = async () => {
+  dropCurrentFigure = () => {
     const { gameModeData } = this;
     const { addScoreTable, cup, currentFigure } = gameModeData;
-    const { focusedMenu } = this.observables;
+    const { gameState } = this.observables;
 
-    if (focusedMenu == constants.menu.gamePlay) {
+    if (currentFigure.type == constants.figureType.none) return;
+
+    if (gameState == constants.gameState.play) {
       let y = currentFigure.y;
-      while (
-        !(await this.handleFigure(false, currentFigure.rotation, currentFigure.x, y)) &&
-        y < cup.height - currentFigure.cells.height
-      ) {
+      while (y < cup.height - currentFigure.cells.height && !this.checkCurrentFigureTouchdown({ customY: y })) {
         y++;
       }
       y--;
@@ -265,198 +272,172 @@ class Storage {
     }
   };
 
-  speedUpFalling = () => {
-    const { focusedMenu } = this.observables;
+  speedUpFallingCurrentFigure = () => {
+    const { gameModeData } = this;
+    const { currentFigure } = gameModeData;
+    const { gameState } = this.observables;
 
-    if (focusedMenu == constants.menu.gamePlay) {
+    if (currentFigure.type == constants.figureType.none) return;
+
+    if (gameState == constants.gameState.play) {
       this.callNextGameLoopImmediately();
     }
   };
 
-  setPause = (toggle, state) => {
-    const { focusedMenu } = this.observables;
+  setPause = ({ toggle, state }) => {
+    const { gameState } = this.observables;
 
-    if (focusedMenu == constants.menu.gamePlay || focusedMenu == constants.menu.pause) {
+    if (gameState == constants.gameState.play || gameState == constants.gameState.pause) {
       if (toggle) {
-        this.observables.focusedMenu =
-          focusedMenu == constants.menu.gamePlay ? constants.menu.pause : constants.menu.gamePlay;
+        this.observables.gameState =
+          gameState == constants.gameState.play ? constants.gameState.pause : constants.gameState.play;
       } else {
-        this.observables.focusedMenu = state ? constants.menu.pause : constants.menu.gamePlay;
+        this.observables.gameState = state ? constants.gameState.pause : constants.gameState.play;
       }
+
+      this.callNextGameLoopImmediately();
     }
   };
 
-  generateNextFigure = () => {
-    const { gameModeData, cellsMaxSize } = this;
+  generateFigureData = ({ type, rotation }) => {
+    const { cellsMaxSize } = this;
 
-    gameModeData.currentFigure.type = gameModeData.nextFigureType;
-    gameModeData.nextFigureType = this.generateFigureType();
+    const figureTypeData = constants.figureType.figureTypeData[type];
+    if (!figureTypeData) return false;
 
-    const { currentFigure, nextFigureType } = gameModeData;
-
-    const nextFigureTypeData = constants.figureType.figureTypeData[nextFigureType];
-    const nextFigureData = nextFigureTypeData.rotations[0];
-    const nextFigureCellData = nextFigureTypeData.cellData;
+    const figureData = figureTypeData.rotations[rotation];
+    const figureCellData = figureTypeData.cellData;
 
     const cellsData = [];
     this.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
-    for (let pIndex = 0; pIndex < nextFigureData.length; pIndex++) {
-      const [pX, pY] = nextFigureData[pIndex];
-      cellsData[pY][pX] = {
-        ...cellsData[pY][pX],
-        ...nextFigureCellData,
-      };
-    }
-
-    const currentFigureTypeData = constants.figureType.figureTypeData[currentFigure.type];
-    const currentFigureData = currentFigureTypeData.rotations[0];
     let cellsW = 0;
     let cellsH = 0;
-    currentFigureData.forEach((point) => {
-      cellsW = point[0] > cellsW ? point[0] : cellsW;
-      cellsH = point[1] > cellsH ? point[1] : cellsH;
-    });
+    for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
+      const [pX, pY] = figureData[pIndex];
+      cellsData[pY][pX] = {
+        ...cellsData[pY][pX],
+        ...figureCellData,
+      };
+      cellsW = pX > cellsW ? pX : cellsW;
+      cellsH = pY > cellsH ? pY : cellsH;
+    }
 
-    currentFigure.cells.width = cellsW;
-    currentFigure.cells.height = cellsH;
-    currentFigure.cells.data = cellsData;
-    currentFigure.rotation = 0;
+    return { cellsData, cellsW, cellsH };
   };
 
-  spawnFigure = async (figureType, rotation, x, y) => {
+  generateCurrentFigure = (type) => {
     const { gameModeData } = this;
-    const { addScoreTable, cup, currentFigure } = gameModeData;
+    const { currentFigure } = gameModeData;
+
+    if (type == undefined) {
+      type = this.generateFigureType();
+    }
+
+    currentFigure.rotation = 0;
+    const result = this.generateFigureData({
+      type,
+      rotation: currentFigure.rotation,
+    });
+    if (!result) return false;
+
+    const { cellsData, cellsW, cellsH } = result;
+    currentFigure.type = type;
+    currentFigure.cells.data = cellsData;
+    currentFigure.cells.width = cellsW;
+    currentFigure.cells.height = cellsH;
+  };
+
+  spawnFigure = (figureType, rotation, x, y) => {
+    const { gameModeData } = this;
+    const { cup } = gameModeData;
     const figureTypeData = constants.figureType.figureTypeData[figureType];
     const figureData = figureTypeData.rotations[rotation];
     const figureCellData = figureTypeData.cellData;
 
-    runInAction(() => {
-      for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
-        let pX = figureData[pIndex][0] + x;
-        let pY = figureData[pIndex][1] + y;
+    for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
+      let pX = figureData[pIndex][0] + x;
+      let pY = figureData[pIndex][1] + y;
 
-        cup.data[pY][pX] = {
-          ...cup.data[pY][pX],
-          ...figureCellData,
-        };
-      }
-    });
+      cup.data[pY][pX] = {
+        ...cup.data[pY][pX],
+        ...figureCellData,
+      };
+    }
+    this.generateCupView();
+  };
 
-    // Ищем линии
-    const fullRows = [];
+  spawnCurrentFigure = () => {
+    const { gameModeData } = this;
+    const { currentFigure } = gameModeData;
+
+    const { type: figureType, lastLoopRotation: rotation, prevX: x, prevY: y } = currentFigure;
+    currentFigure.type = constants.figureType.none;
+
+    this.spawnFigure(figureType, rotation, x, y);
+  };
+
+  clearFullLines = async () => {
+    const { gameModeData } = this;
+    const { addScoreTable, cup, currentFigure } = gameModeData;
+
+    const fullLinesY = [];
     for (let _y = cup.height - 1; _y >= 0; _y--) {
-      let cellRowCount = 0;
-      for (let _x = 0; _x < cup.width; _x++) {
-        if (cup.data[_y][_x].type > 0) {
-          cellRowCount++;
-        }
-      }
-
-      if (cellRowCount >= cup.width) {
-        fullRows.push(_y);
+      if (cup.data[_y].every((cell) => cell.type > 0)) {
+        fullLinesY.push(_y);
       }
     }
 
-    if (fullRows.length) {
-      console.log({ fullRows });
-
-      this.clearGameLoopTimeout();
-      currentFigure.type = constants.figureType.none;
-      this.generateCupView();
-
-      await eventHelpers.sleep(300);
-
-      runInAction(() => {
-        for (let rIndex = 0; rIndex < fullRows.length; rIndex++) {
-          for (let wIndex = 0; wIndex < cup.width; wIndex++) {
-            cup.data[fullRows[rIndex]][wIndex].type = 0;
-          }
-        }
-      });
-
-      let addScore = addScoreTable.clearedRows[fullRows.length - 1];
-      if (fullRows.length > addScoreTable.clearedRows.length) {
-        addScore = addScoreTable.clearedRows[addScoreTable.clearedRows.length - 1];
+    if (fullLinesY.length) {
+      // console.log({ fullLinesY });
+      let clearedLinesScoreIndex = fullLinesY.length - 1;
+      if (clearedLinesScoreIndex > addScoreTable.clearedRows.length - 1) {
+        clearedLinesScoreIndex = addScoreTable.clearedRows.length - 1;
       }
-      this.addScore(addScore);
+      const scoreToAdd = addScoreTable.clearedRows[clearedLinesScoreIndex] || 0;
+      this.addScore(scoreToAdd);
 
-      this.generateCupView();
-
+      runInAction(() => {
+        fullLinesY.forEach((_y) => {
+          cup.data[_y].forEach((cell) => {
+            cell.type = 0;
+          });
+        });
+        this.generateCupView();
+      });
       await eventHelpers.sleep(300);
 
       runInAction(() => {
-        for (let rIndex = 0; rIndex < fullRows.length; rIndex++) {
-          cup.data.splice(fullRows[rIndex], 1);
-        }
-        for (let rIndex = 0; rIndex < fullRows.length; rIndex++) {
+        fullLinesY.forEach((_y, yIndex) => {
+          cup.data.splice(_y + yIndex, 1);
           cup.data.unshift(this.createRow(cup.width));
-        }
+        });
+        this.generateCupView();
       });
-
-      this.setGameLoopTimeout();
+      await eventHelpers.sleep(300);
     }
   };
 
-  handleFigure = async (gameUpdate, rotation, x, y, firstStep) => {
+  checkCurrentFigureTouchdown = ({ customX, customY, customRotation } = {}) => {
     const { gameModeData } = this;
-    const { addScoreTable, currentFigure, cup } = gameModeData;
-    let _x = currentFigure.x;
-    let _y = currentFigure.y;
-    let _rotation = currentFigure.rotation;
+    const { currentFigure, cup } = gameModeData;
 
-    if (currentFigure.type != constants.figureType.none) {
-      if (!isNaN(rotation)) {
-        _rotation = rotation;
-      }
+    if (currentFigure.type == constants.figureType.none) return false;
 
-      if (!isNaN(x)) {
-        _x = x;
-      }
+    const _x = customX == undefined ? currentFigure.x : customX;
+    const _y = customY == undefined ? currentFigure.y : customY;
+    const _rotation = customRotation == undefined ? currentFigure.rotation : customRotation;
 
-      if (!isNaN(y)) {
-        _y = y;
-      }
+    const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
+    const figureData = figureTypeData.rotations[_rotation];
 
-      const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
-      const figureData = figureTypeData.rotations[_rotation];
-      let touchdown = false;
+    const isTouchdown = figureData.some(([_pX, _pY]) => {
+      const pX = _pX + _x;
+      const pY = _pY + _y;
+      return pX >= cup.width || pY >= cup.height || (cup.data[pY]?.[pX] && cup.data[pY][pX].type > 0);
+    });
+    // console.log({isTouchdown});
 
-      for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
-        let pX = figureData[pIndex][0] + _x;
-        let pY = figureData[pIndex][1] + _y;
-
-        if (pX >= cup.width || pY >= cup.height || (cup.data[pY]?.[pX] && cup.data[pY][pX].type > 0)) {
-          touchdown = true;
-          break;
-        }
-      }
-      // console.log("touchdown", touchdown);
-
-      if (gameUpdate) {
-        if (touchdown) {
-          if (firstStep) {
-            this.observables.focusedMenu = constants.menu.gameOver;
-          } else {
-            this.addScore(addScoreTable.figurePlacement);
-
-            await this.spawnFigure(
-              currentFigure.type,
-              currentFigure.lastLoopRotation,
-              currentFigure.prevX,
-              currentFigure.prevY
-            );
-
-            gameModeData.currentFigure.type = constants.figureType.none;
-            this.generateCupView();
-            this.callNextGameLoopImmediately();
-          }
-        } else {
-          this.generateCupView();
-        }
-      } else {
-        return touchdown;
-      }
-    }
+    return isTouchdown;
   };
 
   generateCupView = () => {
@@ -497,6 +478,7 @@ class Storage {
     const { gameModeData } = this;
     const { gameLoopTimeoutMs } = gameModeData;
 
+    // console.log(`${gameLoopTimeoutMs}ms - next game loop`);
     this.nonObservables.gameLoopTimeout = setTimeout(() => {
       this.gameLoop();
     }, gameLoopTimeoutMs);
@@ -516,13 +498,11 @@ class Storage {
 
   gameLoop = async () => {
     const { gameModeData } = this;
-    const { cup, currentFigure } = gameModeData;
-    const { focusedMenu } = this.observables;
+    const { addScoreTable, cup, currentFigure } = gameModeData;
+    const { gameState } = this.observables;
     // console.log("game loop");
 
-    this.clearGameLoopTimeout();
-
-    if (focusedMenu == constants.menu.gamePlay) {
+    if (gameState == constants.gameState.play) {
       let nextX = currentFigure.x;
       let nextY = currentFigure.y;
 
@@ -539,17 +519,44 @@ class Storage {
         currentFigure.prevY = currentFigure.y;
         currentFigure.x = nextX;
         currentFigure.y = nextY;
+        this.generateCupView();
+      });
 
-        if (currentFigure.type == constants.figureType.none) {
-          this.generateNextFigure();
-          await this.handleFigure(true, "a", "a", "a", true);
-          this.moveCurrentFigureByMouse();
-        } else {
-          await this.handleFigure(true);
-        }
+      if (currentFigure.type == constants.figureType.none) {
+        runInAction(() => {
+          console.log("before", {
+            nextFigureType: Object.entries(constants.figureType).find((_) => _[1] == gameModeData.nextFigureType)[0],
+          });
+          this.generateCurrentFigure(gameModeData.nextFigureType);
+          gameModeData.nextFigureType = this.generateFigureType();
+          console.log("after", {
+            nextFigureType: Object.entries(constants.figureType).find((_) => _[1] == gameModeData.nextFigureType)[0],
+          });
+
+          if (this.checkCurrentFigureTouchdown()) {
+            this.generateCupView();
+            this.observables.gameState = constants.gameState.over;
+          } else {
+            const cupViewGenerated = this.moveCurrentFigureByMouse();
+            if (!cupViewGenerated) {
+              this.generateCupView();
+            }
+          }
+        });
 
         this.setGameLoopTimeout();
-      });
+      } else {
+        if (this.checkCurrentFigureTouchdown()) {
+          this.addScore(addScoreTable.figurePlacement);
+          this.spawnCurrentFigure();
+          await eventHelpers.sleep(300);
+
+          await this.clearFullLines();
+          this.callNextGameLoopImmediately();
+        } else {
+          this.setGameLoopTimeout();
+        }
+      }
     } else {
       this.setGameLoopTimeout();
     }

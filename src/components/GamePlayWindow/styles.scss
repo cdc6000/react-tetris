@@ -1,0 +1,149 @@
+@use "../PauseWindow/styles.scss" as PauseWindow;
+@use "../GameOverWindow/styles.scss" as GameOverWindow;
+
+@mixin main {
+  .game-play-window {
+    --next-figure-cell-size: 20px;
+    --cup-width: calc(var(--cell-size) * var(--cup-cells-hor));
+    --cup-height: calc(var(--cell-size) * var(--cup-cells-ver));
+    display: flex;
+
+    .figure-cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      display: inline-block;
+      margin: -3px 0 0 0;
+      box-sizing: border-box;
+      border: 5px solid transparent;
+
+      &.empty {
+        background-color: #bbb;
+        border: none;
+        border-right: 1px solid #999;
+
+        &:last-child {
+          border-right: none;
+        }
+
+        &.hl {
+          background-color: #aaa;
+        }
+      }
+
+      &.cyan {
+        background-color: #00f0f0;
+        border-color: #b3fbfb #34e0e0 #007878 #00d8d8;
+      }
+
+      &.blue {
+        background-color: #0000f0;
+        border-color: #b3b3fb #0000d8 #000078 #5454e5;
+      }
+
+      &.orange {
+        background-color: #f0a000;
+        border-color: #fbe3b3 #d89000 #785000 #d89000;
+      }
+
+      &.yellow {
+        background-color: #f0f000;
+        border-color: #fbfbb3 #d8d800 #787800 #d8d800;
+      }
+
+      &.green {
+        background-color: #00f000;
+        border-color: #b3fbb3 #00d800 #007800 #00d800;
+      }
+
+      &.purple {
+        background-color: #a000f0;
+        border-color: #e3b3fb #9000d8 #500078 #9000d8;
+      }
+
+      &.red {
+        background-color: #f00000;
+        border-color: #fbb3b3 #d80000 #780000 #d80000;
+      }
+    }
+
+    .left-col-wrapper,
+    .right-col-wrapper {
+      width: 50%;
+    }
+
+    .left-col-wrapper {
+      .control-tips-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 10px;
+        box-sizing: border-box;
+
+        .header {
+          font-weight: bold;
+        }
+
+        .item {
+
+        }
+      }
+    }
+
+    .right-col-wrapper {
+      .game-state-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px;
+        box-sizing: border-box;
+
+        .score-header,
+        .level-header,
+        .next-figure-header {
+          font-weight: bold;
+        }
+
+        .next-figure {
+          width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));
+          height: calc(var(--next-figure-cell-size) * var(--next-figure-cells-ver));
+          margin: 0 0 0 10px;
+
+          .figure-cell {
+            width: var(--next-figure-cell-size);
+            height: var(--next-figure-cell-size);
+
+            &.empty {
+              background-color: transparent;
+              border: none;
+              border-right: none;
+            }
+          }
+        }
+      }
+    }
+
+    .cup-wrapper {
+      flex-shrink: 0;
+      position: relative;
+
+      .cup {
+        display: inline-block;
+        width: var(--cup-width);
+        height: var(--cup-height);
+        outline: 1px solid #000;
+        padding: 3px 0 0 0;
+        box-sizing: border-box;
+      }
+
+      @include PauseWindow.main;
+      @include GameOverWindow.main;
+    }
+
+    &.h {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+}
