@@ -36,6 +36,14 @@ export default observer(
       gameStore.setGameLoopTimeout();
     }
 
+    componentWillUnmount() {
+      document.removeEventListener("keydown", this.onKeyPress);
+      document.removeEventListener("mousemove", this.onMouseMove);
+      document.removeEventListener("mousedown", this.onMouseDown);
+      document.removeEventListener("contextmenu", this.onContextMenu);
+      document.removeEventListener("wheel", this.onWheel);
+    }
+
     //
 
     onKeyPress = (ev) => {
@@ -131,7 +139,7 @@ export default observer(
     render() {
       const { show, gameStore } = this.props;
       const { gameModeData, cellsMaxSize } = gameStore;
-      const { cup, currentFigure, score, level } = gameModeData;
+      const { score, level, cup, currentFigure } = gameModeData;
       const { gameState } = gameStore.observables;
       const { cellSizePx } = gameStore.nonObservables;
 
@@ -177,12 +185,14 @@ export default observer(
             >
               {cup.view.map((cupRow, rIndex) => {
                 return cupRow.map((cupCell, cIndex) => {
+                  const { type, isCurrentFigure, isCurrentFigureColumn, isShadowFigure } = cupCell;
+                  const cellTypeClass = constants.cellTypes[type].class;
                   return (
                     <div
                       key={rIndex + "-" + cIndex}
-                      className={`figure-cell ${constants.cellTypes[cupCell.type].class}${
-                        cIndex >= currentFigure.x && cIndex <= currentFigure.x + currentFigure.cells.width ? " hl" : ""
-                      }`}
+                      className={`figure-cell ${cellTypeClass}${isCurrentFigure ? " current-figure" : ""}${
+                        isCurrentFigureColumn ? " current-figure-column" : ""
+                      }${isShadowFigure ? " shadow-figure" : ""}`}
                     />
                   );
                 });

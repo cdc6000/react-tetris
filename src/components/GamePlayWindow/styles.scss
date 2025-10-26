@@ -9,60 +9,70 @@
     display: flex;
 
     .figure-cell {
+      position: relative;
+      display: inline-block;
+      vertical-align: top;
       width: var(--cell-size);
       height: var(--cell-size);
-      display: inline-block;
-      margin: -3px 0 0 0;
-      box-sizing: border-box;
-      border: 5px solid transparent;
 
-      &.empty {
-        background-color: #bbb;
-        border: none;
-        border-right: 1px solid #999;
-
-        &:last-child {
-          border-right: none;
-        }
-
-        &.hl {
-          background-color: #aaa;
-        }
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        border: 5px solid transparent;
+        box-sizing: border-box;
       }
 
       &.cyan {
-        background-color: #00f0f0;
-        border-color: #b3fbfb #34e0e0 #007878 #00d8d8;
+        &::after {
+          background-color: #00f0f0;
+          border-color: #b3fbfb #34e0e0 #007878 #00d8d8;
+        }
       }
 
       &.blue {
-        background-color: #0000f0;
-        border-color: #b3b3fb #0000d8 #000078 #5454e5;
+        &::after {
+          background-color: #0000f0;
+          border-color: #b3b3fb #0000d8 #000078 #5454e5;
+        }
       }
 
       &.orange {
-        background-color: #f0a000;
-        border-color: #fbe3b3 #d89000 #785000 #d89000;
+        &::after {
+          background-color: #f0a000;
+          border-color: #fbe3b3 #d89000 #785000 #d89000;
+        }
       }
 
       &.yellow {
-        background-color: #f0f000;
-        border-color: #fbfbb3 #d8d800 #787800 #d8d800;
+        &::after {
+          background-color: #f0f000;
+          border-color: #fbfbb3 #d8d800 #787800 #d8d800;
+        }
       }
 
       &.green {
-        background-color: #00f000;
-        border-color: #b3fbb3 #00d800 #007800 #00d800;
+        &::after {
+          background-color: #00f000;
+          border-color: #b3fbb3 #00d800 #007800 #00d800;
+        }
       }
 
       &.purple {
-        background-color: #a000f0;
-        border-color: #e3b3fb #9000d8 #500078 #9000d8;
+        &::after {
+          background-color: #a000f0;
+          border-color: #e3b3fb #9000d8 #500078 #9000d8;
+        }
       }
 
       &.red {
-        background-color: #f00000;
-        border-color: #fbb3b3 #d80000 #780000 #d80000;
+        &::after {
+          background-color: #f00000;
+          border-color: #fbb3b3 #d80000 #780000 #d80000;
+        }
       }
     }
 
@@ -85,7 +95,6 @@
         }
 
         .item {
-
         }
       }
     }
@@ -112,12 +121,6 @@
           .figure-cell {
             width: var(--next-figure-cell-size);
             height: var(--next-figure-cell-size);
-
-            &.empty {
-              background-color: transparent;
-              border: none;
-              border-right: none;
-            }
           }
         }
       }
@@ -126,14 +129,40 @@
     .cup-wrapper {
       flex-shrink: 0;
       position: relative;
+      border-width: 10px 0 10px 0;
+      border-style: solid;
+      border-color: transparent;
 
       .cup {
         display: inline-block;
         width: var(--cup-width);
         height: var(--cup-height);
         outline: 1px solid #000;
-        padding: 3px 0 0 0;
         box-sizing: border-box;
+
+        .figure-cell {
+          &.empty {
+            background-color: #bbb;
+
+            &::after {
+              border: none;
+              border-right: 1px solid #999;
+            }
+
+            &.current-figure-column {
+              background-color: #aaa;
+            }
+          }
+
+          &.shadow-figure:not(.current-figure) {
+            background-color: #bbb;
+
+            &::after {
+              opacity: 0.3;
+            }
+          }
+          
+        }
       }
 
       @include PauseWindow.main;

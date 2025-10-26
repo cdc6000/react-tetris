@@ -40,6 +40,10 @@ class Storage {
             figurePlacement: 10,
             dropHeightMult: 1,
           },
+          score: 0,
+          level: 0,
+          gameLoopTimeoutMs: 1000,
+          randomFigureTypePool: [],
 
           cup: {
             width: 10,
@@ -66,13 +70,8 @@ class Storage {
               data: [],
             },
           },
-
           nextFigureType: constants.figureType.none,
-
-          score: 0,
-          level: 0,
-
-          gameLoopTimeoutMs: 1000,
+          shadowFigureY: 0,
         },
       },
     };
@@ -92,11 +91,14 @@ class Storage {
       gameStart: action,
       gameOver: action,
       addScore: action,
+      setPause: action,
+
       moveCurrentFigureAlongX: action,
       rotateCurrentFigure: action,
       dropCurrentFigure: action,
-      setPause: action,
       generateCurrentFigure: action,
+      generateNextFigureType: action,
+
       spawnFigure: action,
       generateCupView: action,
 
@@ -148,8 +150,9 @@ class Storage {
       this.generateCurrentFigure();
       currentFigure.x = cup.figureStart.x;
       currentFigure.y = cup.figureStart.y;
+      this.calcShadowFigureY();
 
-      gameModeData.nextFigureType = this.generateFigureType();
+      this.generateNextFigureType();
 
       this.generateCupView();
     }
@@ -245,6 +248,7 @@ class Storage {
       }
 
       currentFigure.x = _x;
+      this.calcShadowFigureY();
       this.generateCupView();
       return true;
     }
@@ -299,6 +303,7 @@ class Storage {
           }
 
           currentFigure.x = newX;
+          this.calcShadowFigureY();
           this.generateCupView();
         } else {
           cupViewGenerated = this.moveCurrentFigureByMouse();
@@ -368,6 +373,26 @@ class Storage {
     currentFigure.cells.height = cellsH;
   };
 
+  generateNextFigureType = () => {
+    const { gameModeData } = this;
+    gameModeData.nextFigureType = this.generateFigureType();
+  };
+
+  calcShadowFigureY = () => {
+    const { gameModeData } = this;
+    const { cup, currentFigure } = gameModeData;
+
+    if (currentFigure.type == constants.figureType.none) return false;
+
+    let y = currentFigure.y;
+    while (!this.checkFigureOverlap({ y })) {
+      y++;
+    }
+    y--;
+
+    gameModeData.shadowFigureY = y;
+  };
+
   //
 
   setGameLoopTimeout = () => {
@@ -410,7 +435,9 @@ class Storage {
           this.generateCurrentFigure({ type: gameModeData.nextFigureType });
           currentFigure.x = cup.figureStart.x;
           currentFigure.y = cup.figureStart.y;
-          gameModeData.nextFigureType = this.generateFigureType();
+          this.calcShadowFigureY();
+
+          this.generateNextFigureType();
 
           if (this.checkFigureOverlap()) {
             this.generateCupView();
@@ -452,9 +479,28 @@ class Storage {
   //
 
   generateFigureType = () => {
+    // return this.generateFigureTypeRandomPure();
+    return this.generateFigureTypeRandomFromPool(3);
+  };
+
+  generateFigureTypeRandomPure = () => {
     const { gameModeData } = this;
     const index = Math.round(Math.random() * (gameModeData.figureTypesAllowed.length - 1));
     return gameModeData.figureTypesAllowed[index];
+  };
+
+  generateFigureTypeRandomFromPool = (figureTypeRepeats = 1) => {
+    const { gameModeData } = this;
+    if (!gameModeData.randomFigureTypePool.length) {
+      gameModeData.figureTypesAllowed.forEach((type) => {
+        for (let i = 0; i < figureTypeRepeats; i++) {
+          gameModeData.randomFigureTypePool.push(type);
+        }
+      });
+    }
+    const index = Math.round(Math.random() * (gameModeData.randomFigureTypePool.length - 1));
+    const type = gameModeData.randomFigureTypePool.splice(index, 1)[0];
+    return type;
   };
 
   createCell = () => {
@@ -542,15 +588,19 @@ class Storage {
 
   generateCupView = () => {
     const { gameModeData } = this;
-    const { cup, currentFigure } = gameModeData;
+    const { cup, currentFigure, shadowFigureY } = gameModeData;
 
     cup.view = [];
     for (let _y = 0; _y < cup.height; _y++) {
       const cupRow = [];
       for (let _x = 0; _x < cup.width; _x++) {
-        cupRow.push({ ...cup.data[_y][_x] });
-      }
+        const cellDataToAdd = {};
+        if (_x >= currentFigure.x && _x <= currentFigure.x + currentFigure.cells.width) {
+          cellDataToAdd.isCurrentFigureColumn = true;
+        }
 
+        cupRow.push({ ...cup.data[_y][_x], ...cellDataToAdd });
+      }
       cup.view.push(cupRow);
     }
 
@@ -563,11 +613,20 @@ class Storage {
         let [_pX, _pY] = figureData[pIndex];
         let pX = _pX + currentFigure.x;
         let pY = _pY + currentFigure.y;
-
         if (cup.view[pY]?.[pX]) {
           cup.view[pY][pX] = {
             ...cup.view[pY][pX],
             ...figureCellData,
+            isCurrentFigure: true,
+          };
+        }
+
+        pY = _pY + shadowFigureY;
+        if (cup.view[pY]?.[pX]) {
+          cup.view[pY][pX] = {
+            ...cup.view[pY][pX],
+            ...figureCellData,
+            isShadowFigure: true,
           };
         }
       }
