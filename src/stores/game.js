@@ -56,10 +56,10 @@ class Storage {
             type: constants.figureType.none,
             x: 0,
             y: 0,
+            rotation: 0,
             prevX: 0,
             prevY: 0,
-            rotation: 0,
-            lastLoopRotation: 0,
+            prevRotation: 0,
             cells: {
               width: 0,
               height: 0,
@@ -90,6 +90,7 @@ class Storage {
 
       // action
       gameStart: action,
+      gameOver: action,
       addScore: action,
       moveCurrentFigureAlongX: action,
       rotateCurrentFigure: action,
@@ -140,14 +141,23 @@ class Storage {
     const { gameMode } = this.observables;
 
     if (gameMode == constants.gameMode.classic) {
-      this.createGrid(gameModeData.currentFigure.cells.data, cellsMaxSize.width, cellsMaxSize.height);
-      this.createGrid(gameModeData.cup.data, gameModeData.cup.width, gameModeData.cup.height);
+      const { cup, currentFigure } = gameModeData;
+      this.createGrid(cup.data, cup.width, cup.height);
 
+      this.createGrid(currentFigure.cells.data, cellsMaxSize.width, cellsMaxSize.height);
       this.generateCurrentFigure();
+      currentFigure.x = cup.figureStart.x;
+      currentFigure.y = cup.figureStart.y;
+
       gameModeData.nextFigureType = this.generateFigureType();
 
       this.generateCupView();
     }
+  };
+
+  gameOver = () => {
+    this.clearGameLoopTimeout();
+    this.observables.gameState = constants.gameState.over;
   };
 
   addScore = (scoreToAdd) => {
@@ -171,7 +181,37 @@ class Storage {
     }
   };
 
-  moveCurrentFigureAlongX = (newX) => {
+  setPause = ({ toggle, state }) => {
+    const { play, pause } = constants.gameState;
+    if (this.observables.gameState == play || this.observables.gameState == pause) {
+      let stateChanged = false;
+      if (toggle) {
+        this.observables.gameState = this.observables.gameState == play ? pause : play;
+        stateChanged = true;
+      } else {
+        const newState = state ? pause : play;
+        if (this.observables.gameState != newState) {
+          this.observables.gameState = newState;
+          stateChanged = true;
+        }
+      }
+
+      if (stateChanged) {
+        if (this.observables.gameState == play) {
+          this.setGameLoopTimeout();
+        } else {
+          this.clearGameLoopTimeout();
+        }
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  //
+
+  moveCurrentFigureAlongX = (targetX) => {
     const { gameModeData } = this;
     const { cup, currentFigure } = gameModeData;
     const { gameState } = this.observables;
@@ -179,17 +219,34 @@ class Storage {
     if (currentFigure.type == constants.figureType.none) return false;
 
     if (gameState == constants.gameState.play) {
-      if (
-        newX != currentFigure.x &&
-        newX >= 0 &&
-        newX + currentFigure.cells.width <= cup.width - 1 &&
-        !this.checkCurrentFigureTouchdown({ customX: newX })
-      ) {
-        currentFigure.prevX = currentFigure.x;
-        currentFigure.x = newX;
-        this.generateCupView();
-        return true;
+      let _x = currentFigure.x;
+      if (targetX < _x) {
+        if (targetX < 0) {
+          targetX = 0;
+        }
+
+        while (!this.checkFigureOverlap({ x: _x }) && _x > targetX) {
+          _x--;
+        }
+        if (this.checkFigureOverlap({ x: _x })) {
+          _x++;
+        }
+      } else {
+        if (targetX > cup.width - currentFigure.cells.width - 1) {
+          targetX = cup.width - currentFigure.cells.width - 1;
+        }
+
+        while (!this.checkFigureOverlap({ x: _x }) && _x < targetX) {
+          _x++;
+        }
+        if (this.checkFigureOverlap({ x: _x })) {
+          _x--;
+        }
       }
+
+      currentFigure.x = _x;
+      this.generateCupView();
+      return true;
     }
 
     return false;
@@ -199,13 +256,13 @@ class Storage {
     const { lastMouseX, cellSizePx } = this.nonObservables;
     if (!lastMouseX) return false;
 
-    const newX = Math.floor(lastMouseX / cellSizePx);
-    return this.moveCurrentFigureAlongX(newX);
+    const targetX = Math.floor(lastMouseX / cellSizePx);
+    return this.moveCurrentFigureAlongX(targetX);
   };
 
   rotateCurrentFigure = () => {
     const { gameModeData } = this;
-    const { currentFigure } = gameModeData;
+    const { cup, currentFigure } = gameModeData;
     const { gameState } = this.observables;
 
     if (currentFigure.type == constants.figureType.none) return;
@@ -218,34 +275,39 @@ class Storage {
         newRotation = 0;
       }
 
-      let iteration = 0;
-      while (
-        iteration < figureTypeData.rotations.length &&
-        this.checkCurrentFigureTouchdown({ customRotation: newRotation })
-      ) {
-        newRotation++;
-        if (newRotation > figureTypeData.rotations.length - 1) {
-          newRotation = 0;
+      if (newRotation != currentFigure.rotation) {
+        this.generateCurrentFigure({ type: currentFigure.type, rotation: newRotation });
+
+        let cupViewGenerated = false;
+        if (this.checkFigureOverlap()) {
+          let newX = currentFigure.x;
+          if (currentFigure.x <= cup.width / 2) {
+            newX++;
+            while (this.checkFigureOverlap({ x: newX }) && newX < cup.width - currentFigure.cells.width - 1) {
+              newX++;
+            }
+          } else {
+            newX--;
+            while (this.checkFigureOverlap({ x: newX }) && newX > 0) {
+              newX--;
+            }
+          }
+
+          if (this.checkFigureOverlap({ x: newX })) {
+            this.gameOver();
+            return;
+          }
+
+          currentFigure.x = newX;
+          this.generateCupView();
+        } else {
+          cupViewGenerated = this.moveCurrentFigureByMouse();
         }
-        iteration++;
-      }
-      if (iteration == figureTypeData.rotations.length) {
-        newRotation = currentFigure.rotation;
-      }
 
-      // Считаем ширину и высоту фигуры в новом повороте
-      const figureData = figureTypeData.rotations[newRotation];
-      let cellsW = 0;
-      let cellsH = 0;
-      figureData.forEach((point) => {
-        cellsW = point[0] > cellsW ? point[0] : cellsW;
-        cellsH = point[1] > cellsH ? point[1] : cellsH;
-      });
-
-      currentFigure.cells.width = cellsW;
-      currentFigure.cells.height = cellsH;
-      currentFigure.rotation = newRotation;
-      this.generateCupView();
+        if (!cupViewGenerated) {
+          this.generateCupView();
+        }
+      }
     }
   };
 
@@ -258,7 +320,7 @@ class Storage {
 
     if (gameState == constants.gameState.play) {
       let y = currentFigure.y;
-      while (y < cup.height - currentFigure.cells.height && !this.checkCurrentFigureTouchdown({ customY: y })) {
+      while (!this.checkFigureOverlap({ y })) {
         y++;
       }
       y--;
@@ -284,48 +346,7 @@ class Storage {
     }
   };
 
-  setPause = ({ toggle, state }) => {
-    const { gameState } = this.observables;
-
-    if (gameState == constants.gameState.play || gameState == constants.gameState.pause) {
-      if (toggle) {
-        this.observables.gameState =
-          gameState == constants.gameState.play ? constants.gameState.pause : constants.gameState.play;
-      } else {
-        this.observables.gameState = state ? constants.gameState.pause : constants.gameState.play;
-      }
-
-      this.callNextGameLoopImmediately();
-    }
-  };
-
-  generateFigureData = ({ type, rotation }) => {
-    const { cellsMaxSize } = this;
-
-    const figureTypeData = constants.figureType.figureTypeData[type];
-    if (!figureTypeData) return false;
-
-    const figureData = figureTypeData.rotations[rotation];
-    const figureCellData = figureTypeData.cellData;
-
-    const cellsData = [];
-    this.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
-    let cellsW = 0;
-    let cellsH = 0;
-    for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
-      const [pX, pY] = figureData[pIndex];
-      cellsData[pY][pX] = {
-        ...cellsData[pY][pX],
-        ...figureCellData,
-      };
-      cellsW = pX > cellsW ? pX : cellsW;
-      cellsH = pY > cellsH ? pY : cellsH;
-    }
-
-    return { cellsData, cellsW, cellsH };
-  };
-
-  generateCurrentFigure = (type) => {
+  generateCurrentFigure = ({ type, rotation = 0 } = {}) => {
     const { gameModeData } = this;
     const { currentFigure } = gameModeData;
 
@@ -333,7 +354,7 @@ class Storage {
       type = this.generateFigureType();
     }
 
-    currentFigure.rotation = 0;
+    currentFigure.rotation = rotation;
     const result = this.generateFigureData({
       type,
       rotation: currentFigure.rotation,
@@ -346,6 +367,118 @@ class Storage {
     currentFigure.cells.width = cellsW;
     currentFigure.cells.height = cellsH;
   };
+
+  //
+
+  setGameLoopTimeout = () => {
+    const { gameModeData } = this;
+    const { gameLoopTimeoutMs } = gameModeData;
+
+    // console.log(`${gameLoopTimeoutMs}ms - next game loop`);
+    if (!this.nonObservables.gameLoopTimeout) {
+      this.nonObservables.gameLoopTimeout = setTimeout(() => {
+        this.nonObservables.gameLoopTimeout = undefined;
+        this.gameLoop();
+      }, gameLoopTimeoutMs);
+    }
+  };
+
+  clearGameLoopTimeout = () => {
+    if (this.nonObservables.gameLoopTimeout) {
+      clearTimeout(this.nonObservables.gameLoopTimeout);
+      this.nonObservables.gameLoopTimeout = undefined;
+    }
+  };
+
+  callNextGameLoopImmediately = () => {
+    this.clearGameLoopTimeout();
+    this.nonObservables.gameLoopTimeout = setTimeout(() => {
+      this.nonObservables.gameLoopTimeout = undefined;
+      this.gameLoop();
+    }, 1);
+  };
+
+  gameLoop = async () => {
+    const { gameModeData } = this;
+    const { addScoreTable, cup, currentFigure } = gameModeData;
+    const { gameState } = this.observables;
+    // console.log("game loop");
+
+    if (gameState == constants.gameState.play) {
+      if (currentFigure.type == constants.figureType.none) {
+        runInAction(() => {
+          this.generateCurrentFigure({ type: gameModeData.nextFigureType });
+          currentFigure.x = cup.figureStart.x;
+          currentFigure.y = cup.figureStart.y;
+          gameModeData.nextFigureType = this.generateFigureType();
+
+          if (this.checkFigureOverlap()) {
+            this.generateCupView();
+            this.gameOver();
+            return;
+          } else {
+            const cupViewGenerated = this.moveCurrentFigureByMouse();
+            if (!cupViewGenerated) {
+              this.generateCupView();
+            }
+            this.setGameLoopTimeout();
+          }
+        });
+      } else {
+        const newY = currentFigure.y + 1;
+        if (this.checkFigureOverlap({ y: newY })) {
+          this.addScore(addScoreTable.figurePlacement);
+
+          const { type, x, y, rotation } = currentFigure;
+          currentFigure.type = constants.figureType.none;
+          this.spawnFigure(type, rotation, x, y);
+          await eventHelpers.sleep(300);
+
+          await this.clearFullLines();
+          this.callNextGameLoopImmediately();
+        } else {
+          runInAction(() => {
+            currentFigure.y = newY;
+            this.generateCupView();
+          });
+          this.setGameLoopTimeout();
+        }
+      }
+    } else {
+      this.setGameLoopTimeout();
+    }
+  };
+
+  //
+
+  generateFigureType = () => {
+    const { gameModeData } = this;
+    const index = Math.round(Math.random() * (gameModeData.figureTypesAllowed.length - 1));
+    return gameModeData.figureTypesAllowed[index];
+  };
+
+  createCell = () => {
+    return {
+      type: 0,
+    };
+  };
+
+  createRow = (width) => {
+    const row = [];
+    for (let wIndex = 0; wIndex < width; wIndex++) {
+      row.push(this.createCell());
+    }
+
+    return row;
+  };
+
+  createGrid = (source, width, height) => {
+    for (let y = 0; y < height; y++) {
+      source.push(this.createRow(width));
+    }
+  };
+
+  //
 
   spawnFigure = (figureType, rotation, x, y) => {
     const { gameModeData } = this;
@@ -364,16 +497,6 @@ class Storage {
       };
     }
     this.generateCupView();
-  };
-
-  spawnCurrentFigure = () => {
-    const { gameModeData } = this;
-    const { currentFigure } = gameModeData;
-
-    const { type: figureType, lastLoopRotation: rotation, prevX: x, prevY: y } = currentFigure;
-    currentFigure.type = constants.figureType.none;
-
-    this.spawnFigure(figureType, rotation, x, y);
   };
 
   clearFullLines = async () => {
@@ -417,29 +540,6 @@ class Storage {
     }
   };
 
-  checkCurrentFigureTouchdown = ({ customX, customY, customRotation } = {}) => {
-    const { gameModeData } = this;
-    const { currentFigure, cup } = gameModeData;
-
-    if (currentFigure.type == constants.figureType.none) return false;
-
-    const _x = customX == undefined ? currentFigure.x : customX;
-    const _y = customY == undefined ? currentFigure.y : customY;
-    const _rotation = customRotation == undefined ? currentFigure.rotation : customRotation;
-
-    const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
-    const figureData = figureTypeData.rotations[_rotation];
-
-    const isTouchdown = figureData.some(([_pX, _pY]) => {
-      const pX = _pX + _x;
-      const pY = _pY + _y;
-      return pX >= cup.width || pY >= cup.height || (cup.data[pY]?.[pX] && cup.data[pY][pX].type > 0);
-    });
-    // console.log({isTouchdown});
-
-    return isTouchdown;
-  };
-
   generateCupView = () => {
     const { gameModeData } = this;
     const { cup, currentFigure } = gameModeData;
@@ -474,121 +574,58 @@ class Storage {
     }
   };
 
-  setGameLoopTimeout = () => {
-    const { gameModeData } = this;
-    const { gameLoopTimeoutMs } = gameModeData;
-
-    // console.log(`${gameLoopTimeoutMs}ms - next game loop`);
-    this.nonObservables.gameLoopTimeout = setTimeout(() => {
-      this.gameLoop();
-    }, gameLoopTimeoutMs);
-  };
-
-  clearGameLoopTimeout = () => {
-    clearTimeout(this.nonObservables.gameLoopTimeout);
-  };
-
-  callNextGameLoopImmediately = async () => {
-    await eventHelpers.sleep(1);
-    this.clearGameLoopTimeout();
-    this.nonObservables.gameLoopTimeout = setTimeout(() => {
-      this.gameLoop();
-    }, 1);
-  };
-
-  gameLoop = async () => {
-    const { gameModeData } = this;
-    const { addScoreTable, cup, currentFigure } = gameModeData;
-    const { gameState } = this.observables;
-    // console.log("game loop");
-
-    if (gameState == constants.gameState.play) {
-      let nextX = currentFigure.x;
-      let nextY = currentFigure.y;
-
-      if (currentFigure.type == constants.figureType.none) {
-        nextX = cup.figureStart.x;
-        nextY = cup.figureStart.y;
-      } else {
-        nextY = currentFigure.y + 1;
-      }
-
-      runInAction(async () => {
-        currentFigure.lastLoopRotation = currentFigure.rotation;
-        currentFigure.prevX = currentFigure.x;
-        currentFigure.prevY = currentFigure.y;
-        currentFigure.x = nextX;
-        currentFigure.y = nextY;
-        this.generateCupView();
-      });
-
-      if (currentFigure.type == constants.figureType.none) {
-        runInAction(() => {
-          console.log("before", {
-            nextFigureType: Object.entries(constants.figureType).find((_) => _[1] == gameModeData.nextFigureType)[0],
-          });
-          this.generateCurrentFigure(gameModeData.nextFigureType);
-          gameModeData.nextFigureType = this.generateFigureType();
-          console.log("after", {
-            nextFigureType: Object.entries(constants.figureType).find((_) => _[1] == gameModeData.nextFigureType)[0],
-          });
-
-          if (this.checkCurrentFigureTouchdown()) {
-            this.generateCupView();
-            this.observables.gameState = constants.gameState.over;
-          } else {
-            const cupViewGenerated = this.moveCurrentFigureByMouse();
-            if (!cupViewGenerated) {
-              this.generateCupView();
-            }
-          }
-        });
-
-        this.setGameLoopTimeout();
-      } else {
-        if (this.checkCurrentFigureTouchdown()) {
-          this.addScore(addScoreTable.figurePlacement);
-          this.spawnCurrentFigure();
-          await eventHelpers.sleep(300);
-
-          await this.clearFullLines();
-          this.callNextGameLoopImmediately();
-        } else {
-          this.setGameLoopTimeout();
-        }
-      }
-    } else {
-      this.setGameLoopTimeout();
-    }
-  };
-
   //
 
-  generateFigureType = () => {
+  checkFigureOverlap = ({ type, x, y, rotation } = {}) => {
     const { gameModeData } = this;
-    const index = Math.round(Math.random() * (gameModeData.figureTypesAllowed.length - 1));
-    return gameModeData.figureTypesAllowed[index];
+    const { currentFigure, cup } = gameModeData;
+
+    const _type = type == undefined ? currentFigure.type : type;
+    if (_type == constants.figureType.none) return false;
+
+    const _x = x == undefined ? currentFigure.x : x;
+    const _y = y == undefined ? currentFigure.y : y;
+    const _rotation = rotation == undefined ? currentFigure.rotation : rotation;
+
+    const figureTypeData = constants.figureType.figureTypeData[_type];
+    const figureData = figureTypeData.rotations[_rotation];
+
+    const hasOverlap = figureData.some(([_pX, _pY]) => {
+      const pX = _pX + _x;
+      const pY = _pY + _y;
+      return (
+        pX < 0 || pX >= cup.width || pY < 0 || pY >= cup.height || (cup.data[pY]?.[pX] && cup.data[pY][pX].type > 0)
+      );
+    });
+    // console.log({hasOverlap});
+
+    return hasOverlap;
   };
 
-  createCell = () => {
-    return {
-      type: 0,
-    };
-  };
+  generateFigureData = ({ type, rotation }) => {
+    const { cellsMaxSize } = this;
 
-  createRow = (width) => {
-    const row = [];
-    for (let wIndex = 0; wIndex < width; wIndex++) {
-      row.push(this.createCell());
+    const figureTypeData = constants.figureType.figureTypeData[type];
+    if (!figureTypeData) return false;
+
+    const figureData = figureTypeData.rotations[rotation];
+    const figureCellData = figureTypeData.cellData;
+
+    const cellsData = [];
+    this.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
+    let cellsW = 0;
+    let cellsH = 0;
+    for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
+      const [pX, pY] = figureData[pIndex];
+      cellsData[pY][pX] = {
+        ...cellsData[pY][pX],
+        ...figureCellData,
+      };
+      cellsW = pX > cellsW ? pX : cellsW;
+      cellsH = pY > cellsH ? pY : cellsH;
     }
 
-    return row;
-  };
-
-  createGrid = (source, width, height) => {
-    for (let y = 0; y < height; y++) {
-      source.push(this.createRow(width));
-    }
+    return { cellsData, cellsW, cellsH };
   };
 }
 

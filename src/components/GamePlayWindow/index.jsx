@@ -15,6 +15,10 @@ export default observer(
       super(props);
 
       this.cupElem;
+      this.cupElemRect;
+
+      this.mouseMoveTimeoutMs = 30;
+      this.lastMouseMoveTime = 0;
     }
 
     //
@@ -78,9 +82,12 @@ export default observer(
       const { gameStore } = this.props;
       ev.preventDefault();
 
-      const cupRect = this.cupElem.getBoundingClientRect();
-      gameStore.nonObservables.lastMouseX = ev.pageX - cupRect.left;
-      gameStore.moveCurrentFigureByMouse();
+      const callTime = Date.now();
+      if (callTime - this.lastMouseMoveTime > this.mouseMoveTimeoutMs) {
+        this.lastMouseMoveTime = callTime;
+        gameStore.nonObservables.lastMouseX = ev.pageX - this.cupElemRect.left;
+        gameStore.moveCurrentFigureByMouse();
+      }
     };
 
     onMouseDown = (ev) => {
@@ -103,7 +110,9 @@ export default observer(
 
       // down
       if (ev.deltaY > 0) {
-        gameStore.setPause({ state: false });
+        if (!gameStore.setPause({ state: false })) {
+          gameStore.speedUpFallingCurrentFigure();
+        }
       }
       // up
       else if (ev.deltaY) {
@@ -116,6 +125,7 @@ export default observer(
     cupRef = (elem) => {
       if (!elem) return;
       this.cupElem = elem;
+      this.cupElemRect = this.cupElem.getBoundingClientRect();
     };
 
     render() {
