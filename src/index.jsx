@@ -4,7 +4,7 @@ import * as ReactDOMClient from "react-dom/client";
 import mobxInit from "./mobxInit";
 import GameStore from "@stores/game";
 
-import Main from "./components/Main";
+import MainViewController from "./components/MainViewController";
 
 if (module.hot) {
   module.hot.accept();
@@ -22,7 +22,7 @@ if (!process.env.production) {
 
 const reactRoot = ReactDOMClient.createRoot(rootContainer);
 reactRoot.render(
-  <Main
+  <MainViewController
     rootContainer={rootContainer}
     gameStore={gameStore}
   />

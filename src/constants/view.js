@@ -1,4 +1,4 @@
 export default {
-  main: 1,
+  mainMenu: 1,
   game: 2,
 };

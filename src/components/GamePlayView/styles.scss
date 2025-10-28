@@ -1,8 +1,8 @@
-@use "../PauseWindow/styles.scss" as PauseWindow;
-@use "../GameOverWindow/styles.scss" as GameOverWindow;
+@use "../PauseMenu/styles.scss" as PauseMenu;
+@use "../GameOverMenu/styles.scss" as GameOverMenu;
 
 @mixin main {
-  .game-play-window {
+  .game-play-view {
     --next-figure-cell-size: 20px;
     --cup-width: calc(var(--cell-size) * var(--cup-cells-hor));
     --cup-height: calc(var(--cell-size) * var(--cup-cells-ver));
@@ -165,8 +165,8 @@
         }
       }
 
-      @include PauseWindow.main;
-      @include GameOverWindow.main;
+      @include PauseMenu.main;
+      @include GameOverMenu.main;
     }
 
     &.h {

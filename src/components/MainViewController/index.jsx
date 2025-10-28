@@ -2,8 +2,9 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import GamePlayWindow from "@components/GamePlayWindow";
-
+import MainMenu from "@components/MainMenu";
+import OptionsMenu from "@components/OptionsMenu";
+import GamePlayView from "@components/GamePlayView";
 
 import * as reactHelpers from "@utils/react-helpers";
 
@@ -12,7 +13,7 @@ import * as constants from "@constants/index";
 import "./styles.scss";
 
 export default observer(
-  class Main extends Component {
+  class MainViewController extends Component {
     constructor(props) {
       super(props);
 
@@ -26,14 +27,25 @@ export default observer(
 
     render() {
       const { gameStore } = this.props;
-      const { currentMenu } = gameStore.observables;
+      const { lang, viewData } = gameStore.observables;
+      const langStrings = constants.lang.strings[lang];
 
       //console.log("Main state", this.state)
 
       return (
-        <div className="game-container">
-          <GamePlayWindow
-            show={currentMenu == constants.menu.game}
+        <div className="main-view-controller">
+          <GamePlayView
+            show={viewData.current == constants.view.game}
+            gameStore={gameStore}
+          />
+          
+          <MainMenu
+            show={viewData.current == constants.view.mainMenu}
+            gameStore={gameStore}
+          />
+
+          <OptionsMenu
+            show={viewData.options.show}
             gameStore={gameStore}
           />
         </div>

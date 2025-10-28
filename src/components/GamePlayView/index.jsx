@@ -2,15 +2,15 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import PauseWindow from "@components/PauseWindow";
-import GameOverWindow from "@components/GameOverWindow";
+import PauseMenu from "@components/PauseMenu";
+import GameOverMenu from "@components/GameOverMenu";
 
 import NextFigureView from "./NextFigureView";
 
 import * as constants from "@constants/index";
 
 export default observer(
-  class GamePlayWindow extends Component {
+  class GamePlayView extends Component {
     constructor(props) {
       super(props);
 
@@ -24,16 +24,11 @@ export default observer(
     //
 
     componentDidMount() {
-      const { gameStore } = this.props;
-
       document.addEventListener("keydown", this.onKeyPress);
       document.addEventListener("mousemove", this.onMouseMove);
       document.addEventListener("mousedown", this.onMouseDown);
       document.addEventListener("contextmenu", this.onContextMenu);
       document.addEventListener("wheel", this.onWheel);
-
-      gameStore.gameStart();
-      gameStore.setGameLoopTimeout();
     }
 
     componentWillUnmount() {
@@ -48,9 +43,10 @@ export default observer(
 
     onKeyPress = (ev) => {
       const { gameStore } = this.props;
-      const { gameModeData } = gameStore;
+      const { isGameViewActive, gameModeData } = gameStore;
       const { currentFigure } = gameModeData;
       //console.log("KEY: ", ev.key || ev.code);
+      if (!isGameViewActive) return;
 
       switch (ev.key || ev.code) {
         case "ArrowLeft": {
@@ -88,6 +84,8 @@ export default observer(
 
     onMouseMove = (ev) => {
       const { gameStore } = this.props;
+      const { isGameViewActive } = gameStore;
+      if (!isGameViewActive) return;
       ev.preventDefault();
 
       const callTime = Date.now();
@@ -100,6 +98,8 @@ export default observer(
 
     onMouseDown = (ev) => {
       const { gameStore } = this.props;
+      const { isGameViewActive } = gameStore;
+      if (!isGameViewActive) return;
       ev.preventDefault();
 
       if (ev.button == 0) {
@@ -110,11 +110,17 @@ export default observer(
     };
 
     onContextMenu = (ev) => {
+      const { gameStore } = this.props;
+      const { isGameViewActive } = gameStore;
+      if (!isGameViewActive) return;
       ev.preventDefault();
     };
 
     onWheel = (ev) => {
       const { gameStore } = this.props;
+      const { isGameViewActive } = gameStore;
+      if (!isGameViewActive) return;
+      // ev.preventDefault();
 
       // down
       if (ev.deltaY > 0) {
@@ -140,12 +146,13 @@ export default observer(
       const { show, gameStore } = this.props;
       const { gameModeData, cellsMaxSize } = gameStore;
       const { score, level, cup, currentFigure } = gameModeData;
-      const { gameState } = gameStore.observables;
+      const { lang, gameState } = gameStore.observables;
+      const langStrings = constants.lang.strings[lang];
       const { cellSizePx } = gameStore.nonObservables;
 
       return (
         <div
-          className={`game-play-window${!show ? " h" : ""}`}
+          className={`game-play-view${!show ? " h" : ""}`}
           style={{
             "--cell-size": `${cellSizePx}px`,
             "--cup-cells-hor": `${cup.width}`,
@@ -199,26 +206,26 @@ export default observer(
               })}
             </div>
 
-            <GameOverWindow
+            <GameOverMenu
               show={gameState == constants.gameState.over}
               gameStore={gameStore}
             />
-            <PauseWindow
+            <PauseMenu
               show={gameState == constants.gameState.pause}
               gameStore={gameStore}
             />
           </div>
           <div className="right-col-wrapper">
             <div className="game-state-wrapper">
-              <div className="score-header">Очки:</div>
+              <div className="score-header">{langStrings.gameView.scoreTitle}:</div>
               <div className="score">{score}</div>
               <br />
 
-              <div className="level-header">Уровень:</div>
+              <div className="level-header">{langStrings.gameView.levelTitle}:</div>
               <div className="level">{level + 1}</div>
               <br />
 
-              <div className="next-figure-header">Следующая фигура:</div>
+              <div className="next-figure-header">{langStrings.gameView.nextFigureTitle}:</div>
               <NextFigureView gameStore={gameStore} />
             </div>
           </div>

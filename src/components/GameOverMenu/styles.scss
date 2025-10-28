@@ -1,5 +1,5 @@
 @mixin main {
-  .game-over-window {
+  .game-over-menu {
     position: absolute;
     // left: calc(50vw - 140px);
     // top: calc(var(--cup-height) / 2 - 45px);
@@ -14,10 +14,12 @@
     background-color: rgba(0,0,0,0.4);
 
     .content-wrapper {
-      width: 280px;
-      height: 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: calc(100% - 20px);
+      padding: 10px;
       box-sizing: border-box;
-      
       text-align: center;
       background-color: #eee;
       border: 2px solid #0099ff;
@@ -31,6 +33,23 @@
   
       .tip {
         font-size: 14px;
+      }
+
+      .btns-container {
+        display: flex;
+        justify-content: center;
+
+        .btns-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+  
+          button {
+            height: 40px;
+            padding: 0 20px;
+            font-size: 20px;
+          }
+        }
       }
     }
 

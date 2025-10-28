@@ -1,4 +1,6 @@
-@use "../GamePlayWindow/styles.scss" as GamePlayWindow;
+@use "@assets/styles/common.scss" as common;
+@use "../GamePlayView/styles.scss" as GamePlayView;
+@use "../MainMenu/styles.scss" as MainMenu;
 
 body {
   margin: 0;
@@ -10,12 +12,13 @@ i {
 }
 
 #game {
+  @include common.colors;
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
   color: #333;
 
-  .game-container {
+  .main-view-controller {
 
 
     .kb-key {
@@ -30,6 +33,7 @@ i {
       margin: 0 3px 0 0;
     }
 
-    @include GamePlayWindow.main;
+    @include MainMenu.main;
+    @include GamePlayView.main;
   }
 }

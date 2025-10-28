@@ -9,12 +9,10 @@ import * as eventHelpers from "@utils/event-helpers";
 class Storage {
   constructor() {
     this.observables = {
-      currentMenu: constants.menu.main,
-      menuData: {
-        [constants.menu.main]: {
-          show: false,
-        },
-        [constants.menu.game]: {
+      lang: Object.keys(constants.lang.strings)[0],
+      viewData: {
+        current: constants.view.mainMenu,
+        options: {
           show: false,
         },
       },
@@ -81,6 +79,11 @@ class Storage {
       gameLoopTimeout: undefined,
     };
 
+    this.defaults = {
+      observables: objectHelpers.deepCopy(this.observables),
+      nonObservables: objectHelpers.deepCopy(this.nonObservables),
+    };
+
     this.eventBus = new EventBus();
 
     makeObservable(this, {
@@ -89,6 +92,7 @@ class Storage {
 
       // action
       gameStart: action,
+      gameEnd: action,
       gameOver: action,
       addScore: action,
       setPause: action,
@@ -105,6 +109,11 @@ class Storage {
       // computed
       gameModeData: computed,
     });
+  }
+
+  get isGameViewActive() {
+    const { viewData } = this.observables;
+    return viewData.current == constants.view.game && !viewData.options.show;
   }
 
   get gameModeData() {
@@ -135,7 +144,7 @@ class Storage {
   //
 
   gameStart = () => {
-    this.observables.currentMenu = constants.menu.game;
+    this.observables.viewData.current = constants.view.game;
     this.observables.gameState = constants.gameState.play;
     this.observables.gameMode = constants.gameMode.classic;
 
@@ -156,6 +165,37 @@ class Storage {
 
       this.generateCupView();
     }
+
+    this.setGameLoopTimeout();
+  };
+
+  gameEnd = () => {
+    this.observables.gameState = constants.gameState.pause;
+
+    const { gameModeData } = this;
+    const { gameMode } = this.observables;
+    const gameDataDefaults = this.defaults.observables.gameData;
+
+    if (gameMode == constants.gameMode.classic) {
+      const gameModeDataDefaults = gameDataDefaults[gameMode];
+      const { cup, currentFigure } = gameModeData;
+      gameModeData.score = gameModeDataDefaults.score;
+      gameModeData.level = gameModeDataDefaults.level;
+      gameModeData.gameLoopTimeoutMs = gameModeDataDefaults.gameLoopTimeoutMs;
+
+      cup.data = objectHelpers.deepCopy(gameModeDataDefaults.cup.data);
+      cup.view = objectHelpers.deepCopy(gameModeDataDefaults.cup.view);
+
+      currentFigure.type = gameModeDataDefaults.currentFigure.type;
+      currentFigure.cells.data = objectHelpers.deepCopy(gameModeDataDefaults.currentFigure.cells.data);
+    }
+
+    this.clearGameLoopTimeout();
+  };
+
+  gameRestart = () => {
+    this.gameEnd();
+    this.gameStart();
   };
 
   gameOver = () => {
