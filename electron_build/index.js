@@ -28,6 +28,7 @@ function start() {
 
   app.whenReady().then(() => {
     ipcMain.handle("ping", () => "pong");
+    ipcMain.handle("quit", () => app.quit());
 
     createMainWindow();
     app.on("activate", () => {

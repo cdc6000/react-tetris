@@ -57,6 +57,7 @@ export default observer(
               className="exit-btn"
               onClick={(ev) => {
                 ev.preventDefault();
+                window.appBridge?.quit();
               }}
             >
               {langStrings.mainMenu.exitBtnTitle}
