@@ -18,7 +18,7 @@ module.exports = {
     }),
   ],
   output: {
-    path: path.join(__dirname, "..", "rel"),
+    path: path.join(__dirname, "..", "electron_build", "build"),
     filename: "[name].js",
     publicPath: "/",
     library: "[name]",

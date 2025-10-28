@@ -1,6 +1,6 @@
 const { merge } = require("webpack-merge");
 const webpack = require("webpack");
-const vendorModules = require('../vendor/vendorModules');
+const vendorModules = require("../vendor/vendorModules");
 const base = require("./base.js");
 
 const path = require("path");
@@ -24,15 +24,17 @@ module.exports = merge(base, {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.SourceMapDevToolPlugin({
-      filename: '[file].map',
-      publicPath: 'http://127.0.0.1:3000/',
-      fileContext: 'public',
+      filename: "[file].map",
+      publicPath: "http://127.0.0.1:3000/",
+      fileContext: "public",
     }),
     new webpack.DllReferencePlugin({
       context: __dirname,
       manifest: vendorManifest,
     }),
     new webpack.DefinePlugin({
+      "process.env.npm_package_name": JSON.stringify(process.env.npm_package_name),
+      "process.env.npm_package_version": "'development'",
       "process.env.production": false,
     }),
   ],

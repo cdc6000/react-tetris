@@ -19,8 +19,6 @@ i {
   color: #333;
 
   .main-view-controller {
-
-
     .kb-key {
       display: inline-block;
       text-align: center;
@@ -35,5 +33,13 @@ i {
 
     @include MainMenu.main;
     @include GamePlayView.main;
+
+    .version {
+      position: fixed;
+      bottom: 3px;
+      right: 3px;
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.3);
+    }
   }
 }

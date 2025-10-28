@@ -1,17 +1,17 @@
-const {merge} = require('webpack-merge');
-const webpack = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
-const base = require('./base.js');
+const { merge } = require("webpack-merge");
+const webpack = require("webpack");
+const TerserPlugin = require("terser-webpack-plugin");
+const base = require("./base.js");
 
-const path = require('path');
-const vendorManifest = require('../vendor/vendorManifest.json');
+const path = require("path");
+const vendorManifest = require("../vendor/vendorManifest.json");
 
 // const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = merge(base, {
-  mode: 'production',
+  mode: "production",
   entry: {
-    tetris: [path.join(__dirname, '..', 'src', 'index.jsx')],
+    tetris: [path.join(__dirname, "..", "src", "index.jsx")],
   },
   optimization: {
     splitChunks: false,
@@ -29,7 +29,7 @@ module.exports = merge(base, {
           },
         },
         extractComments: {
-          filename: 'LICENSE.txt',
+          filename: "LICENSE.txt",
           condition: true,
           banner: false,
         },
@@ -50,7 +50,7 @@ module.exports = merge(base, {
     // new BundleAnalyzerPlugin(),
   ],
   output: {
-    path: path.join(__dirname, '..', 'res'),
-    filename: '[name].js',
+    path: path.join(__dirname, "..", "electron_build", "build"),
+    filename: "[name].js",
   },
 });

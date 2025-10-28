@@ -38,7 +38,7 @@ export default observer(
             show={viewData.current == constants.view.game}
             gameStore={gameStore}
           />
-          
+
           <MainMenu
             show={viewData.current == constants.view.mainMenu}
             gameStore={gameStore}
@@ -48,6 +48,8 @@ export default observer(
             show={viewData.options.show}
             gameStore={gameStore}
           />
+
+          <div className="version">{process.env.npm_package_version}</div>
         </div>
       );
     }
