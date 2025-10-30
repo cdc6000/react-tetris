@@ -1,4 +1,16 @@
-import { makeObservable, observable, computed, action, flow, autorun, runInAction, toJS, set, reaction } from "mobx";
+import {
+  makeObservable,
+  observable,
+  computed,
+  action,
+  flow,
+  autorun,
+  runInAction,
+  toJS,
+  set,
+  reaction,
+  isAction,
+} from "mobx";
 
 import * as constants from "@constants/index";
 
@@ -14,8 +26,14 @@ class Storage {
         current: constants.view.mainMenu,
         options: {
           show: false,
+          input: {
+            allowFigureMoveByMouse: true,
+          },
         },
       },
+      inputState: {},
+      controlSchemes: [],
+
       gameState: constants.gameState.pause,
       gameMode: constants.gameMode.classic,
       gameData: {
@@ -74,9 +92,17 @@ class Storage {
       },
     };
     this.nonObservables = {
+      evenBusID: "GameStore",
+
       cellSizePx: 30,
       lastCupPointX: 0,
+      cupElem: undefined,
+      cupElemRect: undefined,
+
       gameLoopTimeout: undefined,
+
+      lastMouseMoveTime: 0,
+      mouseMoveTimeoutMs: 30,
     };
 
     this.defaults = {
@@ -85,42 +111,15 @@ class Storage {
     };
 
     this.eventBus = new EventBus();
-    this.eventBus.addEventListener("GameStore", "moveCurrentFigureRight", () => {
-      this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
-    });
-    this.eventBus.addEventListener("GameStore", "moveCurrentFigureLeft", () => {
-      this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
-    });
-    this.eventBus.addEventListener("GameStore", "moveCurrentFigureCupPointX", ({ x }) => {
-      this.moveCurrentFigureCupPointX(x);
-    });
-    this.eventBus.addEventListener("GameStore", "rotateCurrentFigureClockwise", () => {
-      this.rotateCurrentFigure(1);
-    });
-    this.eventBus.addEventListener("GameStore", "rotateCurrentFigureCounterclockwise", () => {
-      this.rotateCurrentFigure(-1);
-    });
-    this.eventBus.addEventListener("GameStore", "speedUpFallingCurrentFigure", () => {
-      this.speedUpFallingCurrentFigure();
-    });
-    this.eventBus.addEventListener("GameStore", "dropCurrentFigure", () => {
-      this.dropCurrentFigure();
-    });
-    this.eventBus.addEventListener("GameStore", "gamePause", () => {
-      return this.setPause({ state: true });
-    });
-    this.eventBus.addEventListener("GameStore", "gameUnpause", () => {
-      return this.setPause({ state: false });
-    });
-    this.eventBus.addEventListener("GameStore", "gamePauseToggle", () => {
-      this.setPause({ toggle: true });
-    });
 
     makeObservable(this, {
       // observable
       observables: observable,
 
       // action
+      setupDefaultControlSchemes: action,
+      inputUpdateState: action,
+
       gameStart: action,
       gameEnd: action,
       gameOver: action,
@@ -139,7 +138,350 @@ class Storage {
       // computed
       gameModeData: computed,
     });
+
+    this.eventBusBind();
+    this.inputsBind();
+    this.setupDefaultControlSchemes();
+    this.inputEventsBind();
   }
+
+  //
+
+  eventBusBind = () => {
+    const { eventBus } = this;
+    const { evenBusID } = this.nonObservables;
+    const { controlEvent } = constants.controls;
+
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureRight}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.nonObservables.lastCupPointX = 0;
+      this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
+    });
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureLeft}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.nonObservables.lastCupPointX = 0;
+      this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
+    });
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureCupPointX}`, ({ x }) => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.moveCurrentFigureCupPointX(x);
+    });
+
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.rotateCurrentFigureClockwise}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.rotateCurrentFigure(1);
+    });
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.rotateCurrentFigureCounterclockwise}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.rotateCurrentFigure(-1);
+    });
+
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.speedUpFallingCurrentFigure}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.speedUpFallingCurrentFigure();
+    });
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.dropCurrentFigure}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.dropCurrentFigure();
+    });
+
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.gamePause}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      return this.setPause({ state: true });
+    });
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.gameUnpause}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      return this.setPause({ state: false });
+    });
+    eventBus.addEventListener(evenBusID, `control-${controlEvent.gamePauseToggle}`, () => {
+      const { isGameViewActive } = this;
+      if (!isGameViewActive) return;
+      this.setPause({ toggle: true });
+    });
+  };
+
+  setupDefaultControlSchemes = () => {
+    const { controlSchemes } = this.observables;
+    const { inputEvent, controlEvent } = constants.controls;
+
+    // keyboard
+    controlSchemes.push({
+      id: "DefaultKeyboard",
+      isActive: true,
+      binds: [
+        {
+          trigger: inputEvent.arrowLeft,
+          action: controlEvent.moveCurrentFigureLeft,
+        },
+        {
+          trigger: inputEvent.arrowRight,
+          action: controlEvent.moveCurrentFigureRight,
+        },
+
+        {
+          trigger: inputEvent.arrowUp,
+          action: controlEvent.rotateCurrentFigureClockwise,
+        },
+
+        {
+          trigger: inputEvent.arrowDown,
+          action: controlEvent.speedUpFallingCurrentFigure,
+        },
+        {
+          trigger: inputEvent.space,
+          action: controlEvent.dropCurrentFigure,
+        },
+
+        {
+          trigger: inputEvent.kP,
+          action: controlEvent.gamePauseToggle,
+        },
+      ],
+    });
+
+    // mouse
+    controlSchemes.push({
+      id: "DefaultMouse",
+      isActive: true,
+      binds: [
+        {
+          trigger: inputEvent.mouseRightButton,
+          action: controlEvent.rotateCurrentFigureClockwise,
+        },
+
+        {
+          trigger: inputEvent.mouseWheelDown,
+          action: controlEvent.speedUpFallingCurrentFigure,
+        },
+        {
+          trigger: inputEvent.mouseLeftButton,
+          action: controlEvent.dropCurrentFigure,
+        },
+
+        {
+          trigger: inputEvent.mouseWheelDown,
+          action: controlEvent.gameUnpause,
+        },
+        {
+          trigger: inputEvent.mouseWheelUp,
+          action: controlEvent.gamePause,
+        },
+      ],
+    });
+  };
+
+  inputEventsBind = () => {
+    const { eventBus } = this;
+    const { controlSchemes } = this.observables;
+    const { evenBusID } = this.nonObservables;
+
+    controlSchemes.forEach((controlScheme) => {
+      if (!controlScheme.isActive) return;
+      controlScheme.binds.forEach((bind) => {
+        eventBus.addEventListener(
+          `${evenBusID}-InputScheme-${controlScheme.id}`,
+          `input-${bind.trigger}`,
+          ({ state }) => {
+            const triggerData =
+              constants.controls.controlEventTrigger[bind.action]?.({
+                options: this.observables.viewData.options.input,
+              }) || {};
+            const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
+
+            let fireEvent = false;
+            if (onJustPressed && state.justPressed) {
+              fireEvent = true;
+            } else if (onJustReleased && state.justReleased) {
+              fireEvent = true;
+            } else if (onIsPressed && state.isPressed) {
+              fireEvent = true;
+            }
+
+            if (fireEvent) {
+              eventBus.fireEvent(`control-${bind.action}`);
+            }
+          }
+        );
+      });
+    });
+  };
+
+  inputEventsUnbind = () => {
+    const { eventBus } = this;
+    const { controlSchemes } = this.observables;
+    const { evenBusID } = this.nonObservables;
+
+    controlSchemes.forEach((controlScheme) => {
+      controlScheme.binds.forEach((bind) => {
+        eventBus.removeEventListener(`${evenBusID}-InputScheme-${controlScheme.id}`, `input-${bind.trigger}`);
+      });
+    });
+  };
+
+  inputsBind = () => {
+    document.addEventListener("keydown", this.onKeyPress);
+    document.addEventListener("keyup", this.onKeyRelease);
+    document.addEventListener("mousemove", this.onMouseMove);
+    document.addEventListener("mousedown", this.onMouseDown);
+    document.addEventListener("mouseup", this.onMouseUp);
+    document.addEventListener("contextmenu", this.onContextMenu);
+    document.addEventListener("wheel", this.onWheel);
+  };
+
+  inputsUnbind = () => {
+    document.removeEventListener("keydown", this.onKeyPress);
+    document.removeEventListener("keyup", this.onKeyRelease);
+    document.removeEventListener("mousemove", this.onMouseMove);
+    document.removeEventListener("mousedown", this.onMouseDown);
+    document.removeEventListener("mouseup", this.onMouseUp);
+    document.removeEventListener("contextmenu", this.onContextMenu);
+    document.removeEventListener("wheel", this.onWheel);
+  };
+
+  inputUpdateState = ({ input, isPressed, isReleased, isClicked }) => {
+    // console.log({ input });
+    const { inputState } = this.observables;
+    if (!inputState[input]) {
+      inputState[input] = {
+        justPressed: false,
+        isPressed: false,
+        justReleased: false,
+        timeout: undefined,
+        interval: undefined,
+      };
+    }
+    const state = inputState[input];
+
+    if (isPressed && !state.isPressed) {
+      state.justPressed = true;
+      state.justReleased = false;
+      state.isPressed = true;
+    } else if (isReleased) {
+      state.justPressed = false;
+      state.justReleased = true;
+      state.isPressed = false;
+    } else if (isClicked) {
+      state.justPressed = true;
+      state.justReleased = true;
+      state.isPressed = true;
+    }
+
+    if (state.timeout) {
+      clearTimeout(state.timeout);
+    }
+    state.timeout = setTimeout(() => {
+      state.timeout = undefined;
+      let isChanged = false;
+      if (state.justReleased && state.isPressed) {
+        state.isPressed = false;
+        isChanged = true;
+      }
+      if (state.justPressed) {
+        state.justPressed = false;
+        isChanged = true;
+      }
+      if (state.justReleased) {
+        state.justReleased = false;
+        isChanged = true;
+      }
+      if (isChanged) {
+        this.fireInputEvent(input);
+      }
+    }, 1);
+
+    if (state.isPressed) {
+      if (state.interval) {
+        clearInterval(state.interval);
+      }
+      state.interval = setInterval(() => {
+        if (state.isPressed) {
+          this.fireInputEvent(input);
+        } else {
+          clearInterval(state.interval);
+          state.interval = undefined;
+        }
+      }, 50);
+    }
+
+    this.fireInputEvent(input);
+  };
+
+  fireInputEvent = (input) => {
+    const { eventBus } = this;
+    const { inputState } = this.observables;
+
+    const state = objectHelpers.deepCopy(inputState[input]);
+    return eventBus.fireEvent(`input-${input}`, { state });
+  };
+
+  onKeyPress = (ev) => {
+    const keyCode = ev.code || ev.key || ev.keyCode;
+    // console.log(`keyPressed: '${keyCode}'`);
+
+    this.inputUpdateState({ input: keyCode, isPressed: true });
+  };
+
+  onKeyRelease = (ev) => {
+    const keyCode = ev.code || ev.key || ev.keyCode;
+    //console.log(`keyReleased: '${keyCode}'`);
+
+    this.inputUpdateState({ input: keyCode, isReleased: true });
+  };
+
+  onMouseMove = (ev) => {
+    const { options } = this.observables.viewData;
+    if (!options.input.allowFigureMoveByMouse) return;
+
+    const { cupElemRect } = this.nonObservables;
+    if (!cupElemRect) return;
+
+    const callTime = Date.now();
+    if (callTime - this.nonObservables.lastMouseMoveTime < this.nonObservables.mouseMoveTimeoutMs) return;
+
+    this.nonObservables.lastMouseMoveTime = callTime;
+    this.eventBus.fireEvent(`control-${constants.controls.controlEvent.moveCurrentFigureCupPointX}`, {
+      x: ev.pageX - cupElemRect.left,
+    });
+  };
+
+  onMouseDown = (ev) => {
+    if (ev.button == 0) {
+      this.inputUpdateState({ input: constants.controls.inputEvent.mouseLeftButton, isPressed: true });
+    } else if (ev.button == 2) {
+      this.inputUpdateState({ input: constants.controls.inputEvent.mouseRightButton, isPressed: true });
+    }
+  };
+
+  onMouseUp = (ev) => {
+    if (ev.button == 0) {
+      this.inputUpdateState({ input: constants.controls.inputEvent.mouseLeftButton, isReleased: true });
+    } else if (ev.button == 2) {
+      this.inputUpdateState({ input: constants.controls.inputEvent.mouseRightButton, isReleased: true });
+    }
+  };
+
+  onContextMenu = (ev) => {
+    ev.preventDefault();
+  };
+
+  onWheel = async (ev) => {
+    if (ev.deltaY > 0) {
+      this.inputUpdateState({ input: constants.controls.inputEvent.mouseWheelDown, isClicked: true });
+    } else if (ev.deltaY) {
+      this.inputUpdateState({ input: constants.controls.inputEvent.mouseWheelUp, isClicked: true });
+    }
+  };
+
+  //
 
   get isGameViewActive() {
     const { viewData } = this.observables;
@@ -382,6 +724,7 @@ class Storage {
           this.generateCupView();
         } else {
           cupViewGenerated = this.moveCurrentFigureCupPointX();
+          this.calcShadowFigureY();
         }
 
         if (!cupViewGenerated) {

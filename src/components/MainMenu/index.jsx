@@ -36,7 +36,7 @@ export default observer(
             <button
               className="play-btn"
               onClick={(ev) => {
-                ev.preventDefault();
+                if (viewData.current != constants.view.mainMenu) return;
                 this.gameStart();
               }}
             >
@@ -46,7 +46,7 @@ export default observer(
             <button
               className="options-btn"
               onClick={(ev) => {
-                ev.preventDefault();
+                if (viewData.current != constants.view.mainMenu) return;
                 viewData.options.show = true;
               }}
             >
@@ -56,7 +56,7 @@ export default observer(
             <button
               className="exit-btn"
               onClick={(ev) => {
-                ev.preventDefault();
+                if (viewData.current != constants.view.mainMenu) return;
                 window.appBridge?.quit();
               }}
             >

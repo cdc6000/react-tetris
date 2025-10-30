@@ -34,7 +34,7 @@ export default observer(
               <button
                 className="back-btn"
                 onClick={(ev) => {
-                  ev.preventDefault();
+                  if (!viewData.options.show) return;
                   viewData.options.show = false;
                 }}
               >

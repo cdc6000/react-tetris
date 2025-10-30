@@ -32,6 +32,25 @@ const strings = {
       levelTitle: "Уровень",
       nextFigureTitle: "Следующая фигура",
     },
+
+    controlEventName: {
+      moveCurrentFigureRight: "Переместить фигуру вправо",
+      moveCurrentFigureLeft: "Переместить фигуру влево",
+      rotateCurrentFigureClockwise: "Повернуть фигуру по часовой стрелке",
+      rotateCurrentFigureCounterclockwise: "Повернуть фигуру против часовой стрелки",
+      speedUpFallingCurrentFigure: "Ускорить падение фигуры",
+      dropCurrentFigure: "Опустить фигуру до конца",
+      gamePause: "Поставить игру на паузу",
+      gameUnpause: "Продолжить игру (снять с паузы)",
+      gamePauseToggle: "Поставить или снять с паузы (переключение)",
+    },
+
+    inputName: {
+      mouseLeftButton: "Левая кнопка мыши",
+      mouseRightButton: "Правая кнопка мыши",
+      mouseWheelUp: "Прокрутка колеса мыши вверх",
+      mouseWheelDown: "Прокрутка колеса мыши вниз",
+    },
   },
 };
 

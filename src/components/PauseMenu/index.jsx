@@ -31,7 +31,7 @@ export default observer(
                 <button
                   className="options-btn"
                   onClick={(ev) => {
-                    ev.preventDefault();
+                    if (gameStore.observables.gameState != constants.gameState.pause) return;
                     viewData.options.show = true;
                   }}
                 >
@@ -41,7 +41,7 @@ export default observer(
                 <button
                   className="restart-btn"
                   onClick={(ev) => {
-                    ev.preventDefault();
+                    if (gameStore.observables.gameState != constants.gameState.pause) return;
                     gameStore.gameRestart();
                   }}
                 >
@@ -51,7 +51,7 @@ export default observer(
                 <button
                   className="exit-btn"
                   onClick={(ev) => {
-                    ev.preventDefault();
+                    if (gameStore.observables.gameState != constants.gameState.pause) return;
                     gameStore.gameEnd();
                     viewData.current = constants.view.mainMenu;
                   }}

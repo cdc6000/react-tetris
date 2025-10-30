@@ -13,130 +13,15 @@ export default observer(
   class GamePlayView extends Component {
     constructor(props) {
       super(props);
-
-      this.cupElem;
-      this.cupElemRect;
-
-      this.mouseMoveTimeoutMs = 30;
-      this.lastMouseMoveTime = 0;
     }
-
-    //
-
-    componentDidMount() {
-      document.addEventListener("keydown", this.onKeyPress);
-      document.addEventListener("mousemove", this.onMouseMove);
-      document.addEventListener("mousedown", this.onMouseDown);
-      document.addEventListener("contextmenu", this.onContextMenu);
-      document.addEventListener("wheel", this.onWheel);
-    }
-
-    componentWillUnmount() {
-      document.removeEventListener("keydown", this.onKeyPress);
-      document.removeEventListener("mousemove", this.onMouseMove);
-      document.removeEventListener("mousedown", this.onMouseDown);
-      document.removeEventListener("contextmenu", this.onContextMenu);
-      document.removeEventListener("wheel", this.onWheel);
-    }
-
-    //
-
-    onKeyPress = (ev) => {
-      const { gameStore } = this.props;
-      const { eventBus, isGameViewActive } = gameStore;
-      //console.log("KEY: ", ev.key || ev.code);
-      if (!isGameViewActive) return;
-
-      switch (ev.key || ev.code) {
-        case "ArrowLeft": {
-          eventBus.fireEvent("moveCurrentFigureLeft");
-          break;
-        }
-
-        case "ArrowRight": {
-          eventBus.fireEvent("moveCurrentFigureRight");
-          break;
-        }
-
-        case "ArrowUp": {
-          eventBus.fireEvent("rotateCurrentFigureClockwise");
-          break;
-        }
-
-        case "ArrowDown": {
-          eventBus.fireEvent("speedUpFallingCurrentFigure");
-          break;
-        }
-
-        case " ": {
-          eventBus.fireEvent("dropCurrentFigure");
-          break;
-        }
-
-        case "з":
-        case "p": {
-          eventBus.fireEvent("gamePauseToggle");
-          break;
-        }
-      }
-    };
-
-    onMouseMove = (ev) => {
-      const { gameStore } = this.props;
-      const { eventBus, isGameViewActive } = gameStore;
-      if (!isGameViewActive) return;
-      ev.preventDefault();
-
-      const callTime = Date.now();
-      if (callTime - this.lastMouseMoveTime > this.mouseMoveTimeoutMs) {
-        this.lastMouseMoveTime = callTime;
-        eventBus.fireEvent("moveCurrentFigureCupPointX", { x: ev.pageX - this.cupElemRect.left });
-      }
-    };
-
-    onMouseDown = (ev) => {
-      const { gameStore } = this.props;
-      const { eventBus, isGameViewActive } = gameStore;
-      if (!isGameViewActive) return;
-      ev.preventDefault();
-
-      if (ev.button == 0) {
-        eventBus.fireEvent("dropCurrentFigure");
-      } else if (ev.button == 2) {
-        eventBus.fireEvent("rotateCurrentFigureClockwise");
-      }
-    };
-
-    onContextMenu = (ev) => {
-      const { gameStore } = this.props;
-      const { isGameViewActive } = gameStore;
-      if (!isGameViewActive) return;
-      ev.preventDefault();
-    };
-
-    onWheel = async (ev) => {
-      const { gameStore } = this.props;
-      const { eventBus, isGameViewActive } = gameStore;
-      if (!isGameViewActive) return;
-      // ev.preventDefault();
-
-      // down
-      if (ev.deltaY > 0) {
-        // gameStore.setPause({ state: false }) || gameStore.speedUpFallingCurrentFigure();
-        (await eventBus.fireEvent("gameUnpause")) || eventBus.fireEvent("speedUpFallingCurrentFigure");
-      }
-      // up
-      else if (ev.deltaY) {
-        eventBus.fireEvent("gamePause");
-      }
-    };
 
     //
 
     cupRef = (elem) => {
       if (!elem) return;
-      this.cupElem = elem;
-      this.cupElemRect = this.cupElem.getBoundingClientRect();
+      const { gameStore } = this.props;
+      gameStore.nonObservables.cupElem = elem;
+      gameStore.nonObservables.cupElemRect = elem.getBoundingClientRect();
     };
 
     render() {
