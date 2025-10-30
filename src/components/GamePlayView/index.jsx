@@ -43,40 +43,39 @@ export default observer(
 
     onKeyPress = (ev) => {
       const { gameStore } = this.props;
-      const { isGameViewActive, gameModeData } = gameStore;
-      const { currentFigure } = gameModeData;
+      const { eventBus, isGameViewActive } = gameStore;
       //console.log("KEY: ", ev.key || ev.code);
       if (!isGameViewActive) return;
 
       switch (ev.key || ev.code) {
         case "ArrowLeft": {
-          gameStore.moveCurrentFigureAlongX(currentFigure.x - 1);
+          eventBus.fireEvent("moveCurrentFigureLeft");
           break;
         }
 
         case "ArrowRight": {
-          gameStore.moveCurrentFigureAlongX(currentFigure.x + 1);
+          eventBus.fireEvent("moveCurrentFigureRight");
           break;
         }
 
         case "ArrowUp": {
-          gameStore.rotateCurrentFigure();
+          eventBus.fireEvent("rotateCurrentFigureClockwise");
           break;
         }
 
         case "ArrowDown": {
-          gameStore.speedUpFallingCurrentFigure();
+          eventBus.fireEvent("speedUpFallingCurrentFigure");
           break;
         }
 
         case " ": {
-          gameStore.dropCurrentFigure();
+          eventBus.fireEvent("dropCurrentFigure");
           break;
         }
 
         case "з":
         case "p": {
-          gameStore.setPause({ toggle: true });
+          eventBus.fireEvent("gamePauseToggle");
           break;
         }
       }
@@ -84,28 +83,27 @@ export default observer(
 
     onMouseMove = (ev) => {
       const { gameStore } = this.props;
-      const { isGameViewActive } = gameStore;
+      const { eventBus, isGameViewActive } = gameStore;
       if (!isGameViewActive) return;
       ev.preventDefault();
 
       const callTime = Date.now();
       if (callTime - this.lastMouseMoveTime > this.mouseMoveTimeoutMs) {
         this.lastMouseMoveTime = callTime;
-        gameStore.nonObservables.lastMouseX = ev.pageX - this.cupElemRect.left;
-        gameStore.moveCurrentFigureByMouse();
+        eventBus.fireEvent("moveCurrentFigureCupPointX", { x: ev.pageX - this.cupElemRect.left });
       }
     };
 
     onMouseDown = (ev) => {
       const { gameStore } = this.props;
-      const { isGameViewActive } = gameStore;
+      const { eventBus, isGameViewActive } = gameStore;
       if (!isGameViewActive) return;
       ev.preventDefault();
 
       if (ev.button == 0) {
-        gameStore.dropCurrentFigure();
+        eventBus.fireEvent("dropCurrentFigure");
       } else if (ev.button == 2) {
-        gameStore.rotateCurrentFigure();
+        eventBus.fireEvent("rotateCurrentFigureClockwise");
       }
     };
 
@@ -116,21 +114,20 @@ export default observer(
       ev.preventDefault();
     };
 
-    onWheel = (ev) => {
+    onWheel = async (ev) => {
       const { gameStore } = this.props;
-      const { isGameViewActive } = gameStore;
+      const { eventBus, isGameViewActive } = gameStore;
       if (!isGameViewActive) return;
       // ev.preventDefault();
 
       // down
       if (ev.deltaY > 0) {
-        if (!gameStore.setPause({ state: false })) {
-          gameStore.speedUpFallingCurrentFigure();
-        }
+        // gameStore.setPause({ state: false }) || gameStore.speedUpFallingCurrentFigure();
+        (await eventBus.fireEvent("gameUnpause")) || eventBus.fireEvent("speedUpFallingCurrentFigure");
       }
       // up
       else if (ev.deltaY) {
-        gameStore.setPause({ state: true });
+        eventBus.fireEvent("gamePause");
       }
     };
 

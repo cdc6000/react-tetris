@@ -75,7 +75,7 @@ class Storage {
     };
     this.nonObservables = {
       cellSizePx: 30,
-      lastMouseX: 0,
+      lastCupPointX: 0,
       gameLoopTimeout: undefined,
     };
 
@@ -85,6 +85,36 @@ class Storage {
     };
 
     this.eventBus = new EventBus();
+    this.eventBus.addEventListener("GameStore", "moveCurrentFigureRight", () => {
+      this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
+    });
+    this.eventBus.addEventListener("GameStore", "moveCurrentFigureLeft", () => {
+      this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
+    });
+    this.eventBus.addEventListener("GameStore", "moveCurrentFigureCupPointX", ({ x }) => {
+      this.moveCurrentFigureCupPointX(x);
+    });
+    this.eventBus.addEventListener("GameStore", "rotateCurrentFigureClockwise", () => {
+      this.rotateCurrentFigure(1);
+    });
+    this.eventBus.addEventListener("GameStore", "rotateCurrentFigureCounterclockwise", () => {
+      this.rotateCurrentFigure(-1);
+    });
+    this.eventBus.addEventListener("GameStore", "speedUpFallingCurrentFigure", () => {
+      this.speedUpFallingCurrentFigure();
+    });
+    this.eventBus.addEventListener("GameStore", "dropCurrentFigure", () => {
+      this.dropCurrentFigure();
+    });
+    this.eventBus.addEventListener("GameStore", "gamePause", () => {
+      return this.setPause({ state: true });
+    });
+    this.eventBus.addEventListener("GameStore", "gameUnpause", () => {
+      return this.setPause({ state: false });
+    });
+    this.eventBus.addEventListener("GameStore", "gamePauseToggle", () => {
+      this.setPause({ toggle: true });
+    });
 
     makeObservable(this, {
       // observable
@@ -296,15 +326,18 @@ class Storage {
     return false;
   };
 
-  moveCurrentFigureByMouse = () => {
-    const { lastMouseX, cellSizePx } = this.nonObservables;
-    if (!lastMouseX) return false;
+  moveCurrentFigureCupPointX = (x) => {
+    if (x != undefined) {
+      this.nonObservables.lastCupPointX = x;
+    }
+    const { lastCupPointX, cellSizePx } = this.nonObservables;
+    if (!lastCupPointX) return false;
 
-    const targetX = Math.floor(lastMouseX / cellSizePx);
+    const targetX = Math.floor(lastCupPointX / cellSizePx);
     return this.moveCurrentFigureAlongX(targetX);
   };
 
-  rotateCurrentFigure = () => {
+  rotateCurrentFigure = (step = 1) => {
     const { gameModeData } = this;
     const { cup, currentFigure } = gameModeData;
     const { gameState } = this.observables;
@@ -314,9 +347,11 @@ class Storage {
     if (gameState == constants.gameState.play) {
       const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
 
-      let newRotation = currentFigure.rotation + 1;
+      let newRotation = currentFigure.rotation + step;
       if (newRotation > figureTypeData.rotations.length - 1) {
         newRotation = 0;
+      } else if (newRotation < 0) {
+        newRotation = figureTypeData.rotations.length - 1;
       }
 
       if (newRotation != currentFigure.rotation) {
@@ -346,7 +381,7 @@ class Storage {
           this.calcShadowFigureY();
           this.generateCupView();
         } else {
-          cupViewGenerated = this.moveCurrentFigureByMouse();
+          cupViewGenerated = this.moveCurrentFigureCupPointX();
         }
 
         if (!cupViewGenerated) {
@@ -484,7 +519,7 @@ class Storage {
             this.gameOver();
             return;
           } else {
-            const cupViewGenerated = this.moveCurrentFigureByMouse();
+            const cupViewGenerated = this.moveCurrentFigureCupPointX();
             if (!cupViewGenerated) {
               this.generateCupView();
             }

@@ -9,15 +9,11 @@ export default class EventBus {
       listeners: [],
       hasFired: false,
       fireCount: 0,
+      lastFireData: {},
     };
   };
 
-  addEventListener = async (
-    id,
-    type,
-    fn,
-    options = { fireIfHappened: false }
-  ) => {
+  addEventListener = async (id, type, fn, options = { fireIfHappened: false }) => {
     const eventType = this.getEventType(type);
     if (!eventType) {
       const newEventType = this.eventAssembler(type);
@@ -26,7 +22,7 @@ export default class EventBus {
     } else {
       eventType.listeners.push({ id, fn });
       if (options.fireIfHappened && eventType.hasFired) {
-        fn && (await fn(data));
+        fn && (await fn(eventType.lastFireData));
       }
     }
   };
@@ -54,15 +50,21 @@ export default class EventBus {
       const newEventType = this.eventAssembler(type);
       newEventType.fireCount++;
       newEventType.hasFired = true;
+      newEventType.lastFireData = data;
       this.eventTypes.push(newEventType);
+      return false;
     } else {
+      eventType.lastFireData = data;
+      let result;
       for (let lIndex = 0; lIndex < eventType.listeners.length; lIndex++) {
         const fn = eventType.listeners[lIndex].fn;
-        fn && (await fn(data));
+        result = fn && (await fn(data));
       }
 
       eventType.fireCount++;
       eventType.hasFired = true;
+
+      return result;
     }
   };
 
