@@ -11,6 +11,8 @@ export default observer(
     constructor(props) {
       super(props);
 
+      this.viewID = constants.viewData.view.optionsMenu;
+
       this.forceUpdateAsync = reactHelpers.forceUpdateAsync.bind(this);
       this.setStateAsync = reactHelpers.setStateAsync.bind(this);
     }
@@ -18,9 +20,14 @@ export default observer(
     //
 
     render() {
-      const { show, gameStore } = this.props;
-      const { lang, viewData } = gameStore.observables;
+      const { viewID } = this;
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      const { viewData } = viewStore.observables;
+      const { lang } = gameStore.observables;
       const langStrings = constants.lang.strings[lang];
+
+      const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`options-menu${!show ? " h" : ""}`}>
@@ -34,8 +41,11 @@ export default observer(
               <button
                 className="back-btn"
                 onClick={(ev) => {
-                  if (!viewData.options.show) return;
-                  viewData.options.show = false;
+                  if (viewStore.inputFocusLayerID != constants.viewData.layer.optionsMenu) return;
+                  viewStore.shiftInputFocusToLayerID({
+                    layerID: constants.viewData.layer.optionsMenu,
+                    isPrevious: true,
+                  });
                 }}
               >
                 {langStrings.optionsMenu.backBtnTitle}

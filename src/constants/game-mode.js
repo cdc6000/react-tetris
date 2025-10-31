@@ -1,3 +1,4 @@
 export default {
-  classic: 0,
+  none: 0,
+  classic: "classic",
 };

@@ -8,14 +8,21 @@ export default observer(
   class GameOverMenu extends Component {
     constructor(props) {
       super(props);
+
+      this.viewID = constants.viewData.view.gameOverMenu;
     }
 
     //
 
     render() {
-      const { show, gameStore } = this.props;
-      const { lang, viewData } = gameStore.observables;
+      const { viewID } = this;
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      const { viewData } = viewStore.observables;
+      const { lang } = gameStore.observables;
       const langStrings = constants.lang.strings[lang];
+
+      const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`game-over-menu${!show ? " h" : ""}`}>
@@ -28,8 +35,9 @@ export default observer(
                 <button
                   className="restart-btn"
                   onClick={(ev) => {
-                    if (gameStore.observables.gameState != constants.gameState.over) return;
+                    if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
                     gameStore.gameRestart();
+                    viewStore.viewLayerDisable();
                   }}
                 >
                   {langStrings.pauseMenu.restartBtnTitle}
@@ -38,9 +46,9 @@ export default observer(
                 <button
                   className="exit-btn"
                   onClick={(ev) => {
-                    if (gameStore.observables.gameState != constants.gameState.over) return;
+                    if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
                     gameStore.gameEnd();
-                    viewData.current = constants.view.mainMenu;
+                    viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
                   }}
                 >
                   {langStrings.pauseMenu.exitBtnTitle}

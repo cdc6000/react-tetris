@@ -2,9 +2,6 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import PauseMenu from "@components/PauseMenu";
-import GameOverMenu from "@components/GameOverMenu";
-
 import NextFigureView from "./NextFigureView";
 
 import * as constants from "@constants/index";
@@ -13,6 +10,9 @@ export default observer(
   class GamePlayView extends Component {
     constructor(props) {
       super(props);
+
+      this.gameMode = constants.gameMode.classic;
+      this.viewID = `${constants.viewData.view.gamePlayView}-${this.gameMode}`;
     }
 
     //
@@ -25,12 +25,18 @@ export default observer(
     };
 
     render() {
-      const { show, gameStore } = this.props;
-      const { gameModeData, cellsMaxSize } = gameStore;
-      const { score, level, cup, currentFigure } = gameModeData;
-      const { lang, gameState } = gameStore.observables;
+      const { viewID } = this;
+      const { gameStore } = this.props;
+      const { viewStore, gameModeData, cellsMaxSize } = gameStore;
+      const { viewData } = viewStore.observables;
+      const { score, level, cup } = gameModeData;
+      const { lang, gameMode } = gameStore.observables;
       const langStrings = constants.lang.strings[lang];
       const { cellSizePx } = gameStore.nonObservables;
+
+      const { show } = viewData.viewState[viewID];
+
+      if (gameMode != this.gameMode) return null;
 
       return (
         <div
@@ -87,15 +93,6 @@ export default observer(
                 });
               })}
             </div>
-
-            <GameOverMenu
-              show={gameState == constants.gameState.over}
-              gameStore={gameStore}
-            />
-            <PauseMenu
-              show={gameState == constants.gameState.pause}
-              gameStore={gameStore}
-            />
           </div>
           <div className="right-col-wrapper">
             <div className="game-state-wrapper">

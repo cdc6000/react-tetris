@@ -11,24 +11,23 @@ export default observer(
     constructor(props) {
       super(props);
 
+      this.viewID = constants.viewData.view.mainMenu;
+
       this.forceUpdateAsync = reactHelpers.forceUpdateAsync.bind(this);
       this.setStateAsync = reactHelpers.setStateAsync.bind(this);
     }
 
     //
 
-    gameStart = () => {
-      const { gameStore } = this.props;
-
-      gameStore.gameStart();
-    };
-
-    //
-
     render() {
-      const { show, gameStore } = this.props;
-      const { lang, viewData } = gameStore.observables;
+      const { viewID } = this;
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      const { viewData } = viewStore.observables;
+      const { lang } = gameStore.observables;
       const langStrings = constants.lang.strings[lang];
+
+      const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`main-menu${!show ? " h" : ""}`}>
@@ -36,8 +35,8 @@ export default observer(
             <button
               className="play-btn"
               onClick={(ev) => {
-                if (viewData.current != constants.view.mainMenu) return;
-                this.gameStart();
+                if (viewStore.inputFocusLayerID != constants.viewData.layer.mainMenu) return;
+                gameStore.gameStartClassic();
               }}
             >
               {langStrings.mainMenu.playBtnTitle}
@@ -46,8 +45,11 @@ export default observer(
             <button
               className="options-btn"
               onClick={(ev) => {
-                if (viewData.current != constants.view.mainMenu) return;
-                viewData.options.show = true;
+                if (viewStore.inputFocusLayerID != constants.viewData.layer.mainMenu) return;
+                viewStore.viewLayerEnable({
+                  layerID: constants.viewData.layer.optionsMenu,
+                  isAdditive: true,
+                });
               }}
             >
               {langStrings.mainMenu.optionsBtnTitle}
@@ -56,7 +58,7 @@ export default observer(
             <button
               className="exit-btn"
               onClick={(ev) => {
-                if (viewData.current != constants.view.mainMenu) return;
+                if (viewStore.inputFocusLayerID != constants.viewData.layer.mainMenu) return;
                 window.appBridge?.quit();
               }}
             >

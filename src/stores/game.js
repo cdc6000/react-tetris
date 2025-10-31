@@ -13,6 +13,7 @@ import {
 } from "mobx";
 
 import InputStore from "./input";
+import ViewStore from "./view";
 
 import * as constants from "@constants/index";
 
@@ -24,15 +25,9 @@ class Storage {
   constructor() {
     this.observables = {
       lang: Object.keys(constants.lang.strings)[0],
-      viewData: {
-        current: constants.view.mainMenu,
-        options: {
-          show: false,
-        },
-      },
 
       gameState: constants.gameState.pause,
-      gameMode: constants.gameMode.classic,
+      gameMode: constants.gameMode.none,
       gameData: {
         [constants.gameMode.classic]: {
           figureTypesAllowed: [
@@ -99,15 +94,13 @@ class Storage {
       gameLoopTimeout: undefined,
     };
 
-    this.defaults = {
-      observables: objectHelpers.deepCopy(this.observables),
-      nonObservables: objectHelpers.deepCopy(this.nonObservables),
-    };
-
     this.eventBus = new EventBus();
     this.inputStore = new InputStore({
       eventBus: this.eventBus,
       nonObservables: this.nonObservables,
+    });
+    this.viewStore = new ViewStore({
+      eventBus: this.eventBus,
     });
 
     makeObservable(this, {
@@ -115,6 +108,7 @@ class Storage {
       observables: observable,
 
       // action
+      gameStartClassic: action,
       gameStart: action,
       gameEnd: action,
       gameOver: action,
@@ -132,88 +126,88 @@ class Storage {
 
       // computed
       gameModeData: computed,
+      cellsMaxSize: computed,
     });
 
     this.eventBusBind();
     this.inputStore.inputsBind();
     this.inputStore.setupDefaultControlSchemes();
     this.inputStore.inputEventsBind();
+    this.viewStore.viewStateInit();
+
+    this.defaults = {
+      observables: objectHelpers.deepCopy(this.observables),
+      nonObservables: objectHelpers.deepCopy(this.nonObservables),
+    };
+
+    this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
   }
 
   //
 
   eventBusBind = () => {
-    const { eventBus } = this;
+    const { eventBus, viewStore } = this;
     const { evenBusID } = this.nonObservables;
     const { controlEvent } = constants.controls;
 
+    const gamePlayLayerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
+
     eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureRight}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
     });
     eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureLeft}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
     });
     eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureCupPointX}`, ({ x }) => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.moveCurrentFigureCupPointX(x);
     });
 
     eventBus.addEventListener(evenBusID, `control-${controlEvent.rotateCurrentFigureClockwise}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.rotateCurrentFigure(1);
     });
     eventBus.addEventListener(evenBusID, `control-${controlEvent.rotateCurrentFigureCounterclockwise}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.rotateCurrentFigure(-1);
     });
 
     eventBus.addEventListener(evenBusID, `control-${controlEvent.speedUpFallingCurrentFigure}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.speedUpFallingCurrentFigure();
     });
     eventBus.addEventListener(evenBusID, `control-${controlEvent.dropCurrentFigure}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.dropCurrentFigure();
     });
 
     eventBus.addEventListener(evenBusID, `control-${controlEvent.gamePause}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       return this.setPause({ state: true });
     });
     eventBus.addEventListener(evenBusID, `control-${controlEvent.gameUnpause}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
       return this.setPause({ state: false });
     });
     eventBus.addEventListener(evenBusID, `control-${controlEvent.gamePauseToggle}`, () => {
-      const { isGameViewActive } = this;
-      if (!isGameViewActive) return;
+      if (
+        viewStore.inputFocusLayerID != gamePlayLayerID &&
+        viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu
+      )
+        return;
       this.setPause({ toggle: true });
     });
   };
 
   //
 
-  get isGameViewActive() {
-    const { viewData } = this.observables;
-    return viewData.current == constants.view.game && !viewData.options.show;
-  }
-
   get gameModeData() {
     const { gameMode, gameData } = this.observables;
-    return gameData[gameMode];
+    return gameData[gameMode] || {};
   }
 
   get cellsMaxSize() {
@@ -221,7 +215,7 @@ class Storage {
 
     let width = 0;
     let height = 0;
-    gameModeData.figureTypesAllowed.forEach((type) => {
+    gameModeData.figureTypesAllowed?.forEach((type) => {
       const figureTypeData = constants.figureType.figureTypeData[type];
       figureTypeData.rotations.forEach((rotationData) => {
         rotationData.forEach(([pX, pY]) => {
@@ -238,11 +232,15 @@ class Storage {
 
   //
 
-  gameStart = () => {
-    this.observables.viewData.current = constants.view.game;
-    this.observables.gameState = constants.gameState.play;
+  gameStartClassic = () => {
     this.observables.gameMode = constants.gameMode.classic;
+    this.gameStart();
+    this.viewStore.viewLayerEnable({
+      layerID: `${constants.viewData.layer.gamePlayView}-${this.observables.gameMode}`,
+    });
+  };
 
+  gameStart = () => {
     const { gameModeData, cellsMaxSize } = this;
     const { gameMode } = this.observables;
 
@@ -261,6 +259,7 @@ class Storage {
       this.generateCupView();
     }
 
+    this.observables.gameState = constants.gameState.play;
     this.setGameLoopTimeout();
   };
 
@@ -296,6 +295,7 @@ class Storage {
   gameOver = () => {
     this.clearGameLoopTimeout();
     this.observables.gameState = constants.gameState.over;
+    this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.gameOverMenu, isAdditive: true });
   };
 
   addScore = (scoreToAdd) => {
@@ -337,8 +337,10 @@ class Storage {
       if (stateChanged) {
         if (this.observables.gameState == play) {
           this.setGameLoopTimeout();
+          this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
         } else {
           this.clearGameLoopTimeout();
+          this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
         }
         return true;
       }

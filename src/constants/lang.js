@@ -18,6 +18,7 @@ const strings = {
     pauseMenu: {
       menuTitle: "Пауза",
 
+      continueBtnTitle: "Продолжить",
       optionsBtnTitle: "Настройки",
       restartBtnTitle: "Начать заного",
       exitBtnTitle: "Выход",

@@ -5,6 +5,8 @@ import { observer } from "mobx-react";
 import MainMenu from "@components/MainMenu";
 import OptionsMenu from "@components/OptionsMenu";
 import GamePlayView from "@components/GamePlayView";
+import PauseMenu from "@components/PauseMenu";
+import GameOverMenu from "@components/GameOverMenu";
 
 import * as reactHelpers from "@utils/react-helpers";
 
@@ -27,27 +29,18 @@ export default observer(
 
     render() {
       const { gameStore } = this.props;
-      const { lang, viewData } = gameStore.observables;
+      const { lang } = gameStore.observables;
       const langStrings = constants.lang.strings[lang];
 
       //console.log("Main state", this.state)
 
       return (
         <div className="main-view-controller">
-          <GamePlayView
-            show={viewData.current == constants.view.game}
-            gameStore={gameStore}
-          />
-
-          <MainMenu
-            show={viewData.current == constants.view.mainMenu}
-            gameStore={gameStore}
-          />
-
-          <OptionsMenu
-            show={viewData.options.show}
-            gameStore={gameStore}
-          />
+          <GamePlayView gameStore={gameStore} />
+          <MainMenu gameStore={gameStore} />
+          <PauseMenu gameStore={gameStore} />
+          <GameOverMenu gameStore={gameStore} />
+          <OptionsMenu gameStore={gameStore} />
 
           <div className="version">{process.env.npm_package_version}</div>
         </div>

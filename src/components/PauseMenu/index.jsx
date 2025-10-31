@@ -8,14 +8,21 @@ export default observer(
   class PauseMenu extends Component {
     constructor(props) {
       super(props);
+
+      this.viewID = constants.viewData.view.pauseMenu;
     }
 
     //
 
     render() {
-      const { show, gameStore } = this.props;
-      const { lang, viewData } = gameStore.observables;
+      const { viewID } = this;
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      const { viewData } = viewStore.observables;
+      const { lang } = gameStore.observables;
       const langStrings = constants.lang.strings[lang];
+
+      const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`pause-menu${!show ? " h" : ""}`}>
@@ -29,10 +36,23 @@ export default observer(
             <div className="btns-container">
               <div className="btns-wrapper">
                 <button
+                  className="continue-btn"
+                  onClick={(ev) => {
+                    if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    gameStore.eventBus.fireEvent(`control-${constants.controls.controlEvent.gameUnpause}`);
+                  }}
+                >
+                  {langStrings.pauseMenu.continueBtnTitle}
+                </button>
+
+                <button
                   className="options-btn"
                   onClick={(ev) => {
-                    if (gameStore.observables.gameState != constants.gameState.pause) return;
-                    viewData.options.show = true;
+                    if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    viewStore.viewLayerEnable({
+                      layerID: constants.viewData.layer.optionsMenu,
+                      isAdditive: true,
+                    });
                   }}
                 >
                   {langStrings.pauseMenu.optionsBtnTitle}
@@ -41,8 +61,9 @@ export default observer(
                 <button
                   className="restart-btn"
                   onClick={(ev) => {
-                    if (gameStore.observables.gameState != constants.gameState.pause) return;
+                    if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
                     gameStore.gameRestart();
+                    viewStore.viewLayerDisable();
                   }}
                 >
                   {langStrings.pauseMenu.restartBtnTitle}
@@ -51,9 +72,9 @@ export default observer(
                 <button
                   className="exit-btn"
                   onClick={(ev) => {
-                    if (gameStore.observables.gameState != constants.gameState.pause) return;
+                    if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
                     gameStore.gameEnd();
-                    viewData.current = constants.view.mainMenu;
+                    viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
                   }}
                 >
                   {langStrings.pauseMenu.exitBtnTitle}

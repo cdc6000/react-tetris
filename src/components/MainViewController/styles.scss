@@ -1,6 +1,11 @@
 @use "@assets/styles/common.scss" as common;
-@use "../GamePlayView/styles.scss" as GamePlayView;
+
 @use "../MainMenu/styles.scss" as MainMenu;
+@use "../PauseMenu/styles.scss" as PauseMenu;
+@use "../GameOverMenu/styles.scss" as GameOverMenu;
+@use "../OptionsMenu/styles.scss" as OptionsMenu;
+
+@use "../GamePlayView/styles.scss" as GamePlayView;
 
 body {
   margin: 0;
@@ -31,7 +36,16 @@ i {
       margin: 0 3px 0 0;
     }
 
+    --main-view-layer: 1;
+    --overlay-layer: 2;
+    --popup-menu-layer: 3;
+    --options-menu-layer: 4;
+
     @include MainMenu.main;
+    @include PauseMenu.main;
+    @include GameOverMenu.main;
+    @include OptionsMenu.main;
+
     @include GamePlayView.main;
 
     .version {
