@@ -1,14 +1,14 @@
 export const controlEvent = {
-  moveCurrentFigureRight: "moveCurrentFigureRight",
-  moveCurrentFigureLeft: "moveCurrentFigureLeft",
-  moveCurrentFigureCupPointX: "moveCurrentFigureCupPointX",
-  rotateCurrentFigureClockwise: "rotateCurrentFigureClockwise",
-  rotateCurrentFigureCounterclockwise: "rotateCurrentFigureCounterclockwise",
-  speedUpFallingCurrentFigure: "speedUpFallingCurrentFigure",
-  dropCurrentFigure: "dropCurrentFigure",
-  gamePause: "gamePause",
-  gameUnpause: "gameUnpause",
-  gamePauseToggle: "gamePauseToggle",
+  moveCurrentFigureRight: "control-moveCurrentFigureRight",
+  moveCurrentFigureLeft: "control-moveCurrentFigureLeft",
+  moveCurrentFigureCupPointX: "control-moveCurrentFigureCupPointX",
+  rotateCurrentFigureClockwise: "control-rotateCurrentFigureClockwise",
+  rotateCurrentFigureCounterclockwise: "control-rotateCurrentFigureCounterclockwise",
+  speedUpFallingCurrentFigure: "control-speedUpFallingCurrentFigure",
+  dropCurrentFigure: "control-dropCurrentFigure",
+  gamePause: "control-gamePause",
+  gameUnpause: "control-gameUnpause",
+  gamePauseToggle: "control-gamePauseToggle",
 };
 
 export const controlEventTrigger = {

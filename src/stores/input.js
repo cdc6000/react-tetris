@@ -58,30 +58,30 @@ class Storage {
       isActive: true,
       binds: [
         {
-          trigger: inputEvent.arrowLeft,
+          trigger: `input-${inputEvent.arrowLeft}`,
           action: controlEvent.moveCurrentFigureLeft,
         },
         {
-          trigger: inputEvent.arrowRight,
+          trigger: `input-${inputEvent.arrowRight}`,
           action: controlEvent.moveCurrentFigureRight,
         },
 
         {
-          trigger: inputEvent.arrowUp,
+          trigger: `input-${inputEvent.arrowUp}`,
           action: controlEvent.rotateCurrentFigureClockwise,
         },
 
         {
-          trigger: inputEvent.arrowDown,
+          trigger: `input-${inputEvent.arrowDown}`,
           action: controlEvent.speedUpFallingCurrentFigure,
         },
         {
-          trigger: inputEvent.space,
+          trigger: `input-${inputEvent.space}`,
           action: controlEvent.dropCurrentFigure,
         },
 
         {
-          trigger: inputEvent.kP,
+          trigger: `input-${inputEvent.kP}`,
           action: controlEvent.gamePauseToggle,
         },
       ],
@@ -93,25 +93,25 @@ class Storage {
       isActive: true,
       binds: [
         {
-          trigger: inputEvent.mouseRightButton,
+          trigger: `input-${inputEvent.mouseRightButton}`,
           action: controlEvent.rotateCurrentFigureClockwise,
         },
 
         {
-          trigger: inputEvent.mouseWheelDown,
+          trigger: `input-${inputEvent.mouseWheelDown}`,
           action: controlEvent.speedUpFallingCurrentFigure,
         },
         {
-          trigger: inputEvent.mouseLeftButton,
+          trigger: `input-${inputEvent.mouseLeftButton}`,
           action: controlEvent.dropCurrentFigure,
         },
 
         {
-          trigger: inputEvent.mouseWheelDown,
+          trigger: `input-${inputEvent.mouseWheelDown}`,
           action: controlEvent.gameUnpause,
         },
         {
-          trigger: inputEvent.mouseWheelUp,
+          trigger: `input-${inputEvent.mouseWheelUp}`,
           action: controlEvent.gamePause,
         },
       ],
@@ -126,7 +126,7 @@ class Storage {
     controlSchemes.forEach((controlScheme) => {
       if (!controlScheme.isActive) return;
       controlScheme.binds.forEach((bind) => {
-        eventBus.addEventListener(`${evenBusID}-${controlScheme.id}`, `input-${bind.trigger}`, ({ state }) => {
+        eventBus.addEventListener(`${evenBusID}-${controlScheme.id}`, bind.trigger, ({ state }) => {
           const triggerData =
             constants.controls.controlEventTrigger[bind.action]?.({
               options: inputOptions,
@@ -143,7 +143,7 @@ class Storage {
           }
 
           if (fireEvent) {
-            eventBus.fireEvent(`control-${bind.action}`);
+            eventBus.fireEvent(bind.action);
           }
         });
       });
@@ -157,29 +157,9 @@ class Storage {
 
     controlSchemes.forEach((controlScheme) => {
       controlScheme.binds.forEach((bind) => {
-        eventBus.removeEventListener(`${evenBusID}-${controlScheme.id}`, `input-${bind.trigger}`);
+        eventBus.removeEventListener(`${evenBusID}-${controlScheme.id}`, bind.trigger);
       });
     });
-  };
-
-  inputsBind = () => {
-    document.addEventListener("keydown", this.onKeyPress);
-    document.addEventListener("keyup", this.onKeyRelease);
-    document.addEventListener("mousemove", this.onMouseMove);
-    document.addEventListener("mousedown", this.onMouseDown);
-    document.addEventListener("mouseup", this.onMouseUp);
-    document.addEventListener("contextmenu", this.onContextMenu);
-    document.addEventListener("wheel", this.onWheel);
-  };
-
-  inputsUnbind = () => {
-    document.removeEventListener("keydown", this.onKeyPress);
-    document.removeEventListener("keyup", this.onKeyRelease);
-    document.removeEventListener("mousemove", this.onMouseMove);
-    document.removeEventListener("mousedown", this.onMouseDown);
-    document.removeEventListener("mouseup", this.onMouseUp);
-    document.removeEventListener("contextmenu", this.onContextMenu);
-    document.removeEventListener("wheel", this.onWheel);
   };
 
   inputUpdateState = ({ input, isPressed, isReleased, isClicked }) => {
@@ -258,6 +238,28 @@ class Storage {
     return eventBus.fireEvent(`input-${input}`, { state });
   };
 
+  //
+
+  inputsBind = () => {
+    document.addEventListener("keydown", this.onKeyPress);
+    document.addEventListener("keyup", this.onKeyRelease);
+    document.addEventListener("mousemove", this.onMouseMove);
+    document.addEventListener("mousedown", this.onMouseDown);
+    document.addEventListener("mouseup", this.onMouseUp);
+    document.addEventListener("contextmenu", this.onContextMenu);
+    document.addEventListener("wheel", this.onWheel);
+  };
+
+  inputsUnbind = () => {
+    document.removeEventListener("keydown", this.onKeyPress);
+    document.removeEventListener("keyup", this.onKeyRelease);
+    document.removeEventListener("mousemove", this.onMouseMove);
+    document.removeEventListener("mousedown", this.onMouseDown);
+    document.removeEventListener("mouseup", this.onMouseUp);
+    document.removeEventListener("contextmenu", this.onContextMenu);
+    document.removeEventListener("wheel", this.onWheel);
+  };
+
   onKeyPress = (ev) => {
     const keyCode = ev.code || ev.key || ev.keyCode;
     // console.log(`keyPressed: '${keyCode}'`);
@@ -283,7 +285,7 @@ class Storage {
     if (callTime - this.nonObservables.lastMouseMoveTime < this.nonObservables.mouseMoveTimeoutMs) return;
 
     this.nonObservables.lastMouseMoveTime = callTime;
-    this.props.eventBus.fireEvent(`control-${constants.controls.controlEvent.moveCurrentFigureCupPointX}`, {
+    this.props.eventBus.fireEvent(constants.controls.controlEvent.moveCurrentFigureCupPointX, {
       x: ev.pageX - cupElemRect.left,
     });
   };

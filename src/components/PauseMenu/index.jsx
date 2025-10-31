@@ -39,7 +39,7 @@ export default observer(
                   className="continue-btn"
                   onClick={(ev) => {
                     if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
-                    gameStore.eventBus.fireEvent(`control-${constants.controls.controlEvent.gameUnpause}`);
+                    gameStore.eventBus.fireEvent(constants.controls.controlEvent.gameUnpause);
                   }}
                 >
                   {langStrings.pauseMenu.continueBtnTitle}

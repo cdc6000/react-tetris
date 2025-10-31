@@ -150,50 +150,51 @@ class Storage {
     const { evenBusID } = this.nonObservables;
     const { controlEvent } = constants.controls;
 
+    // TODO
     const gamePlayLayerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
 
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureRight}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
     });
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureLeft}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureLeft, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
     });
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.moveCurrentFigureCupPointX}`, ({ x }) => {
+    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureCupPointX, ({ x }) => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.moveCurrentFigureCupPointX(x);
     });
 
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.rotateCurrentFigureClockwise}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureClockwise, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.rotateCurrentFigure(1);
     });
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.rotateCurrentFigureCounterclockwise}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureCounterclockwise, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.rotateCurrentFigure(-1);
     });
 
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.speedUpFallingCurrentFigure}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.speedUpFallingCurrentFigure, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.speedUpFallingCurrentFigure();
     });
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.dropCurrentFigure}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.dropCurrentFigure, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       this.dropCurrentFigure();
     });
 
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.gamePause}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.gamePause, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
       return this.setPause({ state: true });
     });
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.gameUnpause}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.gameUnpause, () => {
       if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
       return this.setPause({ state: false });
     });
-    eventBus.addEventListener(evenBusID, `control-${controlEvent.gamePauseToggle}`, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.gamePauseToggle, () => {
       if (
         viewStore.inputFocusLayerID != gamePlayLayerID &&
         viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu
@@ -294,7 +295,7 @@ class Storage {
 
   gameOver = () => {
     this.clearGameLoopTimeout();
-    this.observables.gameState = constants.gameState.over;
+    this.observables.gameState = constants.gameState.pause;
     this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.gameOverMenu, isAdditive: true });
   };
 
@@ -357,40 +358,37 @@ class Storage {
     const { gameState } = this.observables;
 
     if (currentFigure.type == constants.figureType.none) return false;
+    if (gameState == constants.gameState.pause) return false;
 
-    if (gameState == constants.gameState.play) {
-      let _x = currentFigure.x;
-      if (targetX < _x) {
-        if (targetX < 0) {
-          targetX = 0;
-        }
-
-        while (!this.checkFigureOverlap({ x: _x }) && _x > targetX) {
-          _x--;
-        }
-        if (this.checkFigureOverlap({ x: _x })) {
-          _x++;
-        }
-      } else {
-        if (targetX > cup.width - currentFigure.cells.width - 1) {
-          targetX = cup.width - currentFigure.cells.width - 1;
-        }
-
-        while (!this.checkFigureOverlap({ x: _x }) && _x < targetX) {
-          _x++;
-        }
-        if (this.checkFigureOverlap({ x: _x })) {
-          _x--;
-        }
+    let _x = currentFigure.x;
+    if (targetX < _x) {
+      if (targetX < 0) {
+        targetX = 0;
       }
 
-      currentFigure.x = _x;
-      this.calcShadowFigureY();
-      this.generateCupView();
-      return true;
+      while (!this.checkFigureOverlap({ x: _x }) && _x > targetX) {
+        _x--;
+      }
+      if (this.checkFigureOverlap({ x: _x })) {
+        _x++;
+      }
+    } else {
+      if (targetX > cup.width - currentFigure.cells.width - 1) {
+        targetX = cup.width - currentFigure.cells.width - 1;
+      }
+
+      while (!this.checkFigureOverlap({ x: _x }) && _x < targetX) {
+        _x++;
+      }
+      if (this.checkFigureOverlap({ x: _x })) {
+        _x--;
+      }
     }
 
-    return false;
+    currentFigure.x = _x;
+    this.calcShadowFigureY();
+    this.generateCupView();
+    return true;
   };
 
   moveCurrentFigureCupPointX = (x) => {
@@ -409,77 +407,72 @@ class Storage {
     const { cup, currentFigure } = gameModeData;
     const { gameState } = this.observables;
 
-    if (currentFigure.type == constants.figureType.none) return;
+    if (currentFigure.type == constants.figureType.none) return false;
+    if (gameState == constants.gameState.pause) return false;
 
-    if (gameState == constants.gameState.play) {
-      const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
+    const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
+    if (figureTypeData.rotations.length <= 1) return false;
 
-      let newRotation = currentFigure.rotation + step;
-      if (newRotation > figureTypeData.rotations.length - 1) {
-        newRotation = 0;
-      } else if (newRotation < 0) {
-        newRotation = figureTypeData.rotations.length - 1;
-      }
+    const newRotation = (currentFigure.rotation + step) % figureTypeData.rotations.length;
+    if (newRotation == currentFigure.rotation) return false;
 
-      if (newRotation != currentFigure.rotation) {
-        this.generateCurrentFigure({ type: currentFigure.type, rotation: newRotation });
+    this.generateCurrentFigure({ type: currentFigure.type, rotation: newRotation });
 
-        let cupViewGenerated = false;
-        if (this.checkFigureOverlap()) {
-          let newX = currentFigure.x;
-          if (currentFigure.x <= cup.width / 2) {
-            newX++;
-            while (this.checkFigureOverlap({ x: newX }) && newX < cup.width - currentFigure.cells.width - 1) {
-              newX++;
-            }
-          } else {
-            newX--;
-            while (this.checkFigureOverlap({ x: newX }) && newX > 0) {
-              newX--;
-            }
-          }
-
-          if (this.checkFigureOverlap({ x: newX })) {
-            this.gameOver();
-            return;
-          }
-
-          currentFigure.x = newX;
-          this.calcShadowFigureY();
-          this.generateCupView();
-        } else {
-          cupViewGenerated = this.moveCurrentFigureCupPointX();
-          this.calcShadowFigureY();
+    let cupViewGenerated = false;
+    if (this.checkFigureOverlap()) {
+      let newX = currentFigure.x;
+      if (currentFigure.x <= cup.width / 2) {
+        newX++;
+        while (this.checkFigureOverlap({ x: newX }) && newX < cup.width - currentFigure.cells.width - 1) {
+          newX++;
         }
-
-        if (!cupViewGenerated) {
-          this.generateCupView();
+      } else {
+        newX--;
+        while (this.checkFigureOverlap({ x: newX }) && newX > 0) {
+          newX--;
         }
       }
+
+      if (this.checkFigureOverlap({ x: newX })) {
+        this.gameOver();
+        return false;
+      }
+
+      currentFigure.x = newX;
+      this.calcShadowFigureY();
+      this.generateCupView();
+    } else {
+      cupViewGenerated = this.moveCurrentFigureCupPointX();
+      this.calcShadowFigureY();
     }
+
+    if (!cupViewGenerated) {
+      this.generateCupView();
+    }
+    return true;
   };
 
   dropCurrentFigure = () => {
     const { gameModeData } = this;
-    const { addScoreTable, cup, currentFigure } = gameModeData;
+    const { addScoreTable, currentFigure } = gameModeData;
     const { gameState } = this.observables;
 
-    if (currentFigure.type == constants.figureType.none) return;
+    if (currentFigure.type == constants.figureType.none) return false;
+    if (gameState == constants.gameState.pause) return false;
 
-    if (gameState == constants.gameState.play) {
-      let y = currentFigure.y;
-      while (!this.checkFigureOverlap({ y })) {
-        y++;
-      }
-      y--;
-
-      const delta = y - currentFigure.y;
-      this.addScore(delta * addScoreTable.dropHeightMult);
-
-      currentFigure.y = y;
-      this.generateCupView();
-      this.callNextGameLoopImmediately();
+    let y = currentFigure.y;
+    while (!this.checkFigureOverlap({ y })) {
+      y++;
     }
+    y--;
+
+    const delta = y - currentFigure.y;
+    this.addScore(delta * addScoreTable.dropHeightMult);
+
+    currentFigure.y = y;
+    this.generateCupView();
+    this.callNextGameLoopImmediately();
+    return true;
   };
 
   speedUpFallingCurrentFigure = () => {
@@ -487,11 +480,11 @@ class Storage {
     const { currentFigure } = gameModeData;
     const { gameState } = this.observables;
 
-    if (currentFigure.type == constants.figureType.none) return;
+    if (currentFigure.type == constants.figureType.none) return false;
+    if (gameState == constants.gameState.pause) return false;
 
-    if (gameState == constants.gameState.play) {
-      this.callNextGameLoopImmediately();
-    }
+    this.callNextGameLoopImmediately();
+    return true;
   };
 
   generateCurrentFigure = ({ type, rotation = 0 } = {}) => {
@@ -514,6 +507,7 @@ class Storage {
     currentFigure.cells.data = cellsData;
     currentFigure.cells.width = cellsW;
     currentFigure.cells.height = cellsH;
+    return true;
   };
 
   generateNextFigureType = () => {
@@ -534,6 +528,7 @@ class Storage {
     y--;
 
     gameModeData.shadowFigureY = y;
+    return true;
   };
 
   //
@@ -572,50 +567,48 @@ class Storage {
     const { gameState } = this.observables;
     // console.log("game loop");
 
-    if (gameState == constants.gameState.play) {
-      if (currentFigure.type == constants.figureType.none) {
-        runInAction(() => {
-          this.generateCurrentFigure({ type: gameModeData.nextFigureType });
-          currentFigure.x = cup.figureStart.x;
-          currentFigure.y = cup.figureStart.y;
-          this.calcShadowFigureY();
+    if (gameState == constants.gameState.pause) return;
 
-          this.generateNextFigureType();
+    if (currentFigure.type == constants.figureType.none) {
+      runInAction(() => {
+        this.generateCurrentFigure({ type: gameModeData.nextFigureType });
+        currentFigure.x = cup.figureStart.x;
+        currentFigure.y = cup.figureStart.y;
+        this.calcShadowFigureY();
 
-          if (this.checkFigureOverlap()) {
-            this.generateCupView();
-            this.gameOver();
-            return;
-          } else {
-            const cupViewGenerated = this.moveCurrentFigureCupPointX();
-            if (!cupViewGenerated) {
-              this.generateCupView();
-            }
-            this.setGameLoopTimeout();
-          }
-        });
-      } else {
-        const newY = currentFigure.y + 1;
-        if (this.checkFigureOverlap({ y: newY })) {
-          this.addScore(addScoreTable.figurePlacement);
+        this.generateNextFigureType();
 
-          const { type, x, y, rotation } = currentFigure;
-          currentFigure.type = constants.figureType.none;
-          this.spawnFigure(type, rotation, x, y);
-          await eventHelpers.sleep(300);
-
-          await this.clearFullLines();
-          this.callNextGameLoopImmediately();
+        if (this.checkFigureOverlap()) {
+          this.generateCupView();
+          this.gameOver();
+          return;
         } else {
-          runInAction(() => {
-            currentFigure.y = newY;
+          const cupViewGenerated = this.moveCurrentFigureCupPointX();
+          if (!cupViewGenerated) {
             this.generateCupView();
-          });
+          }
           this.setGameLoopTimeout();
         }
-      }
+      });
     } else {
-      this.setGameLoopTimeout();
+      const newY = currentFigure.y + 1;
+      if (this.checkFigureOverlap({ y: newY })) {
+        this.addScore(addScoreTable.figurePlacement);
+
+        const { type, x, y, rotation } = currentFigure;
+        currentFigure.type = constants.figureType.none;
+        this.spawnFigure(type, rotation, x, y);
+        await eventHelpers.sleep(300);
+
+        await this.clearFullLines();
+        this.callNextGameLoopImmediately();
+      } else {
+        runInAction(() => {
+          currentFigure.y = newY;
+          this.generateCupView();
+        });
+        this.setGameLoopTimeout();
+      }
     }
   };
 
