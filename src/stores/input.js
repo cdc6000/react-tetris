@@ -109,8 +109,7 @@ class Storage {
     const controlScheme = controlSchemes[index];
     if (controlScheme.isDefault) return false;
 
-    controlScheme.isActive = false;
-    this.inputEventsUnbind({ ids: [controlScheme.id] });
+    this.inputEventsUnbind({ ids: [controlScheme.id], ignoreActive: true });
     controlSchemes.splice(index, 1);
 
     return { index };
@@ -128,16 +127,13 @@ class Storage {
     if (!defaultControlScheme) return false;
     if (!defaultControlScheme.isDefault) return false;
 
-    const wasActive = controlScheme.isActive;
-    if (wasActive) {
-      controlScheme.isActive = false;
-      this.inputEventsUnbind({ ids: [controlScheme.id] });
+    if (controlScheme.isActive) {
+      this.inputEventsUnbind({ ids: [controlScheme.id], ignoreActive: true });
     }
 
     controlScheme.binds = objectHelpers.deepCopy(defaultControlScheme.binds);
 
-    if (wasActive) {
-      controlScheme.isActive = true;
+    if (controlScheme.isActive) {
       this.inputEventsBind({ ids: [controlScheme.id] });
     }
     return true;
@@ -199,7 +195,7 @@ class Storage {
     if (!bind) return false;
 
     if (controlScheme.isActive) {
-      this.inputEventsUnbind({ ids: [id], action, triggers });
+      this.inputEventsUnbind({ ids: [id], action, triggers, ignoreActive: true });
     }
     if (triggers?.length) {
       triggers.forEach((trigger) => {
@@ -330,9 +326,30 @@ class Storage {
     };
   };
 
+  getAllActiveTriggersForActions = ({ actions = [] } = {}) => {
+    const { controlSchemes } = this.observables;
+
+    const triggers = [];
+    controlSchemes.forEach((controlScheme) => {
+      if (!controlScheme.isActive) return;
+
+      controlScheme.binds.forEach((bind) => {
+        if (!actions.some((_) => _ == bind.action)) return;
+
+        bind.triggers.forEach((trigger) => {
+          if (!triggers.some((_) => _ == trigger)) {
+            triggers.push(trigger);
+          }
+        });
+      });
+    });
+
+    return triggers;
+  };
+
   //
 
-  inputEventsBind = ({ ids, action, triggers } = {}) => {
+  inputEventsBind = ({ ids, action, triggers, ignoreActive = false } = {}) => {
     const { eventBus } = this.props;
     const { inputOptions } = this.observables;
     const { evenBusID } = this.nonObservables;
@@ -343,17 +360,17 @@ class Storage {
     }
 
     controlSchemes.forEach((controlScheme) => {
-      if (!controlScheme.isActive) return;
+      if (!ignoreActive && !controlScheme.isActive) return;
       controlScheme.binds.forEach((bind) => {
         if (action && bind.action != action) return;
 
+        const actionData = constants.controls.controlEventData[bind.action];
+        const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
         const fn = ({ state }) => {
-          const triggerData =
-            constants.controls.controlEventData[bind.action]?.getTriggerData({
-              options: inputOptions,
-            }) || {};
+          const triggerData = actionData?.getTriggerData({ options: inputOptions }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
 
+          state.justPressed && console.log("input event", { action: bind.action });
           let fireEvent = false;
           if (onJustPressed && state.justPressed) {
             fireEvent = true;
@@ -373,14 +390,13 @@ class Storage {
           _triggers = _triggers.filter((_) => triggers.some((__) => __ == _));
         }
         _triggers.forEach((trigger) => {
-          const eventID = `${evenBusID}-${controlScheme.id}`;
           eventBus.addEventListener(eventID, trigger, fn);
         });
       });
     });
   };
 
-  inputEventsUnbind = ({ ids, action, triggers } = {}) => {
+  inputEventsUnbind = ({ ids, action, triggers, ignoreActive = false } = {}) => {
     const { eventBus } = this.props;
     const { evenBusID } = this.nonObservables;
 
@@ -390,16 +406,18 @@ class Storage {
     }
 
     controlSchemes.forEach((controlScheme) => {
-      if (controlScheme.isActive) return;
+      if (!ignoreActive && controlScheme.isActive) return;
       controlScheme.binds.forEach((bind) => {
         if (action && bind.action != action) return;
+
+        const actionData = constants.controls.controlEventData[bind.action];
+        const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
 
         let _triggers = bind.triggers;
         if (triggers?.length) {
           _triggers = _triggers.filter((_) => triggers.some((__) => __ == _));
         }
         _triggers.forEach((trigger) => {
-          const eventID = `${evenBusID}-${controlScheme.id}`;
           eventBus.removeEventListener(eventID, trigger);
         });
       });
@@ -480,9 +498,10 @@ class Storage {
 
     const state = objectHelpers.deepCopy(inputState[input]);
     if (eventBus.getListeners("BindInput")?.length) {
-      ev?.preventDefault?.();
+      if (ev?.cancelable) ev?.preventDefault?.();
       return eventBus.fireEvent("BindInput", { input: `input-${input}`, state });
-    } else {
+    } else if (eventBus.getListeners(`input-${input}`)?.length) {
+      // if (ev?.cancelable) ev?.preventDefault?.();
       return eventBus.fireEvent(`input-${input}`, { state });
     }
   };

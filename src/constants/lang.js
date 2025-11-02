@@ -42,6 +42,8 @@ export const strings = {
 
           groupFigureControlTitle: "Управление фигурой",
           groupGameplayTitle: "Игровой процесс",
+
+          mapInputBtnTitle: "Привязать",
         },
 
         getInputBlind: {

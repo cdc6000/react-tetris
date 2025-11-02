@@ -393,7 +393,7 @@ export default observer(
                                                     ev.target.blur();
                                                   }}
                                                 >
-                                                  Привязать
+                                                  {langStrings.optionsMenu.controlsTab.controlScheme.mapInputBtnTitle}
                                                 </button>
                                               </div>
                                             </Fragment>
