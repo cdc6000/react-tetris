@@ -56,10 +56,11 @@ export const strings = {
 
     pauseMenu: {
       menuTitle: "Пауза",
+      tip: "Нажмите${btns|или}для продолжения игры",
 
       continueBtnTitle: "Продолжить",
       optionsBtnTitle: "Настройки",
-      restartBtnTitle: "Начать заного",
+      restartBtnTitle: "Начать заново",
       exitBtnTitle: "Выход",
     },
 
@@ -86,6 +87,7 @@ export const strings = {
     },
 
     inputName: {
+      "input-mouse": "Мышь",
       "input-mouseLeftButton": "Левая кнопка мыши",
       "input-mouseRightButton": "Правая кнопка мыши",
       "input-mouseWheelUp": "Колесо мыши вверх",

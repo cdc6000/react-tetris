@@ -370,7 +370,7 @@ class Storage {
           const triggerData = actionData?.getTriggerData({ options: inputOptions }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
 
-          state.justPressed && console.log("input event", { action: bind.action });
+          // state.justPressed && console.log("input event", { action: bind.action });
           let fireEvent = false;
           if (onJustPressed && state.justPressed) {
             fireEvent = true;

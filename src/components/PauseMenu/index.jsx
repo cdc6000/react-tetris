@@ -26,63 +26,55 @@ export default observer(
 
       const { show } = viewData.viewState[viewID];
 
-      const pauseTriggers = inputStore.getAllActiveTriggersForActions({
-        actions: [constants.controls.controlEvent.gameUnpause, constants.controls.controlEvent.gamePauseToggle],
-      });
-      let pauseTipButtons = [];
-      if (pauseTriggers.length > 2) {
-        pauseTriggers.slice(0, pauseTriggers.length - 1).forEach((trigger, tIndex) => {
-          if (tIndex > 0) pauseTipButtons.push(<Fragment key={`${tIndex}-1`}>{","}</Fragment>);
-          pauseTipButtons.push(
-            <KeyboardKey
-              key={`${tIndex}-2`}
-              gameStore={gameStore}
-              input={trigger}
-            />
-          );
-        });
-        pauseTipButtons.push(<Fragment key={"last-1"}>{"или"}</Fragment>);
-        pauseTipButtons.push(
-          <KeyboardKey
-            key={"last-2"}
-            gameStore={gameStore}
-            input={pauseTriggers[pauseTriggers.length - 1]}
-          />
-        );
-      } else if (pauseTriggers.length == 2) {
-        pauseTipButtons.push(
-          <KeyboardKey
-            key={"0"}
-            gameStore={gameStore}
-            input={pauseTriggers[0]}
-          />
-        );
-        pauseTipButtons.push(<Fragment key={"1"}>{"или"}</Fragment>);
-        pauseTipButtons.push(
-          <KeyboardKey
-            key={"2"}
-            gameStore={gameStore}
-            input={pauseTriggers[1]}
-          />
-        );
-      } else if (pauseTriggers.length == 1) {
-        pauseTipButtons.push(
-          <KeyboardKey
-            key={"0"}
-            gameStore={gameStore}
-            input={pauseTriggers[0]}
-          />
-        );
-      }
-
       return (
         <div className={`pause-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
             <div className="title">{langStrings.pauseMenu.menuTitle}</div>
             <div className="tip">
-              {"Нажмите"}
-              {pauseTipButtons}
-              {"для продолжения"}
+              {constants.lang.stringConverter(langStrings.pauseMenu.tip, [
+                {
+                  type: "function",
+                  whatIsRegExp: true,
+                  what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                  to: (key, matchData) => {
+                    const pauseTriggers = inputStore.getAllActiveTriggersForActions({
+                      actions: [
+                        constants.controls.controlEvent.gameUnpause,
+                        constants.controls.controlEvent.gamePauseToggle,
+                      ],
+                    });
+                    const pauseTipButtons = [];
+                    if (pauseTriggers.length) {
+                      if (pauseTriggers.length >= 2) {
+                        pauseTriggers.slice(0, pauseTriggers.length - 1).forEach((trigger, tIndex) => {
+                          if (tIndex > 0) pauseTipButtons.push(<Fragment key={`${key}-${tIndex}-1`}>{","}</Fragment>);
+                          pauseTipButtons.push(
+                            <KeyboardKey
+                              key={`${key}-${tIndex}-2`}
+                              gameStore={gameStore}
+                              input={trigger}
+                            />
+                          );
+                        });
+                      }
+                      if (pauseTriggers.length > 1) {
+                        pauseTipButtons.push(<Fragment key={`${key}-last-1`}>{matchData[1]}</Fragment>);
+                      }
+                      pauseTipButtons.push(
+                        <KeyboardKey
+                          key={`${key}-last-2`}
+                          gameStore={gameStore}
+                          input={pauseTriggers[pauseTriggers.length - 1]}
+                        />
+                      );
+
+                      return pauseTipButtons;
+                    } else {
+                      return "";
+                    }
+                  },
+                },
+              ])}
             </div>
 
             <div className="btns-container">
