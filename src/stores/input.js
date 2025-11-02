@@ -25,6 +25,7 @@ class Storage {
     this.observables = {
       inputState: {},
       controlSchemes: [],
+      controlSchemesMaxCount: 20,
       inputOptions: {
         allowFigureMoveByMouse: true,
       },
@@ -41,94 +42,314 @@ class Storage {
       observables: observable,
 
       // action
+      addControlScheme: action,
+      removeControlScheme: action,
+      resetControlScheme: action,
+      setActiveControlScheme: action,
+      addControlSchemeBind: action,
+      removeControlSchemeBind: action,
       setupDefaultControlSchemes: action,
+
       inputUpdateState: action,
 
       // computed
     });
+
+    this.inputsBind();
+    this.setupDefaultControlSchemes();
+
+    this.defaults = {
+      observables: objectHelpers.deepCopy(this.observables),
+      nonObservables: objectHelpers.deepCopy(this.nonObservables),
+    };
   }
 
-  setupDefaultControlSchemes = () => {
+  addControlScheme = ({ id, name, nameStringPath, isActive = true, binds = [], props } = {}) => {
+    const { controlSchemes, controlSchemesMaxCount } = this.observables;
+    const { lang } = this.props.observables;
+    if (controlSchemes.length >= controlSchemesMaxCount) return false;
+
+    if (!id || controlSchemes.some((_) => _.id == id)) {
+      for (let i = 1; i <= controlSchemesMaxCount; i++) {
+        id = i;
+        if (!controlSchemes.some((_) => _.id == id)) break;
+      }
+    }
+    if (!nameStringPath) {
+      if (!name || controlSchemes.some((_) => _.name == name)) {
+        for (let i = 1; i <= controlSchemesMaxCount; i++) {
+          name = `${constants.lang.strings[lang].optionsMenu.controlsTab.controlScheme.new} ${i}`;
+          if (!controlSchemes.some((_) => _.name == name)) break;
+        }
+      }
+    }
+
+    controlSchemes.push({
+      id,
+      name,
+      nameStringPath,
+      isActive,
+      binds,
+      ...props,
+    });
+    if (isActive) {
+      this.inputEventsBind({ ids: [id] });
+    }
+
+    return id;
+  };
+
+  removeControlScheme = ({ id }) => {
     const { controlSchemes } = this.observables;
+    if (!id) return false;
+
+    const index = controlSchemes.findIndex((_) => _.id == id);
+    if (index < 0) return false;
+
+    const controlScheme = controlSchemes[index];
+    if (controlScheme.isDefault) return false;
+
+    controlScheme.isActive = false;
+    this.inputEventsUnbind({ ids: [controlScheme.id] });
+    controlSchemes.splice(index, 1);
+
+    return { index };
+  };
+
+  resetControlScheme = ({ id }) => {
+    const { controlSchemes } = this.observables;
+    if (!id) return false;
+
+    const controlScheme = controlSchemes.find((_) => _.id == id);
+    if (!controlScheme) return false;
+    if (!controlScheme.isDefault) return false;
+
+    const defaultControlScheme = this.defaults.observables.controlSchemes.find((_) => _.id == id);
+    if (!defaultControlScheme) return false;
+    if (!defaultControlScheme.isDefault) return false;
+
+    const wasActive = controlScheme.isActive;
+    if (wasActive) {
+      controlScheme.isActive = false;
+      this.inputEventsUnbind({ ids: [controlScheme.id] });
+    }
+
+    controlScheme.binds = objectHelpers.deepCopy(defaultControlScheme.binds);
+
+    if (wasActive) {
+      controlScheme.isActive = true;
+      this.inputEventsBind({ ids: [controlScheme.id] });
+    }
+    return true;
+  };
+
+  setActiveControlScheme = ({ id, state }) => {
+    const { controlSchemes } = this.observables;
+    if (!id) return false;
+
+    const controlScheme = controlSchemes.find((_) => _.id == id);
+    if (!controlScheme) return false;
+    if (controlScheme.isActive == state) return false;
+
+    controlScheme.isActive = state;
+    if (controlScheme.isActive) {
+      this.inputEventsBind({ ids: [controlScheme.id] });
+    } else {
+      this.inputEventsUnbind({ ids: [controlScheme.id] });
+    }
+    return true;
+  };
+
+  addControlSchemeBind = ({ id, action, triggers }) => {
+    const { controlSchemes } = this.observables;
+    if (!id) return false;
+
+    const controlScheme = controlSchemes.find((_) => _.id == id);
+    if (!controlScheme) return false;
+
+    const bind = controlScheme.binds.find((_) => _.action == action);
+    if (!bind) {
+      controlScheme.binds.push({
+        action,
+        triggers: objectHelpers.deepCopy(triggers),
+      });
+    } else {
+      triggers.forEach((trigger) => {
+        if (!bind.triggers.some((_) => _ == trigger)) {
+          bind.triggers.push(trigger);
+        }
+      });
+    }
+
+    if (controlScheme.isActive) {
+      this.inputEventsBind({ ids: [id], action, triggers });
+    }
+
+    return true;
+  };
+
+  removeControlSchemeBind = ({ id, action, triggers }) => {
+    const { controlSchemes } = this.observables;
+    if (!id) return false;
+
+    const controlScheme = controlSchemes.find((_) => _.id == id);
+    if (!controlScheme) return false;
+
+    const bind = controlScheme.binds.find((_) => _.action == action);
+    if (!bind) return false;
+
+    if (controlScheme.isActive) {
+      this.inputEventsUnbind({ ids: [id], action, triggers });
+    }
+    if (triggers?.length) {
+      triggers.forEach((trigger) => {
+        const index = bind.triggers.findIndex((_) => _ == trigger);
+        if (index < 0) return;
+
+        bind.triggers.splice(index, 1);
+      });
+    } else {
+      for (let i = bind.triggers.length - 1; i >= 0; i--) {
+        bind.triggers.pop();
+      }
+    }
+
+    return true;
+  };
+
+  setupDefaultControlSchemes = () => {
     const { inputEvent, controlEvent } = constants.controls;
 
     // keyboard
-    controlSchemes.push({
-      id: "DefaultKeyboard",
-      isActive: true,
-      binds: [
-        {
-          trigger: `input-${inputEvent.arrowLeft}`,
-          action: controlEvent.moveCurrentFigureLeft,
-        },
-        {
-          trigger: `input-${inputEvent.arrowRight}`,
-          action: controlEvent.moveCurrentFigureRight,
-        },
-
-        {
-          trigger: `input-${inputEvent.arrowUp}`,
-          action: controlEvent.rotateCurrentFigureClockwise,
-        },
-
-        {
-          trigger: `input-${inputEvent.arrowDown}`,
-          action: controlEvent.speedUpFallingCurrentFigure,
-        },
-        {
-          trigger: `input-${inputEvent.space}`,
-          action: controlEvent.dropCurrentFigure,
-        },
-
-        {
-          trigger: `input-${inputEvent.kP}`,
-          action: controlEvent.gamePauseToggle,
-        },
-      ],
+    let id = "DefaultKeyboard";
+    this.addControlScheme({
+      id,
+      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
     });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureLeft,
+      triggers: [`input-${inputEvent.arrowLeft}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureRight,
+      triggers: [`input-${inputEvent.arrowRight}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [`input-${inputEvent.arrowUp}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [`input-${inputEvent.arrowDown}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [`input-${inputEvent.space}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.gamePauseToggle,
+      triggers: [`input-${inputEvent.kP}`],
+    });
+
+    this.setActiveControlScheme({ id, state: true });
 
     // mouse
-    controlSchemes.push({
-      id: "DefaultMouse",
-      isActive: true,
-      binds: [
-        {
-          trigger: `input-${inputEvent.mouseRightButton}`,
-          action: controlEvent.rotateCurrentFigureClockwise,
-        },
-
-        {
-          trigger: `input-${inputEvent.mouseWheelDown}`,
-          action: controlEvent.speedUpFallingCurrentFigure,
-        },
-        {
-          trigger: `input-${inputEvent.mouseLeftButton}`,
-          action: controlEvent.dropCurrentFigure,
-        },
-
-        {
-          trigger: `input-${inputEvent.mouseWheelDown}`,
-          action: controlEvent.gameUnpause,
-        },
-        {
-          trigger: `input-${inputEvent.mouseWheelUp}`,
-          action: controlEvent.gamePause,
-        },
-      ],
+    id = "DefaultMouse";
+    this.addControlScheme({
+      id,
+      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
     });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [`input-${inputEvent.mouseRightButton}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [`input-${inputEvent.mouseWheelDown}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [`input-${inputEvent.mouseLeftButton}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.gameUnpause,
+      triggers: [`input-${inputEvent.mouseWheelDown}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.gamePause,
+      triggers: [`input-${inputEvent.mouseWheelUp}`],
+    });
+
+    this.setActiveControlScheme({ id, state: true });
   };
 
-  inputEventsBind = () => {
+  getInput = () => {
     const { eventBus } = this.props;
-    const { controlSchemes, inputOptions } = this.observables;
     const { evenBusID } = this.nonObservables;
+    return {
+      promise: new Promise((resolve) => {
+        eventBus.addEventListener(evenBusID, "BindInput", ({ input, state }) => {
+          if (input == `input-${constants.controls.inputEvent.f1}`) {
+            resolve(false);
+          } else {
+            if (state.justPressed) {
+              resolve(input);
+            }
+          }
+        });
+      }),
+      onFinished: () => {
+        eventBus.removeEventListener(evenBusID, "BindInput");
+      },
+    };
+  };
+
+  //
+
+  inputEventsBind = ({ ids, action, triggers } = {}) => {
+    const { eventBus } = this.props;
+    const { inputOptions } = this.observables;
+    const { evenBusID } = this.nonObservables;
+
+    let { controlSchemes } = this.observables;
+    if (ids?.length) {
+      controlSchemes = controlSchemes.filter((_) => ids.some((__) => __ == _.id));
+    }
 
     controlSchemes.forEach((controlScheme) => {
       if (!controlScheme.isActive) return;
       controlScheme.binds.forEach((bind) => {
-        eventBus.addEventListener(`${evenBusID}-${controlScheme.id}`, bind.trigger, ({ state }) => {
+        if (action && bind.action != action) return;
+
+        const fn = ({ state }) => {
           const triggerData =
-            constants.controls.controlEventTrigger[bind.action]?.({
+            constants.controls.controlEventData[bind.action]?.getTriggerData({
               options: inputOptions,
             }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
@@ -145,24 +366,47 @@ class Storage {
           if (fireEvent) {
             eventBus.fireEvent(bind.action);
           }
+        };
+
+        let _triggers = bind.triggers;
+        if (triggers?.length) {
+          _triggers = _triggers.filter((_) => triggers.some((__) => __ == _));
+        }
+        _triggers.forEach((trigger) => {
+          const eventID = `${evenBusID}-${controlScheme.id}`;
+          eventBus.addEventListener(eventID, trigger, fn);
         });
       });
     });
   };
 
-  inputEventsUnbind = () => {
+  inputEventsUnbind = ({ ids, action, triggers } = {}) => {
     const { eventBus } = this.props;
-    const { controlSchemes } = this.observables;
     const { evenBusID } = this.nonObservables;
 
+    let { controlSchemes } = this.observables;
+    if (ids?.length) {
+      controlSchemes = controlSchemes.filter((_) => ids.some((__) => __ == _.id));
+    }
+
     controlSchemes.forEach((controlScheme) => {
+      if (controlScheme.isActive) return;
       controlScheme.binds.forEach((bind) => {
-        eventBus.removeEventListener(`${evenBusID}-${controlScheme.id}`, bind.trigger);
+        if (action && bind.action != action) return;
+
+        let _triggers = bind.triggers;
+        if (triggers?.length) {
+          _triggers = _triggers.filter((_) => triggers.some((__) => __ == _));
+        }
+        _triggers.forEach((trigger) => {
+          const eventID = `${evenBusID}-${controlScheme.id}`;
+          eventBus.removeEventListener(eventID, trigger);
+        });
       });
     });
   };
 
-  inputUpdateState = ({ input, isPressed, isReleased, isClicked }) => {
+  inputUpdateState = ({ ev, input, isPressed, isReleased, isClicked }) => {
     // console.log({ input });
     const { inputState } = this.observables;
     if (!inputState[input]) {
@@ -209,7 +453,7 @@ class Storage {
         isChanged = true;
       }
       if (isChanged) {
-        this.fireInputEvent(input);
+        this.fireInputEvent({ input });
       }
     }, 1);
 
@@ -219,7 +463,7 @@ class Storage {
       }
       state.interval = setInterval(() => {
         if (state.isPressed) {
-          this.fireInputEvent(input);
+          this.fireInputEvent({ input });
         } else {
           clearInterval(state.interval);
           state.interval = undefined;
@@ -227,15 +471,20 @@ class Storage {
       }, 50);
     }
 
-    this.fireInputEvent(input);
+    return this.fireInputEvent({ ev, input });
   };
 
-  fireInputEvent = (input) => {
+  fireInputEvent = ({ ev, input }) => {
     const { eventBus } = this.props;
     const { inputState } = this.observables;
 
     const state = objectHelpers.deepCopy(inputState[input]);
-    return eventBus.fireEvent(`input-${input}`, { state });
+    if (eventBus.getListeners("BindInput")?.length) {
+      ev?.preventDefault?.();
+      return eventBus.fireEvent("BindInput", { input: `input-${input}`, state });
+    } else {
+      return eventBus.fireEvent(`input-${input}`, { state });
+    }
   };
 
   //
@@ -264,14 +513,14 @@ class Storage {
     const keyCode = ev.code || ev.key || ev.keyCode;
     // console.log(`keyPressed: '${keyCode}'`);
 
-    this.inputUpdateState({ input: keyCode, isPressed: true });
+    this.inputUpdateState({ ev, input: keyCode, isPressed: true });
   };
 
   onKeyRelease = (ev) => {
     const keyCode = ev.code || ev.key || ev.keyCode;
     //console.log(`keyReleased: '${keyCode}'`);
 
-    this.inputUpdateState({ input: keyCode, isReleased: true });
+    this.inputUpdateState({ ev, input: keyCode, isReleased: true });
   };
 
   onMouseMove = (ev) => {
@@ -292,17 +541,17 @@ class Storage {
 
   onMouseDown = (ev) => {
     if (ev.button == 0) {
-      this.inputUpdateState({ input: constants.controls.inputEvent.mouseLeftButton, isPressed: true });
+      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseLeftButton, isPressed: true });
     } else if (ev.button == 2) {
-      this.inputUpdateState({ input: constants.controls.inputEvent.mouseRightButton, isPressed: true });
+      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseRightButton, isPressed: true });
     }
   };
 
   onMouseUp = (ev) => {
     if (ev.button == 0) {
-      this.inputUpdateState({ input: constants.controls.inputEvent.mouseLeftButton, isReleased: true });
+      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseLeftButton, isReleased: true });
     } else if (ev.button == 2) {
-      this.inputUpdateState({ input: constants.controls.inputEvent.mouseRightButton, isReleased: true });
+      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseRightButton, isReleased: true });
     }
   };
 
@@ -310,11 +559,11 @@ class Storage {
     ev.preventDefault();
   };
 
-  onWheel = async (ev) => {
+  onWheel = (ev) => {
     if (ev.deltaY > 0) {
-      this.inputUpdateState({ input: constants.controls.inputEvent.mouseWheelDown, isClicked: true });
+      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseWheelDown, isClicked: true });
     } else if (ev.deltaY) {
-      this.inputUpdateState({ input: constants.controls.inputEvent.mouseWheelUp, isClicked: true });
+      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseWheelUp, isClicked: true });
     }
   };
 }

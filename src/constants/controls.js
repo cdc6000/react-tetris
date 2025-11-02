@@ -11,54 +11,6 @@ export const controlEvent = {
   gamePauseToggle: "control-gamePauseToggle",
 };
 
-export const controlEventTrigger = {
-  [controlEvent.moveCurrentFigureRight]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.moveCurrentFigureLeft]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.rotateCurrentFigureClockwise]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.rotateCurrentFigureCounterclockwise]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.speedUpFallingCurrentFigure]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.dropCurrentFigure]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.gamePause]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.gameUnpause]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-  [controlEvent.gamePauseToggle]: ({ options }) => {
-    return {
-      onJustPressed: true,
-    };
-  },
-};
-
 export const controlGroup = {
   gameplay: "gameplay",
   pauseMenu: "pauseMenu",
@@ -66,31 +18,77 @@ export const controlGroup = {
 
 export const controlEventData = {
   [controlEvent.moveCurrentFigureRight]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.moveCurrentFigureLeft]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.rotateCurrentFigureClockwise]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.rotateCurrentFigureCounterclockwise]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.speedUpFallingCurrentFigure]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+        onIsPressed: true,
+      };
+    },
   },
   [controlEvent.dropCurrentFigure]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.gamePause]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.gameUnpause]: {
-    group: controlGroup.pauseMenu,
+    groupID: controlGroup.pauseMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
   [controlEvent.gamePauseToggle]: {
-    group: controlGroup.gameplay,
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
   },
 };
 

@@ -5,3 +5,10 @@ export function sleep(milliseconds) {
     }, milliseconds);
   });
 }
+
+export async function forEachSync(array, callback) {
+  for (let i = 0; i < array.length; i++) {
+    const element = array[i];
+    await callback(element, i, array);
+  }
+}

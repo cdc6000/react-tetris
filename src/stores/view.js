@@ -26,7 +26,7 @@ class Storage {
       viewData: {
         viewState: {},
         viewLayers: {},
-        viewLayersList: [],
+        viewLayerList: [],
         inputFocusLayerIDs: [],
       },
     };
@@ -47,6 +47,13 @@ class Storage {
       // computed
       inputFocusLayerID: computed,
     });
+
+    this.viewStateInit();
+
+    this.defaults = {
+      observables: objectHelpers.deepCopy(this.observables),
+      nonObservables: objectHelpers.deepCopy(this.nonObservables),
+    };
   }
 
   viewStateInit = () => {
@@ -89,7 +96,7 @@ class Storage {
         },
       ],
     };
-    viewData.viewLayersList.push(layerID);
+    viewData.viewLayerList.push(layerID);
 
     layerID = constants.viewData.layer.optionsMenu;
     viewData.viewLayers[layerID] = {
@@ -105,7 +112,7 @@ class Storage {
         },
       ],
     };
-    viewData.viewLayersList.push(layerID);
+    viewData.viewLayerList.push(layerID);
 
     layerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
     viewData.viewLayers[layerID] = {
@@ -121,7 +128,7 @@ class Storage {
         },
       ],
     };
-    viewData.viewLayersList.push(layerID);
+    viewData.viewLayerList.push(layerID);
 
     layerID = constants.viewData.layer.pauseMenu;
     viewData.viewLayers[layerID] = {
@@ -137,7 +144,7 @@ class Storage {
         },
       ],
     };
-    viewData.viewLayersList.push(layerID);
+    viewData.viewLayerList.push(layerID);
 
     layerID = constants.viewData.layer.gameOverMenu;
     viewData.viewLayers[layerID] = {
@@ -153,7 +160,7 @@ class Storage {
         },
       ],
     };
-    viewData.viewLayersList.push(layerID);
+    viewData.viewLayerList.push(layerID);
   };
 
   viewLayerEnable = ({ layerID, isAdditive = false, transferFocus = true } = {}) => {
@@ -161,7 +168,7 @@ class Storage {
     const { viewData } = this.observables;
 
     if (!isAdditive) {
-      viewData.viewLayersList.forEach((_layerID) => {
+      viewData.viewLayerList.forEach((_layerID) => {
         if (_layerID == layerID) return;
         this.viewLayerDisable({ layerID: _layerID });
       });
@@ -184,7 +191,7 @@ class Storage {
 
     if (transferFocus) {
       if (!isAdditive) {
-        for (let i = 0; i < viewData.inputFocusLayerIDs.length; i++) {
+        for (let i = viewData.inputFocusLayerIDs.length - 1; i >= 0; i--) {
           viewData.inputFocusLayerIDs.pop();
         }
       }

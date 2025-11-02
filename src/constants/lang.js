@@ -1,4 +1,4 @@
-const strings = {
+export const strings = {
   ru: {
     langName: "Русский (Russian)",
     locale: "ru-RU",
@@ -10,9 +10,46 @@ const strings = {
     },
 
     optionsMenu: {
-      testSettingTitle: "Тестовая галочка",
-
+      menuTitle: "Настройки",
       backBtnTitle: "Вернуться",
+
+      testTab: {
+        tabBtnTitle: "Тестовая вкладка",
+        testSettingTitle: "Тестовая галочка",
+      },
+
+      controlsTab: {
+        tabBtnTitle: "Управление",
+
+        main: {
+          sectionTitle: "Основные",
+
+          allowFigureMoveByMouse: "Перемещать фигуру с помощью мыши",
+        },
+
+        controlScheme: {
+          sectionTitle: "Настройка схем управления",
+
+          none: "Нет схем управления",
+          new: "Новая схема",
+          defaultKeyboard: "Клавиатура (стандартная)",
+          defaultMouse: "Мышь (стандартная)",
+
+          addBtnTitle: "Добавить",
+          removeBtnTitle: "Удалить",
+          resetBtnTitle: "Сбросить",
+          activeToggleTitle: "Включить схему",
+
+          groupFigureControlTitle: "Управление фигурой",
+          groupGameplayTitle: "Игровой процесс",
+        },
+
+        getInputBlind: {
+          awaitingInput: "Ожидание ввода",
+          awaitingInputExitTip: "Нажмите ${keyboardKey|f1} для выхода",
+          inputRegistered: "Ввод зарегистрирован",
+        },
+      },
     },
 
     pauseMenu: {
@@ -35,24 +72,77 @@ const strings = {
     },
 
     controlEventName: {
-      moveCurrentFigureRight: "Переместить фигуру вправо",
-      moveCurrentFigureLeft: "Переместить фигуру влево",
-      rotateCurrentFigureClockwise: "Повернуть фигуру по часовой стрелке",
-      rotateCurrentFigureCounterclockwise: "Повернуть фигуру против часовой стрелки",
-      speedUpFallingCurrentFigure: "Ускорить падение фигуры",
-      dropCurrentFigure: "Опустить фигуру до конца",
-      gamePause: "Поставить игру на паузу",
-      gameUnpause: "Продолжить игру (снять с паузы)",
-      gamePauseToggle: "Поставить или снять с паузы (переключение)",
+      "control-moveCurrentFigureRight": "Переместить вправо",
+      "control-moveCurrentFigureLeft": "Переместить влево",
+      "control-rotateCurrentFigureClockwise": "Повернуть по часовой стрелке",
+      "control-rotateCurrentFigureCounterclockwise": "Повернуть против часовой стрелки",
+      "control-speedUpFallingCurrentFigure": "Ускорить падение",
+      "control-dropCurrentFigure": "Опустить до конца",
+      "control-gamePause": "Поставить на паузу",
+      "control-gameUnpause": "Снять с паузы",
+      "control-gamePauseToggle": "Переключить паузу",
     },
 
     inputName: {
-      mouseLeftButton: "Левая кнопка мыши",
-      mouseRightButton: "Правая кнопка мыши",
-      mouseWheelUp: "Прокрутка колеса мыши вверх",
-      mouseWheelDown: "Прокрутка колеса мыши вниз",
+      "input-mouseLeftButton": "Левая кнопка мыши",
+      "input-mouseRightButton": "Правая кнопка мыши",
+      "input-mouseWheelUp": "Колесо мыши вверх",
+      "input-mouseWheelDown": "Колесо мыши вниз",
+      "input-ArrowLeft": "Стрелка влево",
+      "input-ArrowRight": "Стрелка вправо",
+      "input-ArrowUp": "Стрелка вверх",
+      "input-ArrowDown": "Стрелка вниз",
+      "input-Space": "Пробел",
     },
   },
 };
 
-export { strings };
+export const getString = ({ lang, pathArray }) => {
+  let elem = strings[lang];
+  if (!elem) return false;
+  pathArray.some((key) => {
+    elem = elem[key];
+    if (elem == undefined) return true;
+  });
+  return elem;
+};
+
+export function stringConverter(text, conversionList = []) {
+  const textBlock = [text];
+  let blockUniqueKey = 0;
+
+  conversionList.forEach((data) => {
+    if (!data?.type) return;
+
+    switch (data.type) {
+      case "string": {
+        for (let i = textBlock.length - 1; i >= 0; i--) {
+          textBlock[i] = ("" + textBlock[i]).replaceAll("${" + data.what + "}", data.to);
+        }
+
+        break;
+      }
+
+      case "function": {
+        for (let i = 0; i < textBlock.length; i++) {
+          const txt = "" + textBlock[i];
+          const matchData =
+            data.whatIsRegExp ? txt.match(new RegExp(data.what)) : txt.match(new RegExp("\\$\\{" + data.what + "\\}"));
+          if (matchData) {
+            textBlock.splice(
+              i,
+              1,
+              txt.slice(0, matchData.index),
+              data.to(blockUniqueKey++, matchData),
+              txt.slice(matchData.index + matchData[0].length)
+            );
+          }
+        }
+
+        break;
+      }
+    }
+  });
+
+  return textBlock;
+}

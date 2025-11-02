@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import KeyboardKey from "@components/common/KeyboardKey";
 import NextFigureView from "./NextFigureView";
 
 import * as constants from "@constants/index";
@@ -53,23 +54,35 @@ export default observer(
             <div className="control-tips-wrapper">
               <div className="header">Управление:</div>
               <div className="item">
-                <div className="kb-key">&#8592;</div>
-                <div className="kb-key">&#8594;</div> или <div className="kb-key">&nbsp;Мышь&nbsp;</div>: перемещение
-                блока
+                {"Перемещение блока:"}
+                <KeyboardKey gameStore={gameStore}>&#8592;</KeyboardKey>
+                <KeyboardKey gameStore={gameStore}>&#8594;</KeyboardKey>
+                {"или"}
+                <KeyboardKey gameStore={gameStore}>Мышь</KeyboardKey>
               </div>
               <div className="item">
-                <div className="kb-key">&#8593;</div> или <div className="kb-key">&nbsp;ПКМ&nbsp;</div>: поворот блока
+                {"Поворот блока:"}
+                <KeyboardKey gameStore={gameStore}>&#8593;</KeyboardKey>
+                {"или"}
+                <KeyboardKey gameStore={gameStore}>ПКМ</KeyboardKey>
               </div>
               <div className="item">
-                <div className="kb-key">&#8595;</div> или <div className="kb-key">&nbsp;Колесо&nbsp;&#8595;&nbsp;</div>:
-                ускорить падение блока
+                {"Ускорить падение блока:"}
+                <KeyboardKey gameStore={gameStore}>&#8595;</KeyboardKey>
+                {"или"}
+                <KeyboardKey gameStore={gameStore}>Колесо &#8595;</KeyboardKey>
               </div>
               <div className="item">
-                <div className="kb-key">&nbsp;&nbsp;&nbsp;Пробел&nbsp;&nbsp;&nbsp;</div> или{" "}
-                <div className="kb-key">&nbsp;ЛКМ&nbsp;</div>: мгновенно опустить блок до препятствия
+                {"Мгновенно опустить блок до препятствия:"}
+                <KeyboardKey gameStore={gameStore}>Пробел</KeyboardKey>
+                {"или"}
+                <KeyboardKey gameStore={gameStore}>ЛКМ</KeyboardKey>
               </div>
               <div className="item">
-                <div className="kb-key">P</div> или <div className="kb-key">&nbsp;Колесо&nbsp;&#8593;&nbsp;</div>: пауза
+                {"Пауза:"}
+                <KeyboardKey gameStore={gameStore}>P</KeyboardKey>
+                {"или"}
+                <KeyboardKey gameStore={gameStore}>Колесо &#8593;</KeyboardKey>
               </div>
             </div>
           </div>

@@ -13,70 +13,86 @@ export default class EventBus {
     };
   };
 
-  addEventListener = async (id, type, fn, options = { fireIfHappened: false }) => {
-    const eventType = this.getEventType(type);
+  addEventListener = (id, type, fn, options = { fireIfHappened: false }) => {
+    let eventType = this.getEventType(type);
     if (!eventType) {
-      const newEventType = this.eventAssembler(type);
-      newEventType.listeners.push({ id, fn });
-      this.eventTypes.push(newEventType);
-    } else {
-      eventType.listeners.push({ id, fn });
-      if (options.fireIfHappened && eventType.hasFired) {
-        fn && (await fn(eventType.lastFireData));
-      }
+      eventType = this.eventAssembler(type);
+      this.eventTypes.push(eventType);
     }
+
+    if (eventType.listeners.some((_) => _.id == id)) return false;
+
+    eventType.listeners.push({ id, fn });
+    if (options.fireIfHappened && eventType.hasFired) {
+      return this.execListener(fn, eventType.lastFireData);
+    }
+    return true;
   };
 
   removeEventListener = (id, type) => {
     const eventType = this.getEventType(type);
-    if (!eventType) return;
+    if (!eventType) return false;
 
     const index = eventType.listeners.findIndex((el) => el.id == id);
-    if (index < 0) return;
+    if (index < 0) return false;
 
     eventType.listeners.splice(index, 1);
+    return true;
   };
 
   removeAllEventListeners = (type) => {
     const eventType = this.getEventType(type);
-    if (!eventType) return;
+    if (!eventType) return false;
 
-    eventType.listeners = [];
+    for (let i = eventType.listeners.length - 1; i >= 0; i--) {
+      eventType.listeners.pop();
+    }
+    return true;
   };
 
-  fireEvent = async (type, data) => {
-    const eventType = this.getEventType(type);
+  fireEvent = (type, data) => {
+    let eventType = this.getEventType(type);
     if (!eventType) {
-      const newEventType = this.eventAssembler(type);
-      newEventType.fireCount++;
-      newEventType.hasFired = true;
-      newEventType.lastFireData = data;
-      this.eventTypes.push(newEventType);
-      return false;
-    } else {
-      eventType.lastFireData = data;
-      let result;
-      for (let lIndex = 0; lIndex < eventType.listeners.length; lIndex++) {
-        const fn = eventType.listeners[lIndex].fn;
-        result = fn && (await fn(data));
-      }
-
-      eventType.fireCount++;
-      eventType.hasFired = true;
-
-      return result;
+      eventType = this.eventAssembler(type);
+      this.eventTypes.push(eventType);
     }
+
+    eventType.lastFireData = data;
+    eventType.fireCount++;
+    eventType.hasFired = true;
+    return this.execListeners(eventType.listeners, data);
   };
 
   getEventType = (type) => {
     return this.eventTypes.find((el) => el.type == type);
   };
 
-  reloadEvent = async (type) => {
+  reloadEvent = (type) => {
     const eventType = this.getEventType(type);
-    if (!eventType) return;
+    if (!eventType) return false;
 
     eventType.fireCount = 0;
     eventType.hasFired = false;
+    return true;
+  };
+
+  getListeners = (type) => {
+    const eventType = this.getEventType(type);
+    if (!eventType) return false;
+
+    return eventType.listeners;
+  };
+
+  execListener = async (fn, data) => {
+    return (fn && (await fn(data))) || false;
+  };
+
+  execListeners = async (listeners, data) => {
+    const results = [];
+    for (let lIndex = 0; lIndex < listeners.length; lIndex++) {
+      const fn = listeners[lIndex].fn;
+      results.push(await this.execListener(fn, data));
+    }
+    return results;
   };
 }

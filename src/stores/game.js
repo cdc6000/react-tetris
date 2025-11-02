@@ -97,6 +97,7 @@ class Storage {
     this.eventBus = new EventBus();
     this.inputStore = new InputStore({
       eventBus: this.eventBus,
+      observables: this.observables,
       nonObservables: this.nonObservables,
     });
     this.viewStore = new ViewStore({
@@ -130,10 +131,6 @@ class Storage {
     });
 
     this.eventBusBind();
-    this.inputStore.inputsBind();
-    this.inputStore.setupDefaultControlSchemes();
-    this.inputStore.inputEventsBind();
-    this.viewStore.viewStateInit();
 
     this.defaults = {
       observables: objectHelpers.deepCopy(this.observables),

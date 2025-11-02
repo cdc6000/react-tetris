@@ -2,6 +2,8 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import KeyboardKey from "@components/common/KeyboardKey";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -29,8 +31,11 @@ export default observer(
           <div className="content-wrapper">
             <div className="title">{langStrings.pauseMenu.menuTitle}</div>
             <div className="tip">
-              Нажмите <div className="kb-key">P</div> или <div className="kb-key">&nbsp;Колесо&nbsp;&#8595;&nbsp;</div>{" "}
-              для продолжения
+              {"Нажмите"}
+              <KeyboardKey gameStore={gameStore}>P</KeyboardKey>
+              {"или"}
+              <KeyboardKey gameStore={gameStore}>Колесо &#8595;</KeyboardKey>
+              {"для продолжения"}
             </div>
 
             <div className="btns-container">

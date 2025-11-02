@@ -18,22 +18,28 @@ i {
 
 #game {
   @include common.colors;
-  text-align: center;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
   color: #333;
 
   .main-view-controller {
     .kb-key {
-      display: inline-block;
-      text-align: center;
-      border: 1px solid #000;
-      border-radius: 4px;
-      box-sizing: border-box;
-      min-width: 22px;
-      height: 22px;
-      padding: 1px 4px 0 4px;
-      margin: 0 3px 0 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      
+      .symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        min-height: 22px;
+        padding: 3px;
+        border: 1px solid var(--black);
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
     }
 
     --main-view-layer: 1;
