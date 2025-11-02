@@ -64,6 +64,103 @@ class Storage {
     };
   }
 
+  setupDefaultControlSchemes = () => {
+    const { inputEvent, controlEvent } = constants.controls;
+
+    let id = "DefaultKeyboard";
+    this.addControlScheme({
+      id,
+      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureLeft,
+      triggers: [`input-${inputEvent.arrowLeft}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureRight,
+      triggers: [`input-${inputEvent.arrowRight}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [`input-${inputEvent.arrowUp}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [`input-${inputEvent.arrowDown}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [`input-${inputEvent.space}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.gamePauseToggle,
+      triggers: [`input-${inputEvent.kP}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.helpMenuToggle,
+      triggers: [`input-${inputEvent.f1}`],
+    });
+
+    this.setActiveControlScheme({ id, state: true });
+
+    //
+
+    id = "DefaultMouse";
+    this.addControlScheme({
+      id,
+      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [`input-${inputEvent.mouseRightButton}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [`input-${inputEvent.mouseWheelDown}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [`input-${inputEvent.mouseLeftButton}`],
+    });
+
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.gameUnpause,
+      triggers: [`input-${inputEvent.mouseWheelDown}`],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.gamePause,
+      triggers: [`input-${inputEvent.mouseWheelUp}`],
+    });
+
+    this.setActiveControlScheme({ id, state: true });
+  };
+
   addControlScheme = ({ id, name, nameStringPath, isActive = true, binds = [], props } = {}) => {
     const { controlSchemes, controlSchemesMaxCount } = this.observables;
     const { lang } = this.props.observables;
@@ -211,98 +308,6 @@ class Storage {
     }
 
     return true;
-  };
-
-  setupDefaultControlSchemes = () => {
-    const { inputEvent, controlEvent } = constants.controls;
-
-    // keyboard
-    let id = "DefaultKeyboard";
-    this.addControlScheme({
-      id,
-      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
-      isActive: false,
-      props: {
-        isDefault: true,
-      },
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.moveCurrentFigureLeft,
-      triggers: [`input-${inputEvent.arrowLeft}`],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.moveCurrentFigureRight,
-      triggers: [`input-${inputEvent.arrowRight}`],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [`input-${inputEvent.arrowUp}`],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [`input-${inputEvent.arrowDown}`],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.dropCurrentFigure,
-      triggers: [`input-${inputEvent.space}`],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.gamePauseToggle,
-      triggers: [`input-${inputEvent.kP}`],
-    });
-
-    this.setActiveControlScheme({ id, state: true });
-
-    // mouse
-    id = "DefaultMouse";
-    this.addControlScheme({
-      id,
-      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
-      isActive: false,
-      props: {
-        isDefault: true,
-      },
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [`input-${inputEvent.mouseRightButton}`],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [`input-${inputEvent.mouseWheelDown}`],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.dropCurrentFigure,
-      triggers: [`input-${inputEvent.mouseLeftButton}`],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.gameUnpause,
-      triggers: [`input-${inputEvent.mouseWheelDown}`],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.gamePause,
-      triggers: [`input-${inputEvent.mouseWheelUp}`],
-    });
-
-    this.setActiveControlScheme({ id, state: true });
   };
 
   getInput = () => {
@@ -501,7 +506,8 @@ class Storage {
       if (ev?.cancelable) ev?.preventDefault?.();
       return eventBus.fireEvent("BindInput", { input: `input-${input}`, state });
     } else if (eventBus.getListeners(`input-${input}`)?.length) {
-      // if (ev?.cancelable) ev?.preventDefault?.();
+      const inputEventData = constants.controls.inputEventData[input] || {};
+      if (inputEventData.preventDefault) ev?.preventDefault?.();
       return eventBus.fireEvent(`input-${input}`, { state });
     }
   };

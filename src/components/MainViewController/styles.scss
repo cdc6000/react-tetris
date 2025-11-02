@@ -4,6 +4,7 @@
 @use "../PauseMenu/styles.scss" as PauseMenu;
 @use "../GameOverMenu/styles.scss" as GameOverMenu;
 @use "../OptionsMenu/styles.scss" as OptionsMenu;
+@use "../HelpMenu/styles.scss" as HelpMenu;
 
 @use "../GamePlayView/styles.scss" as GamePlayView;
 
@@ -46,11 +47,15 @@ i {
     --overlay-layer: 2;
     --popup-menu-layer: 3;
     --options-menu-layer: 4;
+    --help-menu-layer: 10;
+
+    --menu-background-color: var(--white);
 
     @include MainMenu.main;
     @include PauseMenu.main;
     @include GameOverMenu.main;
     @include OptionsMenu.main;
+    @include HelpMenu.main;
 
     @include GamePlayView.main;
 

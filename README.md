@@ -1,3 +1,3 @@
-# react-tetris
-Tetris implementation on [React](https://github.com/facebook/react)
+# Tessemino
+Tetraminos with multiple gamemodes!
 ![Screenshot](game.png)

@@ -9,9 +9,11 @@ export const controlEvent = {
   gamePause: "control-gamePause",
   gameUnpause: "control-gameUnpause",
   gamePauseToggle: "control-gamePauseToggle",
+  helpMenuToggle: "control-helpMenuToggle",
 };
 
 export const controlGroup = {
+  anywhere: "anywhere",
   gameplay: "gameplay",
   pauseMenu: "pauseMenu",
 };
@@ -84,6 +86,14 @@ export const controlEventData = {
   },
   [controlEvent.gamePauseToggle]: {
     groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.helpMenuToggle]: {
+    groupID: controlGroup.anywhere,
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
@@ -209,4 +219,10 @@ export const inputEvent = {
   pgDn: "PageDown",
   pause: "Pause",
   clear: "Clear",
+};
+
+export const inputEventData = {
+  [inputEvent.f1]: {
+    preventDefault: true,
+  },
 };

@@ -80,10 +80,15 @@ class Storage {
       canBeShown: true,
       show: false,
     };
+    viewData.viewState[constants.viewData.view.helpMenu] = {
+      canBeShown: true,
+      show: false,
+    };
 
     // layers
     let layerID = constants.viewData.layer.mainMenu;
     viewData.viewLayers[layerID] = {
+      isEnabled: false,
       views: [
         {
           id: constants.viewData.view.mainMenu,
@@ -100,6 +105,7 @@ class Storage {
 
     layerID = constants.viewData.layer.optionsMenu;
     viewData.viewLayers[layerID] = {
+      isEnabled: false,
       views: [
         {
           id: constants.viewData.view.optionsMenu,
@@ -116,6 +122,7 @@ class Storage {
 
     layerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
     viewData.viewLayers[layerID] = {
+      isEnabled: false,
       views: [
         {
           id: `${constants.viewData.view.gamePlayView}-${constants.gameMode.classic}`,
@@ -132,6 +139,7 @@ class Storage {
 
     layerID = constants.viewData.layer.pauseMenu;
     viewData.viewLayers[layerID] = {
+      isEnabled: false,
       views: [
         {
           id: constants.viewData.view.pauseMenu,
@@ -148,6 +156,7 @@ class Storage {
 
     layerID = constants.viewData.layer.gameOverMenu;
     viewData.viewLayers[layerID] = {
+      isEnabled: false,
       views: [
         {
           id: constants.viewData.view.gameOverMenu,
@@ -161,6 +170,28 @@ class Storage {
       ],
     };
     viewData.viewLayerList.push(layerID);
+
+    layerID = constants.viewData.layer.helpMenu;
+    viewData.viewLayers[layerID] = {
+      isEnabled: false,
+      views: [
+        {
+          id: constants.viewData.view.helpMenu,
+          enableProps: {
+            show: true,
+          },
+          disableProps: {
+            show: false,
+          },
+        },
+      ],
+    };
+    viewData.viewLayerList.push(layerID);
+  };
+
+  isViewLayerEnabled = (layerID) => {
+    if (!layerID || layerID == constants.viewData.layer.none) return false;
+    return this.observables.viewData.viewLayers[layerID].isEnabled;
   };
 
   viewLayerEnable = ({ layerID, isAdditive = false, transferFocus = true } = {}) => {
@@ -188,6 +219,7 @@ class Storage {
         }
       });
     });
+    layerData.isEnabled = true;
 
     if (transferFocus) {
       if (!isAdditive) {
@@ -216,6 +248,7 @@ class Storage {
         }
       });
     });
+    layerData.isEnabled = false;
   };
 
   get inputFocusLayerID() {

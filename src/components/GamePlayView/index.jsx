@@ -5,6 +5,8 @@ import { observer } from "mobx-react";
 import KeyboardKey from "@components/common/KeyboardKey";
 import NextFigureView from "./NextFigureView";
 
+import * as customHelpers from "@utils/custom-helpers";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -28,12 +30,12 @@ export default observer(
     render() {
       const { viewID } = this;
       const { gameStore } = this.props;
-      const { viewStore, gameModeData, cellsMaxSize } = gameStore;
+      const { inputStore, viewStore, gameModeData, cellsMaxSize } = gameStore;
       const { viewData } = viewStore.observables;
       const { score, level, cup } = gameModeData;
       const { lang, gameMode } = gameStore.observables;
-      const langStrings = constants.lang.strings[lang];
       const { cellSizePx } = gameStore.nonObservables;
+      const { getLangString, stringConverter } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
 
@@ -50,76 +52,91 @@ export default observer(
             "--next-figure-cells-ver": `${cellsMaxSize.height}`,
           }}
         >
-          <div className="left-col-wrapper">
-            <div className="control-tips-wrapper">
-              <div className="header">Управление:</div>
-              <div className="item">
-                {"Перемещение блока:"}
-                <KeyboardKey gameStore={gameStore}>&#8592;</KeyboardKey>
-                <KeyboardKey gameStore={gameStore}>&#8594;</KeyboardKey>
-                {"или"}
-                <KeyboardKey gameStore={gameStore}>Мышь</KeyboardKey>
+          <div className="single-cup-view">
+            <div className="top-container">
+              <div className="tip">
+                {stringConverter(getLangString({ lang, pathArray: ["gameView", "tipHelp"] }).string, [
+                  {
+                    type: "function",
+                    whatIsRegExp: true,
+                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                    to: (key, matchData) => {
+                      const triggers = inputStore.getAllActiveTriggersForActions({
+                        actions: [constants.controls.controlEvent.helpMenuToggle],
+                      });
+                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+                    },
+                  },
+                ])}
               </div>
-              <div className="item">
-                {"Поворот блока:"}
-                <KeyboardKey gameStore={gameStore}>&#8593;</KeyboardKey>
-                {"или"}
-                <KeyboardKey gameStore={gameStore}>ПКМ</KeyboardKey>
-              </div>
-              <div className="item">
-                {"Ускорить падение блока:"}
-                <KeyboardKey gameStore={gameStore}>&#8595;</KeyboardKey>
-                {"или"}
-                <KeyboardKey gameStore={gameStore}>Колесо &#8595;</KeyboardKey>
-              </div>
-              <div className="item">
-                {"Мгновенно опустить блок до препятствия:"}
-                <KeyboardKey gameStore={gameStore}>Пробел</KeyboardKey>
-                {"или"}
-                <KeyboardKey gameStore={gameStore}>ЛКМ</KeyboardKey>
-              </div>
-              <div className="item">
-                {"Пауза:"}
-                <KeyboardKey gameStore={gameStore}>P</KeyboardKey>
-                {"или"}
-                <KeyboardKey gameStore={gameStore}>Колесо &#8593;</KeyboardKey>
+              <div className="tip">
+                {stringConverter(getLangString({ lang, pathArray: ["gameView", "tipPause"] }).string, [
+                  {
+                    type: "function",
+                    whatIsRegExp: true,
+                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                    to: (key, matchData) => {
+                      const triggers = inputStore.getAllActiveTriggersForActions({
+                        actions: [
+                          constants.controls.controlEvent.gamePause,
+                          constants.controls.controlEvent.gamePauseToggle,
+                        ],
+                      });
+                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+                    },
+                  },
+                ])}
               </div>
             </div>
-          </div>
-          <div className="cup-wrapper">
-            <div
-              className="cup"
-              ref={this.cupRef}
-            >
-              {cup.view.map((cupRow, rIndex) => {
-                return cupRow.map((cupCell, cIndex) => {
-                  const { type, isCurrentFigure, isCurrentFigureColumn, isShadowFigure } = cupCell;
-                  const cellTypeClass = constants.cellTypes[type].class;
-                  return (
-                    <div
-                      key={rIndex + "-" + cIndex}
-                      className={`figure-cell ${cellTypeClass}${isCurrentFigure ? " current-figure" : ""}${
-                        isCurrentFigureColumn ? " current-figure-column" : ""
-                      }${isShadowFigure ? " shadow-figure" : ""}`}
-                    />
-                  );
-                });
-              })}
-            </div>
-          </div>
-          <div className="right-col-wrapper">
-            <div className="game-state-wrapper">
-              <div className="score-header">{langStrings.gameView.scoreTitle}:</div>
-              <div className="score">{score}</div>
-              <br />
+            <div className="center-container">
+              <div className="left-col-wrapper">
+                <div className="content"></div>
+              </div>
+              <div className="cup-wrapper">
+                <div
+                  className="cup"
+                  ref={this.cupRef}
+                >
+                  {cup.view.map((cupRow, rIndex) => {
+                    return cupRow.map((cupCell, cIndex) => {
+                      const { type, isCurrentFigure, isCurrentFigureColumn, isShadowFigure } = cupCell;
+                      const cellTypeClass = constants.cellTypes[type].class;
+                      return (
+                        <div
+                          key={rIndex + "-" + cIndex}
+                          className={`figure-cell ${cellTypeClass}${isCurrentFigure ? " current-figure" : ""}${
+                            isCurrentFigureColumn ? " current-figure-column" : ""
+                          }${isShadowFigure ? " shadow-figure" : ""}`}
+                        />
+                      );
+                    });
+                  })}
+                </div>
+              </div>
+              <div className="right-col-wrapper">
+                <div className="content">
+                  <div className="game-state-wrapper">
+                    <div className="score-header">
+                      {getLangString({ lang, pathArray: ["gameView", "scoreTitle"] }).string}
+                    </div>
+                    <div className="score">{score}</div>
+                    <br />
 
-              <div className="level-header">{langStrings.gameView.levelTitle}:</div>
-              <div className="level">{level + 1}</div>
-              <br />
+                    <div className="level-header">
+                      {getLangString({ lang, pathArray: ["gameView", "levelTitle"] }).string}
+                    </div>
+                    <div className="level">{level + 1}</div>
+                    <br />
 
-              <div className="next-figure-header">{langStrings.gameView.nextFigureTitle}:</div>
-              <NextFigureView gameStore={gameStore} />
+                    <div className="next-figure-header">
+                      {getLangString({ lang, pathArray: ["gameView", "nextFigureTitle"] }).string}
+                    </div>
+                    <NextFigureView gameStore={gameStore} />
+                  </div>
+                </div>
+              </div>
             </div>
+            <div className="bottom-container"></div>
           </div>
         </div>
       );

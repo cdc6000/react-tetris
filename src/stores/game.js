@@ -138,6 +138,8 @@ class Storage {
     };
 
     this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
+    // this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.optionsMenu, isAdditive: true });
+    // this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
   }
 
   //
@@ -185,11 +187,17 @@ class Storage {
 
     eventBus.addEventListener(evenBusID, controlEvent.gamePause, () => {
       if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
-      return this.setPause({ state: true });
+
+      if (this.setPause({ state: true })) {
+        this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.gameUnpause, () => {
       if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
-      return this.setPause({ state: false });
+
+      if (this.setPause({ state: false })) {
+        this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.gamePauseToggle, () => {
       if (
@@ -197,7 +205,27 @@ class Storage {
         viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu
       )
         return;
-      this.setPause({ toggle: true });
+
+      if (this.setPause({ toggle: true })) {
+        if (this.observables.gameState == constants.gameState.play) {
+          this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
+        } else {
+          this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
+        }
+      }
+    });
+
+    eventBus.addEventListener(evenBusID, controlEvent.helpMenuToggle, () => {
+      const isEnabled = this.viewStore.isViewLayerEnabled(constants.viewData.layer.helpMenu);
+      const isPauseMenuEnabled = this.viewStore.isViewLayerEnabled(constants.viewData.layer.pauseMenu);
+      const isGameOverMenuEnabled = this.viewStore.isViewLayerEnabled(constants.viewData.layer.gameOverMenu);
+      if (!isEnabled) {
+        if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: true });
+        this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
+      } else {
+        if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: false });
+        this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.helpMenu, isPrevious: true });
+      }
     });
   };
 
@@ -318,7 +346,11 @@ class Storage {
   };
 
   setPause = ({ toggle, state }) => {
+    const { gameMode } = this.observables;
     const { play, pause } = constants.gameState;
+
+    if (gameMode == constants.gameMode.none) return false;
+
     if (this.observables.gameState == play || this.observables.gameState == pause) {
       let stateChanged = false;
       if (toggle) {
@@ -335,10 +367,8 @@ class Storage {
       if (stateChanged) {
         if (this.observables.gameState == play) {
           this.setGameLoopTimeout();
-          this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
         } else {
           this.clearGameLoopTimeout();
-          this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
         }
         return true;
       }

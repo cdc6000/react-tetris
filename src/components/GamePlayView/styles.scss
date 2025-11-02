@@ -1,14 +1,11 @@
+@use "@assets/styles/common.scss" as common;
+
 @mixin main {
   .game-play-view {
+    @include common.view-preset;
     --next-figure-cell-size: 20px;
     --cup-width: calc(var(--cell-size) * var(--cup-cells-hor));
     --cup-height: calc(var(--cell-size) * var(--cup-cells-ver));
-    position: absolute;
-    left: 0;
-    top: 0;
-    display: flex;
-    width: 100%;
-    height: 100%;
     z-index: var(--main-view-layer);
 
     .figure-cell {
@@ -79,92 +76,117 @@
       }
     }
 
-    .left-col-wrapper,
-    .right-col-wrapper {
-      width: 50%;
-    }
+    .single-cup-view {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
 
-    .left-col-wrapper {
-      .control-tips-wrapper {
+      .top-container,
+      .bottom-container {
+        height: 50%,
+      }
+
+      .top-container {
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
+        justify-content: flex-end;
         gap: 10px;
-        padding: 10px;
-        box-sizing: border-box;
 
-        .header {
-          font-weight: bold;
-        }
-
-        .item {
+        .tip {
+          font-size: 14px;
+          text-align: center;
         }
       }
-    }
 
-    .right-col-wrapper {
-      .game-state-wrapper {
+      .center-container {
+        flex-shrink: 0;
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 10px;
-        box-sizing: border-box;
 
-        .score-header,
-        .level-header,
-        .next-figure-header {
-          font-weight: bold;
+        .left-col-wrapper,
+        .cup-wrapper,
+        .right-col-wrapper {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
-
-        .next-figure {
-          width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));
-          height: calc(var(--next-figure-cell-size) * var(--next-figure-cells-ver));
-
-          .figure-cell {
-            width: var(--next-figure-cell-size);
-            height: var(--next-figure-cell-size);
+    
+        .left-col-wrapper,
+        .right-col-wrapper {
+          width: 50%;
+    
+          .content {
+            height: var(--cup-height);
           }
         }
-      }
-    }
-
-    .cup-wrapper {
-      flex-shrink: 0;
-      position: relative;
-      border-width: 10px 0 10px 0;
-      border-style: solid;
-      border-color: transparent;
-
-      .cup {
-        display: inline-block;
-        width: var(--cup-width);
-        height: var(--cup-height);
-        outline: 1px solid #000;
-        box-sizing: border-box;
-
-        .figure-cell {
-          &.empty {
-            background-color: #bbb;
-
-            &::after {
-              border: none;
-              border-right: 1px solid #999;
-            }
-
-            &.current-figure-column {
-              background-color: #aaa;
+    
+        .cup-wrapper {
+          flex-shrink: 0;
+          border-width: 10px 0;
+          border-style: solid;
+          border-color: transparent;
+          box-sizing: border-box;
+    
+          .cup {
+            display: flex;
+            flex-wrap: wrap;
+            width: var(--cup-width);
+            height: var(--cup-height);
+            border: 1px solid #000;
+    
+            .figure-cell {
+              &.empty {
+                background-color: #bbb;
+    
+                &::after {
+                  border: none;
+                  border-right: 1px solid #999;
+                }
+    
+                &.current-figure-column {
+                  background-color: #aaa;
+                }
+              }
+    
+              &.shadow-figure:not(.current-figure) {
+                background-color: #bbb;
+    
+                &::after {
+                  opacity: 0.3;
+                }
+              }
+              
             }
           }
-
-          &.shadow-figure:not(.current-figure) {
-            background-color: #bbb;
-
-            &::after {
-              opacity: 0.3;
+        }
+    
+        .right-col-wrapper {
+          .game-state-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+    
+            .score-header,
+            .level-header,
+            .next-figure-header {
+              font-weight: bold;
+            }
+    
+            .next-figure {
+              display: flex;
+              flex-wrap: wrap;
+              width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));
+              height: calc(var(--next-figure-cell-size) * var(--next-figure-cells-ver));
+    
+              .figure-cell {
+                width: var(--next-figure-cell-size);
+                height: var(--next-figure-cell-size);
+              }
             }
           }
-          
         }
       }
     }

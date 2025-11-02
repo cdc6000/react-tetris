@@ -1,26 +1,11 @@
+@use "@assets/styles/common.scss" as common;
+
 @mixin main {
   .main-menu {
-    position: absolute;
-    left: 0;
-    top: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
+    @include common.view-preset;
+    @include common.menu-preset;
+    background-color: var(--menu-background-color);
     z-index: var(--main-view-layer);
-
-    .center-content-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-
-      button {
-        height: 40px;
-        padding: 0 20px;
-        font-size: 20px;
-      }
-    }
 
     &.h {
       opacity: 0;

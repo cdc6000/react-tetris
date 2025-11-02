@@ -1,7 +1,7 @@
 {
-  "name": "react-tetris",
-  "version": "2.0.0",
-  "description": "react tetris",
+  "name": "tessemino",
+  "version": "1.0.0",
+  "description": "tessemino game",
   "main": "./electron_build/index.js",
   "scripts": {
     "build": "webpack --config ./webpack/prod.js && npm version patch --commit-hooks false --git-tag-version false",
@@ -14,7 +14,7 @@
     "electron:package": "npm run build && electron-forge package",
     "electron:make": "npm run build && electron-forge make"
   },
-  "author": "Василий Масленников",
+  "author": "Василий Масленников (cdc6000)",
   "devDependencies": {
     "@babel/core": "7.28.5",
     "@babel/preset-env": "7.28.5",

@@ -20,39 +20,49 @@ export default observer(
       const { viewStore } = gameStore;
       const { viewData } = viewStore.observables;
       const { lang } = gameStore.observables;
-      const langStrings = constants.lang.strings[lang];
+      const { getLangString } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`game-over-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
-            <div className="title">{langStrings.gameOverMenu.menuTitle}</div>
-            <div className="tip">Бывает =(</div>
+            <div className="title">{getLangString({ lang, pathArray: ["gameOverMenu", "menuTitle"] }).string}</div>
+            <div className="content">
+              <div className="btns-container">
+                <div className="btns-wrapper">
+                  <button
+                    className="restart-btn"
+                    onClick={(ev) => {
+                      if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
+                      gameStore.gameRestart();
+                      viewStore.viewLayerDisable();
+                    }}
+                  >
+                    {getLangString({ lang, pathArray: ["gameOverMenu", "restartBtnTitle"] }).string}
+                  </button>
 
-            <div className="btns-container">
-              <div className="btns-wrapper">
-                <button
-                  className="restart-btn"
-                  onClick={(ev) => {
-                    if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
-                    gameStore.gameRestart();
-                    viewStore.viewLayerDisable();
-                  }}
-                >
-                  {langStrings.pauseMenu.restartBtnTitle}
-                </button>
+                  <button
+                    className="help-btn"
+                    onClick={(ev) => {
+                      if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
+                      gameStore.eventBus.fireEvent(constants.controls.controlEvent.helpMenuToggle);
+                    }}
+                  >
+                    {getLangString({ lang, pathArray: ["gameOverMenu", "helpBtnTitle"] }).string}
+                  </button>
 
-                <button
-                  className="exit-btn"
-                  onClick={(ev) => {
-                    if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
-                    gameStore.gameEnd();
-                    viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
-                  }}
-                >
-                  {langStrings.pauseMenu.exitBtnTitle}
-                </button>
+                  <button
+                    className="exit-btn"
+                    onClick={(ev) => {
+                      if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
+                      gameStore.gameEnd();
+                      viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
+                    }}
+                  >
+                    {getLangString({ lang, pathArray: ["gameOverMenu", "exitBtnTitle"] }).string}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

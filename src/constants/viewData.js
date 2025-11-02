@@ -5,6 +5,7 @@ export const view = {
   gamePlayView: "view_gamePlayView",
   pauseMenu: "view_pauseMenu",
   gameOverMenu: "view_gameOverMenu",
+  helpMenu: "view_helpMenu",
 };
 
 export const layer = {
@@ -14,4 +15,5 @@ export const layer = {
   gamePlayView: "layer_gamePlayView",
   pauseMenu: "layer_pauseMenu",
   gameOverMenu: "layer_gameOverMenu",
+  helpMenu: "layer_helpMenu",
 };

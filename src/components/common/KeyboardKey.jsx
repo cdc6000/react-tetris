@@ -15,12 +15,12 @@ export default observer(
     render() {
       const { gameStore, input } = this.props;
       const { lang } = gameStore.observables;
-      const langStrings = constants.lang.strings[lang];
+      const { getLangString } = constants.lang;
 
       let { children } = this.props;
       if (input) {
-        children = langStrings.inputName[input];
-        if (!children) {
+        let getStringResult = getLangString({ lang, pathArray: ["inputName", input] });
+        if (getStringResult.notFound) {
           children = input;
           if (typeof children == "string") {
             children = children.split("input-")[1];
@@ -30,6 +30,8 @@ export default observer(
               children = children.substring(5);
             }
           }
+        } else {
+          children = getStringResult.string;
         }
       }
 

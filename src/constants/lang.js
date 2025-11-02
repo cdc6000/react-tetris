@@ -1,10 +1,16 @@
+import React, { Component, Fragment } from "react";
+
 export const strings = {
   ru: {
     langName: "Русский (Russian)",
     locale: "ru-RU",
 
     mainMenu: {
+      menuTitle: "Главное меню",
+      tip: "Нажмите${btns|или}для показа окна помощи",
+
       playBtnTitle: "Играть",
+      helpBtnTitle: "Помощь",
       optionsBtnTitle: "Настройки",
       exitBtnTitle: "Выход",
     },
@@ -42,6 +48,7 @@ export const strings = {
 
           groupFigureControlTitle: "Управление фигурой",
           groupGameplayTitle: "Игровой процесс",
+          groupMiscTitle: "Общее",
 
           mapInputBtnTitle: "Привязать",
         },
@@ -56,9 +63,10 @@ export const strings = {
 
     pauseMenu: {
       menuTitle: "Пауза",
-      tip: "Нажмите${btns|или}для продолжения игры",
+      tipUnpause: "Нажмите${btns|или}для продолжения игры",
 
       continueBtnTitle: "Продолжить",
+      helpBtnTitle: "Помощь",
       optionsBtnTitle: "Настройки",
       restartBtnTitle: "Начать заново",
       exitBtnTitle: "Выход",
@@ -66,9 +74,22 @@ export const strings = {
 
     gameOverMenu: {
       menuTitle: "Игра окончена",
+
+      restartBtnTitle: "Начать заново",
+      helpBtnTitle: "Помощь",
+      exitBtnTitle: "Выход",
+    },
+
+    helpMenu: {
+      menuTitle: "Помощь",
+      tipHelpClose: "Нажмите${btns|или}для закрытия окна помощи",
+      backBtnTitle: "Закрыть",
     },
 
     gameView: {
+      tipHelp: "Нажмите${btns|или}для показа окна помощи",
+      tipPause: "Нажмите${btns|или}для постановки игры на паузу",
+
       scoreTitle: "Очки",
       levelTitle: "Уровень",
       nextFigureTitle: "Следующая фигура",
@@ -84,6 +105,7 @@ export const strings = {
       "control-gamePause": "Поставить на паузу",
       "control-gameUnpause": "Снять с паузы",
       "control-gamePauseToggle": "Переключить паузу",
+      "control-helpMenuToggle": "Меню помощи",
     },
 
     inputName: {
@@ -101,13 +123,23 @@ export const strings = {
   },
 };
 
-export const getString = ({ lang, pathArray }) => {
+export const getLangString = ({ lang, pathArray }) => {
   let elem = strings[lang];
-  if (!elem) return false;
-  pathArray.some((key) => {
-    elem = elem[key];
-    if (elem == undefined) return true;
-  });
+  if (!elem) {
+    elem = { string: `${lang}.${pathArray.join(".")}`, notFound: true };
+  } else {
+    pathArray.some((key, kIndex) => {
+      elem = elem[key];
+      if (elem == undefined) {
+        if (kIndex <= pathArray.length - 1) {
+          elem = { string: `${lang}.${pathArray.join(".")}`, notFound: true };
+        }
+        return true;
+      } else if (kIndex == pathArray.length - 1) {
+        elem = { string: elem };
+      }
+    });
+  }
   return elem;
 };
 
@@ -115,7 +147,14 @@ export function stringConverter(text, conversionList = []) {
   const textBlock = [text];
   let blockUniqueKey = 0;
 
-  conversionList.forEach((data) => {
+  [
+    ...conversionList,
+    {
+      type: "function",
+      what: "space",
+      to: (key, matchData) => <Fragment key={key}>&nbsp;</Fragment>,
+    },
+  ].forEach((data) => {
     if (!data?.type) return;
 
     switch (data.type) {
