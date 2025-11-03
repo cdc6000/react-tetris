@@ -431,7 +431,7 @@ class Storage {
         if (action && bind.action != action) return;
 
         const actionData = constants.controls.controlEventData[bind.action];
-        const eventID = `${evenBusID}-${actionData.groupID}`;
+        const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
         const fn = ({ state }) => {
           const triggerData = actionData?.getTriggerData({ options: inputOptions }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
@@ -477,7 +477,7 @@ class Storage {
         if (action && bind.action != action) return;
 
         const actionData = constants.controls.controlEventData[bind.action];
-        const eventID = `${evenBusID}-${actionData.groupID}`;
+        const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
 
         let _triggers = bind.triggers;
         if (triggers?.length) {
