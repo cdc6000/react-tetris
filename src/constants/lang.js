@@ -41,6 +41,7 @@ export const strings = {
           defaultKeyboard: "Клавиатура (стандартная)",
           defaultMouse: "Мышь (стандартная)",
 
+          checkOverlapsBtnTitle: "Проверить конфликты ввода",
           addBtnTitle: "Добавить",
           removeBtnTitle: "Удалить",
           resetBtnTitle: "Сбросить",
@@ -57,6 +58,12 @@ export const strings = {
           awaitingInput: "Ожидание ввода",
           awaitingInputExitTip: "Нажмите ${keyboardKey|f1} для выхода",
           inputRegistered: "Ввод зарегистрирован",
+        },
+
+        overlapControlsBlind: {
+          foundOverlapsTitle: "Проверьте эти привязки",
+          notFoundOverlapsTitle: "Конфликтов не обнаружено",
+          backBtnTitle: "Закрыть",
         },
       },
     },

@@ -38,6 +38,9 @@ export default observer(
         selectedMainTabID: this.mainTabList[1].id,
 
         selectedControlSchemeID: controlSchemes[0]?.id || 0,
+
+        overlapControlsBlindShow: false,
+        overlapControlsBlindContent: null,
       };
 
       this.viewID = constants.viewData.view.optionsMenu;
@@ -64,11 +67,81 @@ export default observer(
       }
     };
 
+    checkControlsOverlap = ({ silentIfOk = false } = {}) => {
+      const { gameStore } = this.props;
+      const { inputStore } = gameStore;
+      const { controlSchemes } = inputStore.observables;
+      const { lang } = gameStore.observables;
+      const { getLangString, stringConverter } = constants.lang;
+
+      const overlapControlSchemes = inputStore.getActiveTriggerOverlaps();
+      if (silentIfOk && !overlapControlSchemes.length) return;
+
+      this.setState({
+        overlapControlsBlindShow: true,
+        overlapControlsBlindContent: (
+          <div className="content-wrapper">
+            <div className="title">
+              {
+                getLangString({
+                  lang,
+                  pathArray: [
+                    "optionsMenu",
+                    "controlsTab",
+                    "overlapControlsBlind",
+                    overlapControlSchemes.length ? "foundOverlapsTitle" : "notFoundOverlapsTitle",
+                  ],
+                }).string
+              }
+            </div>
+            {Boolean(overlapControlSchemes.length) && (
+              <div className="content">
+                {overlapControlSchemes.map((overlapControlScheme, csIndex) => {
+                  const controlScheme = controlSchemes.find((_) => _.id == overlapControlScheme.id);
+                  return (
+                    <div
+                      key={csIndex}
+                      className="control-scheme-wrapper"
+                    >
+                      <div className="title">
+                        {controlScheme.name || getLangString({ lang, pathArray: controlScheme.nameStringPath }).string}
+                      </div>
+                      <ControlsMapTable
+                        gameStore={gameStore}
+                        controlScheme={overlapControlScheme}
+                        hideEmpty={true}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="control-btns-container">
+              <button
+                className="back-btn"
+                onClick={(ev) => {
+                  this.setState({ overlapControlsBlindShow: false, overlapControlsBlindContent: null });
+                }}
+              >
+                {
+                  getLangString({
+                    lang,
+                    pathArray: ["optionsMenu", "controlsTab", "overlapControlsBlind", "backBtnTitle"],
+                  }).string
+                }
+              </button>
+            </div>
+          </div>
+        ),
+      });
+    };
+
     //
 
     render() {
       const { mainTabID, mainTabList, viewID } = this;
-      const { selectedMainTabID, selectedControlSchemeID } = this.state;
+      const { selectedMainTabID, selectedControlSchemeID, overlapControlsBlindShow, overlapControlsBlindContent } =
+        this.state;
       const { gameStore } = this.props;
       const { inputStore, viewStore } = gameStore;
       const { inputOptions, controlSchemes, controlSchemesMaxCount } = inputStore.observables;
@@ -155,6 +228,23 @@ export default observer(
                     </div>
                     <div className="content">
                       <div className="control-scheme-controls">
+                        <div className="row">
+                          <button
+                            className="control-scheme-add-btn"
+                            disabled={controlSchemes.length >= controlSchemesMaxCount}
+                            onClick={(ev) => {
+                              if (viewStore.inputFocusLayerID != constants.viewData.layer.optionsMenu) return;
+                              this.checkControlsOverlap();
+                            }}
+                          >
+                            {
+                              getLangString({
+                                lang,
+                                pathArray: ["optionsMenu", "controlsTab", "controlScheme", "checkOverlapsBtnTitle"],
+                              }).string
+                            }
+                          </button>
+                        </div>
                         <div className="row">
                           <select
                             className="control-scheme-select"
@@ -278,6 +368,9 @@ export default observer(
                         disabled={!selectedControlScheme}
                         hasFocus={viewStore.inputFocusLayerID == constants.viewData.layer.optionsMenu}
                         inputMapAllowed={true}
+                        onInputMap={() => {
+                          this.checkControlsOverlap({ silentIfOk: true });
+                        }}
                       />
                     </div>
                   </div>
@@ -299,6 +392,10 @@ export default observer(
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className={`overlap-controls-blind${!overlapControlsBlindShow ? " h" : ""}`}>
+            {overlapControlsBlindContent}
           </div>
         </div>
       );

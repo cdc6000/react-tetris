@@ -352,6 +352,67 @@ class Storage {
     return triggers;
   };
 
+  getActiveTriggerOverlaps = () => {
+    const { controlSchemes } = this.observables;
+
+    const groupTriggerActionData = {};
+    const overlapData = [];
+    const addOverlapData = (controlSchemeID, action, trigger) => {
+      const overlapControlScheme = overlapData.find((_) => _.id == controlSchemeID);
+      if (!overlapControlScheme) {
+        overlapData.push({
+          id: controlSchemeID,
+          binds: [
+            {
+              action,
+              triggers: [trigger],
+            },
+          ],
+        });
+      } else {
+        const overlapAction = overlapControlScheme.binds.find((_) => _.action == action);
+        if (!overlapAction) {
+          overlapControlScheme.binds.push({
+            action,
+            triggers: [trigger],
+          });
+        } else {
+          if (!overlapAction.triggers.some((_) => _ == trigger)) {
+            overlapAction.triggers.push(trigger);
+          }
+        }
+      }
+    };
+
+    controlSchemes.forEach((controlScheme) => {
+      if (!controlScheme.isActive) return;
+
+      controlScheme.binds.forEach((bind) => {
+        const actionData = constants.controls.controlEventData[bind.action];
+
+        const groupID = actionData.groupID || constants.controls.controlGroup.anywhere;
+        if (!groupTriggerActionData[groupID]) {
+          groupTriggerActionData[groupID] = {};
+        }
+
+        bind.triggers.forEach((trigger) => {
+          if (groupTriggerActionData[groupID][trigger]) {
+            addOverlapData(controlScheme.id, bind.action, trigger);
+            const { controlSchemeID, action, isProcessed } = groupTriggerActionData[groupID][trigger];
+            if (!isProcessed) {
+              addOverlapData(controlSchemeID, action, trigger);
+              groupTriggerActionData[groupID][trigger].isProcessed = true;
+            }
+          } else {
+            groupTriggerActionData[groupID][trigger] = { action: bind.action, controlSchemeID: controlScheme.id };
+          }
+        });
+      });
+    });
+
+    return overlapData;
+  };
+
   //
 
   inputEventsBind = ({ ids, action, triggers, ignoreActive = false } = {}) => {
@@ -370,7 +431,7 @@ class Storage {
         if (action && bind.action != action) return;
 
         const actionData = constants.controls.controlEventData[bind.action];
-        const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
+        const eventID = `${evenBusID}-${actionData.groupID}`;
         const fn = ({ state }) => {
           const triggerData = actionData?.getTriggerData({ options: inputOptions }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
@@ -416,7 +477,7 @@ class Storage {
         if (action && bind.action != action) return;
 
         const actionData = constants.controls.controlEventData[bind.action];
-        const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
+        const eventID = `${evenBusID}-${actionData.groupID}`;
 
         let _triggers = bind.triggers;
         if (triggers?.length) {

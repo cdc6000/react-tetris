@@ -58,38 +58,40 @@ export default observer(
       await this.setStateAsync({
         getInputBlindShow: true,
         getInputBlindContent: (
-          <Fragment>
-            <div className="row">
+          <div className="content-wrapper">
+            <div className="title">
               {
                 getLangString({ lang, pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "awaitingInput"] })
                   .string
               }
             </div>
-            <div className="row">
-              {stringConverter(
-                getLangString({
-                  lang,
-                  pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "awaitingInputExitTip"],
-                }).string,
-                [
-                  {
-                    type: "function",
-                    whatIsRegExp: true,
-                    what: `\\$\\{keyboardKey\\|([^\\}]+)\\}`,
-                    to: (key, matchData) => {
-                      return (
-                        <KeyboardKey
-                          key={key}
-                          gameStore={gameStore}
-                          input={`input-${constants.controls.inputEvent[matchData[1]]}`}
-                        />
-                      );
+            <div className="content">
+              <div className="row">
+                {stringConverter(
+                  getLangString({
+                    lang,
+                    pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "awaitingInputExitTip"],
+                  }).string,
+                  [
+                    {
+                      type: "function",
+                      whatIsRegExp: true,
+                      what: `\\$\\{keyboardKey\\|([^\\}]+)\\}`,
+                      to: (key, matchData) => {
+                        return (
+                          <KeyboardKey
+                            key={key}
+                            gameStore={gameStore}
+                            input={`input-${constants.controls.inputEvent[matchData[1]]}`}
+                          />
+                        );
+                      },
                     },
-                  },
-                ]
-              )}
+                  ]
+                )}
+              </div>
             </div>
-          </Fragment>
+          </div>
         ),
       });
 
@@ -104,15 +106,20 @@ export default observer(
 
         // await this.setStateAsync({
         //   getInputBlindContent: (
-        //     <Fragment>
-        //       <div className="row">{getLangString({ lang, pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "inputRegistered"] }).string}</div>
-        //       <div className="row">
+        //     <div className="content-wrapper">
+        //       <div className="title">
+        //         {
+        //           getLangString({ lang, pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "inputRegistered"] })
+        //             .string
+        //         }
+        //       </div>
+        //       <div className="content">
         //         <KeyboardKey
         //           gameStore={gameStore}
         //           input={input}
         //         />
         //       </div>
-        //     </Fragment>
+        //     </div>
         //   ),
         // });
         // await eventHelpers.sleep(1000);
@@ -120,16 +127,18 @@ export default observer(
 
       await this.setStateAsync({ getInputBlindShow: false, getInputBlindContent: null });
       onFinished();
+      this.props.onInputMap?.();
     };
 
     //
 
     render() {
       const { controlEventGroupsList } = this;
-      const { gameStore, disabled, hasFocus, inputMapAllowed, controlScheme, showAllActiveTriggers } = this.props;
+      const { gameStore, disabled, hasFocus, inputMapAllowed, controlScheme, showAllActiveTriggers, hideEmpty } =
+        this.props;
       const { getInputBlindShow, getInputBlindContent } = this.state;
       const { inputStore } = gameStore;
-      const { controlSchemes } = inputStore.observables;
+      const { controlSchemes: allControlSchemes } = inputStore.observables;
       const { lang } = gameStore.observables;
       const { getLangString } = constants.lang;
 
@@ -141,28 +150,85 @@ export default observer(
           >
             <tbody>
               {controlEventGroupsList.map((group, gIndex) => {
-                return (
-                  <Fragment key={gIndex}>
-                    <tr className="group-header">
-                      <td colSpan={2}>
+                let hasGroupTriggers = false;
+                const actionsRender = group.actions.map((action, aIndex) => {
+                  let hasActionTriggers = false;
+                  const actionRender = (
+                    <tr key={aIndex}>
+                      <td>{getLangString({ lang, pathArray: ["controlEventName", action] }).string}</td>
+                      <td>
                         <div className="cell-content">
-                          {getLangString({ lang, pathArray: group.nameStringPath }).string}
-                        </div>
-                      </td>
-                    </tr>
+                          {Boolean(controlScheme) && (
+                            <Fragment>
+                              {controlScheme.binds
+                                .filter((_) => _.action == action)
+                                .map((bind) => {
+                                  return bind.triggers.map((trigger) => {
+                                    hasGroupTriggers = true;
+                                    hasActionTriggers = true;
+                                    return (
+                                      <div
+                                        key={trigger}
+                                        className="key-bind"
+                                      >
+                                        <KeyboardKey
+                                          gameStore={gameStore}
+                                          input={trigger}
+                                        />
+                                        {Boolean(inputMapAllowed) && (
+                                          <button
+                                            className="remove-btn"
+                                            onClick={(ev) => {
+                                              if (!hasFocus) return;
+                                              if (this.state.getInputBlindShow) return;
+                                              inputStore.removeControlSchemeBind({
+                                                id: controlScheme.id,
+                                                action,
+                                                triggers: [trigger],
+                                              });
+                                            }}
+                                          >
+                                            x
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  });
+                                })}
+                              {Boolean(controlScheme) && Boolean(inputMapAllowed) && (
+                                <div className="btn-wrapper">
+                                  <button
+                                    className="add-btn"
+                                    onClick={(ev) => {
+                                      if (!hasFocus) return;
+                                      if (this.state.getInputBlindShow) return;
 
-                    {group.actions.map((action, aIndex) => {
-                      return (
-                        <tr key={aIndex}>
-                          <td>{getLangString({ lang, pathArray: ["controlEventName", action] }).string}</td>
-                          <td>
-                            <div className="cell-content">
-                              {Boolean(controlScheme) && (
-                                <Fragment>
-                                  {controlScheme.binds
+                                      this.onBindKey({ action });
+
+                                      ev.target.blur();
+                                    }}
+                                  >
+                                    {
+                                      getLangString({
+                                        lang,
+                                        pathArray: ["optionsMenu", "controlsTab", "controlScheme", "mapInputBtnTitle"],
+                                      }).string
+                                    }
+                                  </button>
+                                </div>
+                              )}
+                            </Fragment>
+                          )}
+                          {!Boolean(controlScheme) && Boolean(showAllActiveTriggers) && (
+                            <Fragment>
+                              {allControlSchemes.reduce((acc, controlScheme) => {
+                                acc.push(
+                                  ...controlScheme.binds
                                     .filter((_) => _.action == action)
                                     .map((bind) => {
                                       return bind.triggers.map((trigger) => {
+                                        hasGroupTriggers = true;
+                                        hasActionTriggers = true;
                                         return (
                                           <div
                                             key={trigger}
@@ -172,95 +238,43 @@ export default observer(
                                               gameStore={gameStore}
                                               input={trigger}
                                             />
-                                            {Boolean(inputMapAllowed) && (
-                                              <button
-                                                className="remove-btn"
-                                                onClick={(ev) => {
-                                                  if (!hasFocus) return;
-                                                  if (this.state.getInputBlindShow) return;
-                                                  inputStore.removeControlSchemeBind({
-                                                    id: controlScheme.id,
-                                                    action,
-                                                    triggers: [trigger],
-                                                  });
-                                                }}
-                                              >
-                                                x
-                                              </button>
-                                            )}
                                           </div>
                                         );
                                       });
-                                    })}
-                                  {Boolean(controlScheme) && Boolean(inputMapAllowed) && (
-                                    <div className="btn-wrapper">
-                                      <button
-                                        className="add-btn"
-                                        onClick={(ev) => {
-                                          if (!hasFocus) return;
-                                          if (this.state.getInputBlindShow) return;
+                                    })
+                                );
+                                return acc;
+                              }, [])}
+                            </Fragment>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
 
-                                          this.onBindKey({ action });
+                  if (hideEmpty && !hasActionTriggers) return null;
+                  return actionRender;
+                });
 
-                                          ev.target.blur();
-                                        }}
-                                      >
-                                        {
-                                          getLangString({
-                                            lang,
-                                            pathArray: [
-                                              "optionsMenu",
-                                              "controlsTab",
-                                              "controlScheme",
-                                              "mapInputBtnTitle",
-                                            ],
-                                          }).string
-                                        }
-                                      </button>
-                                    </div>
-                                  )}
-                                </Fragment>
-                              )}
-                              {!Boolean(controlScheme) && Boolean(showAllActiveTriggers) && (
-                                <Fragment>
-                                  {controlSchemes.reduce((acc, controlScheme) => {
-                                    acc.push(
-                                      ...controlScheme.binds
-                                        .filter((_) => _.action == action)
-                                        .map((bind) => {
-                                          return bind.triggers.map((trigger) => {
-                                            return (
-                                              <div
-                                                key={trigger}
-                                                className="key-bind"
-                                              >
-                                                <KeyboardKey
-                                                  gameStore={gameStore}
-                                                  input={trigger}
-                                                />
-                                              </div>
-                                            );
-                                          });
-                                        })
-                                    );
-                                    return acc;
-                                  }, [])}
-                                </Fragment>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                if (hideEmpty && !hasGroupTriggers) return null;
+
+                return (
+                  <Fragment key={gIndex}>
+                    <tr className="group-header">
+                      <td colSpan={2}>
+                        <div className="cell-content">
+                          {getLangString({ lang, pathArray: group.nameStringPath }).string}
+                        </div>
+                      </td>
+                    </tr>
+                    {actionsRender}
                   </Fragment>
                 );
               })}
             </tbody>
           </table>
 
-          <div className={`get-input-blind${!getInputBlindShow ? " h" : ""}`}>
-            <div className="center-content-wrapper">{getInputBlindContent}</div>
-          </div>
+          <div className={`get-input-blind${!getInputBlindShow ? " h" : ""}`}>{getInputBlindContent}</div>
         </div>
       );
     }
