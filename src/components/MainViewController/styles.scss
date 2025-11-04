@@ -31,15 +31,33 @@ i {
       padding: 0 5px;
       
       .symbol {
+        --size: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 22px;
-        min-height: 22px;
-        padding: 3px;
-        border: 1px solid var(--black);
+        min-width: var(--size);
+        min-height: var(--size);
+        padding: 2px;
+        border-style: solid;
+        border-color: #333 #333 #555 #333;
+        border-width: 1px 1px 2px 1px;
         border-radius: 3px;
-        box-sizing: border-box;
+        margin-top: 1px;
+        font-size: 12px;
+
+        .unicode-symbol {
+          margin-top: -2px;
+          font-size: 13px;
+        }
+      }
+
+      &.icon {
+        --size: 50px;
+        width: var(--size);
+        height: var(--size);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
       }
     }
 

@@ -26,6 +26,7 @@ app
     })
   )
   .use(express.static(path.resolve(__dirname, "dev")))
+  .use(express.static(path.resolve(__dirname, "electron_build", "build")))
   .get("*path", function (req, res) {
     res.sendFile(path.resolve(__dirname, "index.html"));
   });

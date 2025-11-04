@@ -188,7 +188,7 @@ export default observer(
                                               });
                                             }}
                                           >
-                                            x
+                                            <span>&#x1F7AA;</span>
                                           </button>
                                         )}
                                       </div>

@@ -117,15 +117,26 @@ export const strings = {
 
     inputName: {
       "input-mouse": "Мышь",
+      "input-mouseLeftButton": "ЛКМ",
+      "input-mouseRightButton": "ПКМ",
+      "input-mouseWheelUp": "Колесо &#x1F81D;",
+      "input-mouseWheelDown": "Колесо &#x1F81F;",
+      "input-ArrowLeft": "&#x1F81C;",
+      "input-ArrowRight": "&#x1F81E;",
+      "input-ArrowUp": "&#x1F81D;",
+      "input-ArrowDown": "&#x1F81F;",
+      "input-Space": "Пробел",
+    },
+
+    inputDescription: {
       "input-mouseLeftButton": "Левая кнопка мыши",
       "input-mouseRightButton": "Правая кнопка мыши",
-      "input-mouseWheelUp": "Колесо мыши вверх",
-      "input-mouseWheelDown": "Колесо мыши вниз",
+      "input-mouseWheelUp": "Прокрутка колеса мыши вверх",
+      "input-mouseWheelDown": "Прокрутка колеса мыши вниз",
       "input-ArrowLeft": "Стрелка влево",
       "input-ArrowRight": "Стрелка вправо",
       "input-ArrowUp": "Стрелка вверх",
       "input-ArrowDown": "Стрелка вниз",
-      "input-Space": "Пробел",
     },
   },
 };
@@ -158,8 +169,15 @@ export function stringConverter(text, conversionList = []) {
     ...conversionList,
     {
       type: "function",
-      what: "space",
-      to: (key, matchData) => <Fragment key={key}>&nbsp;</Fragment>,
+      whatIsRegExp: true,
+      what: `\\&([^\\;]+)\\;`,
+      to: (key, matchData) => (
+        <span
+          key={key}
+          className="unicode-symbol"
+          dangerouslySetInnerHTML={{ __html: `&${matchData[1]};` }}
+        />
+      ),
     },
   ].forEach((data) => {
     if (!data?.type) return;

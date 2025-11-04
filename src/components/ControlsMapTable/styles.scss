@@ -27,10 +27,18 @@
 
             .key-bind {
               display: flex;
+              align-items: center;
 
               .remove-btn {
                 display: flex;
                 align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+
+                span {
+                  margin: -1px 0 0 1px;
+                }
               }
             }
           }
