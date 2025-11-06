@@ -1,0 +1,32 @@
+@use "@assets/styles/common.scss" as common;
+@use "../../ControlsMapTable/styles.scss" as ControlsMapTable;
+
+@mixin main {
+  &.controls-tab {
+    .section {
+      .content {
+        .control-scheme-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+
+          .row {
+            display: flex;
+            gap: 10px;
+
+            select {
+              height: 40px;
+            }
+
+            .button {
+              padding: 0 10px;
+              font-size: 14px;
+            }
+          }
+        }
+
+        @include ControlsMapTable.main;
+      }
+    }
+  }
+}

@@ -14,6 +14,7 @@ import {
 
 import InputStore from "./input";
 import ViewStore from "./view";
+import NavigationStore from "./navigation";
 
 import * as constants from "@constants/index";
 
@@ -102,6 +103,13 @@ class Storage {
     });
     this.viewStore = new ViewStore({
       eventBus: this.eventBus,
+      observables: this.observables,
+      nonObservables: this.nonObservables,
+    });
+    this.navigationStore = new NavigationStore({
+      eventBus: this.eventBus,
+      observables: this.observables,
+      nonObservables: this.nonObservables,
     });
 
     makeObservable(this, {
@@ -137,96 +145,214 @@ class Storage {
       nonObservables: objectHelpers.deepCopy(this.nonObservables),
     };
 
-    this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
-    // this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.optionsMenu, isAdditive: true });
-    // this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
+    this.init();
   }
+
+  init = async () => {
+    const { inputStore, viewStore } = this;
+    viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
+    // viewStore.viewLayerEnable({ layerID: constants.viewData.layer.optionsMenu, isAdditive: true });
+    // viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
+
+    // await eventHelpers.sleep(1);
+    // inputStore.updateMenuNavElem();
+  };
 
   //
 
   eventBusBind = () => {
-    const { eventBus, viewStore } = this;
+    const { eventBus, viewStore, inputStore, navigationStore } = this;
     const { evenBusID } = this.nonObservables;
     const { controlEvent } = constants.controls;
 
     // TODO
     const gamePlayLayerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
 
+    eventBus.addEventListener(evenBusID, "viewLayerUpdate", async ({ layerID }) => {
+      if (layerID == constants.viewData.layer.mainMenu) {
+        navigationStore.clearLastSelectedElemData();
+      }
+      await eventHelpers.sleep(1);
+      navigationStore.updateMenuNavElem();
+    });
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavUp, () => {
+      navigationStore.menuNavVertical(-1);
+    });
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavDown, () => {
+      navigationStore.menuNavVertical(1);
+    });
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavLeft, () => {
+      navigationStore.menuNavHorizontal(-1);
+    });
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavRight, () => {
+      navigationStore.menuNavHorizontal(1);
+    });
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavSelect, async () => {
+      const elem = navigationStore.getCurrentNavElem();
+      if (!elem) return;
+
+      navigationStore.unfocusAnyElem();
+      elem.click();
+
+      await eventHelpers.sleep(1);
+      navigationStore.updateMenuNavElem();
+    });
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavBack, () => {
+      const currentLayerID = viewStore.inputFocusViewLayerID;
+      if (!currentLayerID) return;
+
+      const currentLayerData = viewStore.getViewLayerData(currentLayerID) || {};
+      if (!currentLayerData.isBackAllowed) return;
+
+      if (currentLayerID == constants.viewData.layer.getInputMenu) {
+        inputStore.getInputDisable();
+      }
+      viewStore.shiftInputFocusToViewLayerID({ layerID: currentLayerID, isPrevious: true });
+
+      return { stopInputListenersProcessing: true };
+    });
+
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
     });
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureLeft, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
     });
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureCupPointX, ({ x }) => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.moveCurrentFigureCupPointX(x);
     });
-
     eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureClockwise, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.rotateCurrentFigure(1);
     });
     eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureCounterclockwise, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.rotateCurrentFigure(-1);
     });
-
     eventBus.addEventListener(evenBusID, controlEvent.speedUpFallingCurrentFigure, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.speedUpFallingCurrentFigure();
     });
     eventBus.addEventListener(evenBusID, controlEvent.dropCurrentFigure, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.dropCurrentFigure();
     });
 
     eventBus.addEventListener(evenBusID, controlEvent.gamePause, () => {
-      if (viewStore.inputFocusLayerID != gamePlayLayerID) return;
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
 
       if (this.setPause({ state: true })) {
-        this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
+        viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
       }
     });
     eventBus.addEventListener(evenBusID, controlEvent.gameUnpause, () => {
-      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+      if (viewStore.inputFocusViewLayerID != constants.viewData.layer.pauseMenu) return;
 
       if (this.setPause({ state: false })) {
-        this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
+        viewStore.shiftInputFocusToViewLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
       }
     });
     eventBus.addEventListener(evenBusID, controlEvent.gamePauseToggle, () => {
       if (
-        viewStore.inputFocusLayerID != gamePlayLayerID &&
-        viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu
+        viewStore.inputFocusViewLayerID != gamePlayLayerID &&
+        viewStore.inputFocusViewLayerID != constants.viewData.layer.pauseMenu
       )
         return;
 
       if (this.setPause({ toggle: true })) {
         if (this.observables.gameState == constants.gameState.play) {
-          this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
+          viewStore.shiftInputFocusToViewLayerID({
+            layerID: constants.viewData.layer.pauseMenu,
+            isPrevious: true,
+          });
         } else {
-          this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
+          viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
         }
       }
     });
 
     eventBus.addEventListener(evenBusID, controlEvent.helpMenuToggle, () => {
-      const isEnabled = this.viewStore.isViewLayerEnabled(constants.viewData.layer.helpMenu);
-      const isPauseMenuEnabled = this.viewStore.isViewLayerEnabled(constants.viewData.layer.pauseMenu);
-      const isGameOverMenuEnabled = this.viewStore.isViewLayerEnabled(constants.viewData.layer.gameOverMenu);
+      const isEnabled = viewStore.getViewLayerData(constants.viewData.layer.helpMenu)?.isEnabled;
+      const isPauseMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.pauseMenu)?.isEnabled;
+      const isGameOverMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.gameOverMenu)?.isEnabled;
       if (!isEnabled) {
         if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: true });
-        this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
+        viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
       } else {
         if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: false });
-        this.viewStore.shiftInputFocusToLayerID({ layerID: constants.viewData.layer.helpMenu, isPrevious: true });
+        viewStore.shiftInputFocusToViewLayerID({ layerID: constants.viewData.layer.helpMenu, isPrevious: true });
       }
     });
+  };
+
+  bindInput = async ({ controlScheme, action }) => {
+    const { inputStore, viewStore } = this;
+
+    const layerID = constants.viewData.layer.getInputMenu;
+
+    runInAction(() => {
+      viewStore.setViewLayerData({
+        layerID,
+        data: {
+          data: {
+            registeredInput: "",
+          },
+        },
+        override: false,
+      });
+      viewStore.viewLayerEnable({ layerID, isAdditive: true });
+    });
+
+    const input = await inputStore.getInput();
+    if (input) {
+      runInAction(() => {
+        inputStore.addControlSchemeBind({
+          id: controlScheme.id,
+          action,
+          triggers: [constants.controls.getInputEvent(input)],
+        });
+
+        // viewStore.setViewLayerData({
+        //   layerID,
+        //   data: {
+        //     data: {
+        //       registeredInput: input,
+        //     },
+        //   },
+        //   override: false,
+        // });
+      });
+      // await eventHelpers.sleep(1000);
+    }
+
+    viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
+    inputStore.getInputDisable();
+    this.checkControlsOverlap({ silentIfOk: true });
+  };
+
+  checkControlsOverlap = ({ silentIfOk = false } = {}) => {
+    const { inputStore, viewStore } = this;
+
+    const layerID = constants.viewData.layer.controlsOverlapMenu;
+
+    const overlapControlSchemes = inputStore.getActiveTriggerOverlaps();
+    if (silentIfOk && !overlapControlSchemes.length) return;
+
+    viewStore.setViewLayerData({
+      layerID,
+      data: {
+        data: {
+          overlapControlSchemes,
+        },
+      },
+      override: false,
+    });
+    viewStore.viewLayerEnable({ layerID, isAdditive: true });
   };
 
   //

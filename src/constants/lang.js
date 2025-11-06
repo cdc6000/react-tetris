@@ -1,5 +1,7 @@
 import React, { Component, Fragment } from "react";
 
+import * as controls from "./controls";
+
 export const strings = {
   ru: {
     langName: "Русский (Russian)",
@@ -47,25 +49,26 @@ export const strings = {
           resetBtnTitle: "Сбросить",
           activeToggleTitle: "Включить схему",
 
+          groupAnyMenuTitle: "Навигация по меню",
           groupFigureControlTitle: "Управление фигурой",
           groupGameplayTitle: "Игровой процесс",
           groupMiscTitle: "Общее",
 
           mapInputBtnTitle: "Привязать",
         },
-
-        getInputBlind: {
-          awaitingInput: "Ожидание ввода",
-          awaitingInputExitTip: "Нажмите ${keyboardKey|f1} для выхода",
-          inputRegistered: "Ввод зарегистрирован",
-        },
-
-        overlapControlsBlind: {
-          foundOverlapsTitle: "Проверьте эти привязки",
-          notFoundOverlapsTitle: "Конфликтов не обнаружено",
-          backBtnTitle: "Закрыть",
-        },
       },
+    },
+
+    getInputMenu: {
+      awaitingInput: "Ожидание ввода",
+      awaitingInputExitTip: "Нажмите ${input|f1} для выхода",
+      inputRegistered: "Ввод зарегистрирован",
+    },
+
+    overlapControlsMenu: {
+      foundOverlapsTitle: "Проверьте эти привязки",
+      notFoundOverlapsTitle: "Конфликтов не обнаружено",
+      backBtnTitle: "Закрыть",
     },
 
     pauseMenu: {
@@ -103,40 +106,49 @@ export const strings = {
     },
 
     controlEventName: {
-      "control-moveCurrentFigureRight": "Переместить вправо",
-      "control-moveCurrentFigureLeft": "Переместить влево",
-      "control-rotateCurrentFigureClockwise": "Повернуть по часовой стрелке",
-      "control-rotateCurrentFigureCounterclockwise": "Повернуть против часовой стрелки",
-      "control-speedUpFallingCurrentFigure": "Ускорить падение",
-      "control-dropCurrentFigure": "Опустить до конца",
-      "control-gamePause": "Поставить на паузу",
-      "control-gameUnpause": "Снять с паузы",
-      "control-gamePauseToggle": "Переключить паузу",
-      "control-helpMenuToggle": "Меню помощи",
+      [controls.controlEvent.menuNavUp]: "Вверх",
+      [controls.controlEvent.menuNavDown]: "Вниз",
+      [controls.controlEvent.menuNavLeft]: "Влево",
+      [controls.controlEvent.menuNavRight]: "Вправо",
+      [controls.controlEvent.menuNavSelect]: "Выбор",
+      [controls.controlEvent.menuNavBack]: "Назад",
+
+      [controls.controlEvent.moveCurrentFigureRight]: "Переместить вправо",
+      [controls.controlEvent.moveCurrentFigureLeft]: "Переместить влево",
+      [controls.controlEvent.rotateCurrentFigureClockwise]: "Повернуть по часовой стрелке",
+      [controls.controlEvent.rotateCurrentFigureCounterclockwise]: "Повернуть против часовой стрелки",
+      [controls.controlEvent.speedUpFallingCurrentFigure]: "Ускорить падение",
+      [controls.controlEvent.dropCurrentFigure]: "Опустить до конца",
+
+      [controls.controlEvent.gamePause]: "Поставить на паузу",
+      [controls.controlEvent.gameUnpause]: "Снять с паузы",
+      [controls.controlEvent.gamePauseToggle]: "Переключить паузу",
+
+      [controls.controlEvent.helpMenuToggle]: "Меню помощи",
     },
 
     inputName: {
-      "input-mouse": "Мышь",
-      "input-mouseLeftButton": "ЛКМ",
-      "input-mouseRightButton": "ПКМ",
-      "input-mouseWheelUp": "Колесо &#x1F81D;",
-      "input-mouseWheelDown": "Колесо &#x1F81F;",
-      "input-ArrowLeft": "&#x1F81C;",
-      "input-ArrowRight": "&#x1F81E;",
-      "input-ArrowUp": "&#x1F81D;",
-      "input-ArrowDown": "&#x1F81F;",
-      "input-Space": "Пробел",
+      [controls.input.mouse]: "Мышь",
+      [controls.input.mouseLeftButton]: "ЛКМ",
+      [controls.input.mouseRightButton]: "ПКМ",
+      [controls.input.mouseWheelUp]: "Колесо &#x1F81D;",
+      [controls.input.mouseWheelDown]: "Колесо &#x1F81F;",
+      [controls.input.arrowLeft]: "&#x1F81C;",
+      [controls.input.arrowRight]: "&#x1F81E;",
+      [controls.input.arrowUp]: "&#x1F81D;",
+      [controls.input.arrowDown]: "&#x1F81F;",
+      [controls.input.space]: "Пробел",
     },
 
     inputDescription: {
-      "input-mouseLeftButton": "Левая кнопка мыши",
-      "input-mouseRightButton": "Правая кнопка мыши",
-      "input-mouseWheelUp": "Прокрутка колеса мыши вверх",
-      "input-mouseWheelDown": "Прокрутка колеса мыши вниз",
-      "input-ArrowLeft": "Стрелка влево",
-      "input-ArrowRight": "Стрелка вправо",
-      "input-ArrowUp": "Стрелка вверх",
-      "input-ArrowDown": "Стрелка вниз",
+      [controls.input.mouseLeftButton]: "Левая кнопка мыши",
+      [controls.input.mouseRightButton]: "Правая кнопка мыши",
+      [controls.input.mouseWheelUp]: "Прокрутка колеса мыши вверх",
+      [controls.input.mouseWheelDown]: "Прокрутка колеса мыши вниз",
+      [controls.input.arrowLeft]: "Стрелка влево",
+      [controls.input.arrowRight]: "Стрелка вправо",
+      [controls.input.arrowUp]: "Стрелка вверх",
+      [controls.input.arrowDown]: "Стрелка вниз",
     },
   },
 };
@@ -213,4 +225,13 @@ export function stringConverter(text, conversionList = []) {
   });
 
   return textBlock;
+}
+
+export function getLangStringConverted({ lang, pathArray, conversionList }) {
+  const result = getLangString({ lang, pathArray });
+  if (result.notFound) {
+    return result.string;
+  } else {
+    return stringConverter(result.string, conversionList);
+  }
 }

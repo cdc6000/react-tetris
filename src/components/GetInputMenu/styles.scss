@@ -1,10 +1,10 @@
 @use "@assets/styles/common.scss" as common;
 
 @mixin main {
-  .game-over-menu {
+  .get-input-menu {
     @include common.view-preset;
     @include common.menu-preset;
     @include common.popup-menu-preset;
-    z-index: var(--popup-menu-layer);
+    z-index: var(--options-popup-menu-layer);
   }
 }

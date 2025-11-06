@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import KeyboardKey from "@components/common/KeyboardKey";
+import InputTip from "@components/common/InputTip";
 
 export function actionTriggersDrawer({ gameStore, triggers, concatWord, key }) {
   const elements = [];
@@ -8,10 +8,10 @@ export function actionTriggersDrawer({ gameStore, triggers, concatWord, key }) {
       triggers.slice(0, triggers.length - 1).forEach((trigger, tIndex) => {
         if (tIndex > 0) elements.push(<Fragment key={`${key}-${tIndex}-1`}>{","}</Fragment>);
         elements.push(
-          <KeyboardKey
+          <InputTip
             key={`${key}-${tIndex}-2`}
             gameStore={gameStore}
-            input={trigger}
+            inputEvent={trigger}
           />
         );
       });
@@ -20,10 +20,10 @@ export function actionTriggersDrawer({ gameStore, triggers, concatWord, key }) {
       elements.push(<Fragment key={`${key}-last-1`}>{concatWord}</Fragment>);
     }
     elements.push(
-      <KeyboardKey
+      <InputTip
         key={`${key}-last-2`}
         gameStore={gameStore}
-        input={triggers[triggers.length - 1]}
+        inputEvent={triggers[triggers.length - 1]}
       />
     );
 

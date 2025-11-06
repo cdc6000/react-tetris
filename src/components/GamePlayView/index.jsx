@@ -2,7 +2,6 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import KeyboardKey from "@components/common/KeyboardKey";
 import NextFigureView from "./NextFigureView";
 
 import * as customHelpers from "@utils/custom-helpers";
@@ -14,8 +13,16 @@ export default observer(
     constructor(props) {
       super(props);
 
+      // TODO
       this.gameMode = constants.gameMode.classic;
       this.viewID = `${constants.viewData.view.gamePlayView}-${this.gameMode}`;
+      this.layerID = `${constants.viewData.layer.gamePlayView}-${this.gameMode}`;
+    }
+
+    get canInteract() {
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      return viewStore.inputFocusViewLayerID == this.layerID;
     }
 
     //
@@ -35,7 +42,7 @@ export default observer(
       const { score, level, cup } = gameModeData;
       const { lang, gameMode } = gameStore.observables;
       const { cellSizePx } = gameStore.nonObservables;
-      const { getLangString, stringConverter } = constants.lang;
+      const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
 
@@ -55,37 +62,55 @@ export default observer(
           <div className="single-cup-view">
             <div className="top-container">
               <div className="tip">
-                {stringConverter(getLangString({ lang, pathArray: ["gameView", "tipHelp"] }).string, [
-                  {
-                    type: "function",
-                    whatIsRegExp: true,
-                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                    to: (key, matchData) => {
-                      const triggers = inputStore.getAllActiveTriggersForActions({
-                        actions: [constants.controls.controlEvent.helpMenuToggle],
-                      });
-                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+                {getLangStringConverted({
+                  lang,
+                  pathArray: ["gameView", "tipHelp"],
+                  conversionList: [
+                    {
+                      type: "function",
+                      whatIsRegExp: true,
+                      what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                      to: (key, matchData) => {
+                        const triggers = inputStore.getAllActiveTriggersForActions({
+                          actions: [constants.controls.controlEvent.helpMenuToggle],
+                        });
+                        return customHelpers.actionTriggersDrawer({
+                          gameStore,
+                          triggers,
+                          concatWord: matchData[1],
+                          key,
+                        });
+                      },
                     },
-                  },
-                ])}
+                  ],
+                })}
               </div>
               <div className="tip">
-                {stringConverter(getLangString({ lang, pathArray: ["gameView", "tipPause"] }).string, [
-                  {
-                    type: "function",
-                    whatIsRegExp: true,
-                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                    to: (key, matchData) => {
-                      const triggers = inputStore.getAllActiveTriggersForActions({
-                        actions: [
-                          constants.controls.controlEvent.gamePause,
-                          constants.controls.controlEvent.gamePauseToggle,
-                        ],
-                      });
-                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+                {getLangStringConverted({
+                  lang,
+                  pathArray: ["gameView", "tipPause"],
+                  conversionList: [
+                    {
+                      type: "function",
+                      whatIsRegExp: true,
+                      what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                      to: (key, matchData) => {
+                        const triggers = inputStore.getAllActiveTriggersForActions({
+                          actions: [
+                            constants.controls.controlEvent.gamePause,
+                            constants.controls.controlEvent.gamePauseToggle,
+                          ],
+                        });
+                        return customHelpers.actionTriggersDrawer({
+                          gameStore,
+                          triggers,
+                          concatWord: matchData[1],
+                          key,
+                        });
+                      },
                     },
-                  },
-                ])}
+                  ],
+                })}
               </div>
             </div>
             <div className="center-container">
@@ -117,19 +142,19 @@ export default observer(
                 <div className="content">
                   <div className="game-state-wrapper">
                     <div className="score-header">
-                      {getLangString({ lang, pathArray: ["gameView", "scoreTitle"] }).string}
+                      {getLangStringConverted({ lang, pathArray: ["gameView", "scoreTitle"] })}
                     </div>
                     <div className="score">{score}</div>
                     <br />
 
                     <div className="level-header">
-                      {getLangString({ lang, pathArray: ["gameView", "levelTitle"] }).string}
+                      {getLangStringConverted({ lang, pathArray: ["gameView", "levelTitle"] })}
                     </div>
                     <div className="level">{level + 1}</div>
                     <br />
 
                     <div className="next-figure-header">
-                      {getLangString({ lang, pathArray: ["gameView", "nextFigureTitle"] }).string}
+                      {getLangStringConverted({ lang, pathArray: ["gameView", "nextFigureTitle"] })}
                     </div>
                     <NextFigureView gameStore={gameStore} />
                   </div>

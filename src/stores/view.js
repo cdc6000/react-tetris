@@ -27,7 +27,7 @@ class Storage {
         viewState: {},
         viewLayers: {},
         viewLayerList: [],
-        inputFocusLayerIDs: [],
+        inputFocusViewLayerIDs: [],
       },
     };
     this.nonObservables = {
@@ -42,10 +42,10 @@ class Storage {
       viewStateInit: action,
       viewLayerEnable: action,
       viewLayerDisable: action,
-      shiftInputFocusToLayerID: action,
+      shiftInputFocusToViewLayerID: action,
 
       // computed
-      inputFocusLayerID: computed,
+      inputFocusViewLayerID: computed,
     });
 
     this.viewStateInit();
@@ -84,114 +84,184 @@ class Storage {
       canBeShown: true,
       show: false,
     };
+    viewData.viewState[constants.viewData.view.getInputMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.controlsOverlapMenu] = {
+      canBeShown: true,
+      show: false,
+    };
 
     // layers
-    let layerID = constants.viewData.layer.mainMenu;
-    viewData.viewLayers[layerID] = {
-      isEnabled: false,
-      views: [
-        {
-          id: constants.viewData.view.mainMenu,
-          enableProps: {
-            show: true,
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.mainMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.mainMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-          disableProps: {
-            show: false,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.optionsMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.optionsMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-        },
-      ],
-    };
-    viewData.viewLayerList.push(layerID);
-
-    layerID = constants.viewData.layer.optionsMenu;
-    viewData.viewLayers[layerID] = {
-      isEnabled: false,
-      views: [
-        {
-          id: constants.viewData.view.optionsMenu,
-          enableProps: {
-            show: true,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: `${constants.viewData.view.gamePlayView}-${constants.gameMode.classic}`,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-          disableProps: {
-            show: false,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.pauseMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.pauseMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-        },
-      ],
-    };
-    viewData.viewLayerList.push(layerID);
-
-    layerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
-    viewData.viewLayers[layerID] = {
-      isEnabled: false,
-      views: [
-        {
-          id: `${constants.viewData.view.gamePlayView}-${constants.gameMode.classic}`,
-          enableProps: {
-            show: true,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.gameOverMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.gameOverMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-          disableProps: {
-            show: false,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.helpMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.helpMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-        },
-      ],
-    };
-    viewData.viewLayerList.push(layerID);
-
-    layerID = constants.viewData.layer.pauseMenu;
-    viewData.viewLayers[layerID] = {
-      isEnabled: false,
-      views: [
-        {
-          id: constants.viewData.view.pauseMenu,
-          enableProps: {
-            show: true,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.getInputMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.getInputMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-          disableProps: {
-            show: false,
+        ],
+        data: {},
+      },
+    });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.controlsOverlapMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.controlsOverlapMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
           },
-        },
-      ],
-    };
-    viewData.viewLayerList.push(layerID);
-
-    layerID = constants.viewData.layer.gameOverMenu;
-    viewData.viewLayers[layerID] = {
-      isEnabled: false,
-      views: [
-        {
-          id: constants.viewData.view.gameOverMenu,
-          enableProps: {
-            show: true,
-          },
-          disableProps: {
-            show: false,
-          },
-        },
-      ],
-    };
-    viewData.viewLayerList.push(layerID);
-
-    layerID = constants.viewData.layer.helpMenu;
-    viewData.viewLayers[layerID] = {
-      isEnabled: false,
-      views: [
-        {
-          id: constants.viewData.view.helpMenu,
-          enableProps: {
-            show: true,
-          },
-          disableProps: {
-            show: false,
-          },
-        },
-      ],
-    };
-    viewData.viewLayerList.push(layerID);
+        ],
+        data: {},
+      },
+    });
   };
 
-  isViewLayerEnabled = (layerID) => {
+  getViewLayerData = (layerID) => {
+    if (!layerID || layerID == constants.viewData.layer.none) return {};
+    return this.observables.viewData.viewLayers[layerID];
+  };
+
+  setViewLayerData = ({ layerID, data = {}, override = true }) => {
     if (!layerID || layerID == constants.viewData.layer.none) return false;
-    return this.observables.viewData.viewLayers[layerID].isEnabled;
+
+    const { viewData } = this.observables;
+    viewData.viewLayers[layerID] = override ? data : { ...viewData.viewLayers[layerID], ...data };
+    if (!viewData.viewLayerList.some((_) => _ == layerID)) {
+      viewData.viewLayerList.push(layerID);
+    }
+
+    const layerDataCopy = objectHelpers.deepCopy(viewData.viewLayers[layerID]);
+    this.props.eventBus.fireEvent("viewLayerUpdate", { layerID, layerData: layerDataCopy });
+
+    return true;
   };
 
   viewLayerEnable = ({ layerID, isAdditive = false, transferFocus = true } = {}) => {
@@ -201,7 +271,7 @@ class Storage {
     if (!isAdditive) {
       viewData.viewLayerList.forEach((_layerID) => {
         if (_layerID == layerID) return;
-        this.viewLayerDisable({ layerID: _layerID });
+        this.viewLayerDisable({ layerID: _layerID, fireEvent: false });
       });
     }
 
@@ -223,18 +293,22 @@ class Storage {
 
     if (transferFocus) {
       if (!isAdditive) {
-        for (let i = viewData.inputFocusLayerIDs.length - 1; i >= 0; i--) {
-          viewData.inputFocusLayerIDs.pop();
+        for (let i = viewData.inputFocusViewLayerIDs.length - 1; i >= 0; i--) {
+          viewData.inputFocusViewLayerIDs.pop();
         }
       }
-      viewData.inputFocusLayerIDs.push(layerID);
+      viewData.inputFocusViewLayerIDs.push(layerID);
     }
+
+    const layerDataCopy = objectHelpers.deepCopy(layerData);
+    this.props.eventBus.fireEvent("viewLayerUpdate", { layerID, layerData: layerDataCopy });
   };
 
-  viewLayerDisable = ({ layerID } = {}) => {
+  viewLayerDisable = ({ layerID, fireEvent = true, isSafe = true } = {}) => {
     const { viewData } = this.observables;
     if (layerID == undefined) {
-      layerID = viewData.inputFocusLayerIDs.pop();
+      if (isSafe && viewData.inputFocusViewLayerIDs.length <= 1) return;
+      layerID = viewData.inputFocusViewLayerIDs.pop();
     }
 
     const layerData = viewData.viewLayers[layerID];
@@ -249,26 +323,33 @@ class Storage {
       });
     });
     layerData.isEnabled = false;
+
+    if (fireEvent) {
+      const layerDataCopy = objectHelpers.deepCopy(layerData);
+      this.props.eventBus.fireEvent("viewLayerUpdate", { layerID, layerData: layerDataCopy });
+    }
   };
 
-  get inputFocusLayerID() {
-    const { inputFocusLayerIDs } = this.observables.viewData;
-    return inputFocusLayerIDs.length ?
-        inputFocusLayerIDs[inputFocusLayerIDs.length - 1]
+  get inputFocusViewLayerID() {
+    const { inputFocusViewLayerIDs } = this.observables.viewData;
+    return inputFocusViewLayerIDs.length ?
+        inputFocusViewLayerIDs[inputFocusViewLayerIDs.length - 1]
       : constants.viewData.layer.none;
   }
 
-  shiftInputFocusToLayerID = ({ layerID, isPrevious = false } = {}) => {
+  shiftInputFocusToViewLayerID = ({ layerID, isPrevious = false, isSafe = true } = {}) => {
     if (!layerID || layerID == constants.viewData.layer.none) return;
     const { viewData } = this.observables;
 
-    let layerIndex = viewData.inputFocusLayerIDs.findLastIndex((_) => _ == layerID);
+    if (isSafe && viewData.inputFocusViewLayerIDs.length <= 1) return;
+
+    let layerIndex = viewData.inputFocusViewLayerIDs.findLastIndex((_) => _ == layerID);
     if (layerIndex < 0) return;
     if (!isPrevious) {
       layerIndex++;
     }
 
-    for (let i = viewData.inputFocusLayerIDs.length - 1; i >= layerIndex; i--) {
+    for (let i = viewData.inputFocusViewLayerIDs.length - 1; i >= layerIndex; i--) {
       this.viewLayerDisable();
     }
   };

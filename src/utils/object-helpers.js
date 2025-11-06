@@ -4,3 +4,9 @@ export function deepCopy(obj) {
   }
   return JSON.parse(JSON.stringify(obj));
 }
+
+export function clearOwnProperties(obj) {
+  Object.getOwnPropertyNames(obj).forEach((key) => {
+    obj[key] = undefined;
+  });
+}

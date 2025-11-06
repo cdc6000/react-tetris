@@ -24,8 +24,10 @@ class Storage {
 
     this.observables = {
       inputState: {},
+
       controlSchemes: [],
       controlSchemesMaxCount: 20,
+
       inputOptions: {
         allowFigureMoveByMouse: true,
       },
@@ -35,6 +37,9 @@ class Storage {
 
       lastMouseMoveTime: 0,
       mouseMoveTimeoutMs: 30,
+
+      getInputPromise: undefined,
+      getInputPromiseResolve: undefined,
     };
 
     makeObservable(this, {
@@ -64,13 +69,15 @@ class Storage {
     };
   }
 
+  //
+
   setupDefaultControlSchemes = () => {
-    const { inputEvent, controlEvent } = constants.controls;
+    const { controlEvent, input, getInputEvent } = constants.controls;
 
     let id = "DefaultKeyboard";
     this.addControlScheme({
       id,
-      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
+      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
       isActive: false,
       props: {
         isDefault: true,
@@ -79,41 +86,71 @@ class Storage {
 
     this.addControlSchemeBind({
       id,
+      action: controlEvent.menuNavUp,
+      triggers: [getInputEvent(input.arrowUp)],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavDown,
+      triggers: [getInputEvent(input.arrowDown)],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavLeft,
+      triggers: [getInputEvent(input.arrowLeft)],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavRight,
+      triggers: [getInputEvent(input.arrowRight)],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavSelect,
+      triggers: [getInputEvent(input.enter), getInputEvent(input.nEnter), getInputEvent(input.space)],
+    });
+    this.addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavBack,
+      triggers: [getInputEvent(input.esc), getInputEvent(input.backspace)],
+    });
+
+    this.addControlSchemeBind({
+      id,
       action: controlEvent.moveCurrentFigureLeft,
-      triggers: [`input-${inputEvent.arrowLeft}`],
+      triggers: [getInputEvent(input.arrowLeft)],
     });
     this.addControlSchemeBind({
       id,
       action: controlEvent.moveCurrentFigureRight,
-      triggers: [`input-${inputEvent.arrowRight}`],
+      triggers: [getInputEvent(input.arrowRight)],
     });
-
     this.addControlSchemeBind({
       id,
       action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [`input-${inputEvent.arrowUp}`],
+      triggers: [getInputEvent(input.arrowUp)],
     });
-
     this.addControlSchemeBind({
       id,
       action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [`input-${inputEvent.arrowDown}`],
+      triggers: [getInputEvent(input.arrowDown)],
     });
     this.addControlSchemeBind({
       id,
       action: controlEvent.dropCurrentFigure,
-      triggers: [`input-${inputEvent.space}`],
+      triggers: [getInputEvent(input.space)],
     });
 
     this.addControlSchemeBind({
       id,
       action: controlEvent.gamePauseToggle,
-      triggers: [`input-${inputEvent.kP}`],
+      triggers: [getInputEvent(input.kP), getInputEvent(input.esc)],
     });
+
     this.addControlSchemeBind({
       id,
       action: controlEvent.helpMenuToggle,
-      triggers: [`input-${inputEvent.f1}`],
+      triggers: [getInputEvent(input.f1)],
     });
 
     this.setActiveControlScheme({ id, state: true });
@@ -123,7 +160,7 @@ class Storage {
     id = "DefaultMouse";
     this.addControlScheme({
       id,
-      nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
+      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
       isActive: false,
       props: {
         isDefault: true,
@@ -133,35 +170,34 @@ class Storage {
     this.addControlSchemeBind({
       id,
       action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [`input-${inputEvent.mouseRightButton}`],
+      triggers: [getInputEvent(input.mouseRightButton)],
     });
-
     this.addControlSchemeBind({
       id,
       action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [`input-${inputEvent.mouseWheelDown}`],
+      triggers: [getInputEvent(input.mouseWheelDown)],
     });
     this.addControlSchemeBind({
       id,
       action: controlEvent.dropCurrentFigure,
-      triggers: [`input-${inputEvent.mouseLeftButton}`],
+      triggers: [getInputEvent(input.mouseLeftButton)],
     });
 
     this.addControlSchemeBind({
       id,
       action: controlEvent.gameUnpause,
-      triggers: [`input-${inputEvent.mouseWheelDown}`],
+      triggers: [getInputEvent(input.mouseWheelDown)],
     });
     this.addControlSchemeBind({
       id,
       action: controlEvent.gamePause,
-      triggers: [`input-${inputEvent.mouseWheelUp}`],
+      triggers: [getInputEvent(input.mouseWheelUp)],
     });
 
     this.setActiveControlScheme({ id, state: true });
   };
 
-  addControlScheme = ({ id, name, nameStringPath, isActive = true, binds = [], props } = {}) => {
+  addControlScheme = ({ id, name, namePath, isActive = true, binds = [], props } = {}) => {
     const { controlSchemes, controlSchemesMaxCount } = this.observables;
     const { lang } = this.props.observables;
     if (controlSchemes.length >= controlSchemesMaxCount) return false;
@@ -172,7 +208,7 @@ class Storage {
         if (!controlSchemes.some((_) => _.id == id)) break;
       }
     }
-    if (!nameStringPath) {
+    if (!namePath) {
       if (!name || controlSchemes.some((_) => _.name == name)) {
         for (let i = 1; i <= controlSchemesMaxCount; i++) {
           name = `${constants.lang.strings[lang].optionsMenu.controlsTab.controlScheme.new} ${i}`;
@@ -184,7 +220,7 @@ class Storage {
     controlSchemes.push({
       id,
       name,
-      nameStringPath,
+      namePath,
       isActive,
       binds,
       ...props,
@@ -312,23 +348,35 @@ class Storage {
 
   getInput = () => {
     const { eventBus } = this.props;
-    const { evenBusID } = this.nonObservables;
-    return {
-      promise: new Promise((resolve) => {
-        eventBus.addEventListener(evenBusID, "BindInput", ({ input, state }) => {
-          if (input == `input-${constants.controls.inputEvent.f1}`) {
-            resolve(false);
-          } else {
-            if (state.justPressed) {
-              resolve(input);
-            }
+    const { evenBusID, getInputPromise } = this.nonObservables;
+    if (getInputPromise) return getInputPromise;
+
+    this.nonObservables.getInputPromise = new Promise((resolve) => {
+      this.nonObservables.getInputPromiseResolve = resolve;
+      eventBus.addEventListener(evenBusID, "BindInput", ({ input, state }) => {
+        if (input == constants.controls.input.f1) {
+          resolve(false);
+        } else {
+          if (state.justPressed) {
+            resolve(input);
           }
-        });
-      }),
-      onFinished: () => {
-        eventBus.removeEventListener(evenBusID, "BindInput");
-      },
-    };
+        }
+      });
+    });
+    return this.nonObservables.getInputPromise;
+  };
+
+  getInputDisable = () => {
+    const { eventBus } = this.props;
+    const { evenBusID, getInputPromiseResolve } = this.nonObservables;
+
+    if (!getInputPromiseResolve) return;
+
+    getInputPromiseResolve(false);
+    eventBus.removeEventListener(evenBusID, "BindInput");
+
+    this.nonObservables.getInputPromise = undefined;
+    this.nonObservables.getInputPromiseResolve = undefined;
   };
 
   getAllActiveTriggersForActions = ({ actions = [] } = {}) => {
@@ -432,11 +480,10 @@ class Storage {
 
         const actionData = constants.controls.controlEventData[bind.action];
         const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
-        const fn = ({ state }) => {
+        const fn = async ({ state, __eventType }) => {
           const triggerData = actionData?.getTriggerData({ options: inputOptions }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
 
-          // state.justPressed && console.log("input event", { action: bind.action });
           let fireEvent = false;
           if (onJustPressed && state.justPressed) {
             fireEvent = true;
@@ -447,7 +494,10 @@ class Storage {
           }
 
           if (fireEvent) {
-            eventBus.fireEvent(bind.action);
+            const results = await eventBus.fireEvent(bind.action);
+            if (results.some((_) => _?.stopInputListenersProcessing)) {
+              return { stopListenerProcessing: true };
+            }
           }
         };
 
@@ -565,11 +615,11 @@ class Storage {
     const state = objectHelpers.deepCopy(inputState[input]);
     if (eventBus.getListeners("BindInput")?.length) {
       if (ev?.cancelable) ev?.preventDefault?.();
-      return eventBus.fireEvent("BindInput", { input: `input-${input}`, state });
-    } else if (eventBus.getListeners(`input-${input}`)?.length) {
-      const inputEventData = constants.controls.inputEventData[input] || {};
-      if (inputEventData.preventDefault) ev?.preventDefault?.();
-      return eventBus.fireEvent(`input-${input}`, { state });
+      return eventBus.fireEvent("BindInput", { input, state });
+    } else {
+      const inputData = constants.controls.inputData[input] || {};
+      if (inputData.preventDefault) ev?.preventDefault?.();
+      return eventBus.fireEvent(constants.controls.getInputEvent(input), { state });
     }
   };
 
@@ -583,6 +633,11 @@ class Storage {
     document.addEventListener("mouseup", this.onMouseUp);
     document.addEventListener("contextmenu", this.onContextMenu);
     document.addEventListener("wheel", this.onWheel);
+    document.addEventListener("focusin", this.onDocumentFocusIn);
+    document.addEventListener("focusout", this.onDocumentFocusOut);
+
+    window.addEventListener("focus", this.onWindowFocus);
+    window.addEventListener("blur", this.onWindowBlur);
   };
 
   inputsUnbind = () => {
@@ -593,6 +648,11 @@ class Storage {
     document.removeEventListener("mouseup", this.onMouseUp);
     document.removeEventListener("contextmenu", this.onContextMenu);
     document.removeEventListener("wheel", this.onWheel);
+    document.removeEventListener("focusin", this.onDocumentFocusIn);
+    document.removeEventListener("focusout", this.onDocumentFocusOut);
+
+    window.removeEventListener("focus", this.onWindowFocus);
+    window.removeEventListener("blur", this.onWindowBlur);
   };
 
   onKeyPress = (ev) => {
@@ -627,17 +687,17 @@ class Storage {
 
   onMouseDown = (ev) => {
     if (ev.button == 0) {
-      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseLeftButton, isPressed: true });
+      this.inputUpdateState({ ev, input: constants.controls.input.mouseLeftButton, isPressed: true });
     } else if (ev.button == 2) {
-      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseRightButton, isPressed: true });
+      this.inputUpdateState({ ev, input: constants.controls.input.mouseRightButton, isPressed: true });
     }
   };
 
   onMouseUp = (ev) => {
     if (ev.button == 0) {
-      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseLeftButton, isReleased: true });
+      this.inputUpdateState({ ev, input: constants.controls.input.mouseLeftButton, isReleased: true });
     } else if (ev.button == 2) {
-      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseRightButton, isReleased: true });
+      this.inputUpdateState({ ev, input: constants.controls.input.mouseRightButton, isReleased: true });
     }
   };
 
@@ -647,10 +707,26 @@ class Storage {
 
   onWheel = (ev) => {
     if (ev.deltaY > 0) {
-      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseWheelDown, isClicked: true });
+      this.inputUpdateState({ ev, input: constants.controls.input.mouseWheelDown, isClicked: true });
     } else if (ev.deltaY) {
-      this.inputUpdateState({ ev, input: constants.controls.inputEvent.mouseWheelUp, isClicked: true });
+      this.inputUpdateState({ ev, input: constants.controls.input.mouseWheelUp, isClicked: true });
     }
+  };
+
+  onDocumentFocusIn = (ev) => {
+    // console.log("document focus in", { target: ev.target });
+  };
+
+  onDocumentFocusOut = (ev) => {
+    // console.log("document focus out", { target, currentFocus: document.querySelectorAll(":focus") });
+  };
+
+  onWindowFocus = (ev) => {
+    // console.log("window focus", { target: ev.target });
+  };
+
+  onWindowBlur = (ev) => {
+    // console.log("window blur", { target: ev.target });
   };
 }
 

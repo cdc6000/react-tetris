@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import KeyboardKey from "@components/common/KeyboardKey";
+import Button from "@components/common/Button";
 
 import * as customHelpers from "@utils/custom-helpers";
 
@@ -14,99 +14,116 @@ export default observer(
       super(props);
 
       this.viewID = constants.viewData.view.pauseMenu;
+      this.layerID = constants.viewData.layer.pauseMenu;
+    }
+
+    get canInteract() {
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      return viewStore.inputFocusViewLayerID == this.layerID;
     }
 
     //
 
     render() {
-      const { viewID } = this;
+      const { viewID, layerID, canInteract } = this;
       const { gameStore } = this.props;
       const { inputStore, viewStore } = gameStore;
       const { viewData } = viewStore.observables;
       const { lang } = gameStore.observables;
-      const { getLangString, stringConverter } = constants.lang;
+      const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`pause-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
-            <div className="title">{getLangString({ lang, pathArray: ["pauseMenu", "menuTitle"] }).string}</div>
+            <div className="title">{getLangStringConverted({ lang, pathArray: ["pauseMenu", "menuTitle"] })}</div>
             <div className="tip">
-              {stringConverter(getLangString({ lang, pathArray: ["pauseMenu", "tipUnpause"] }).string, [
-                {
-                  type: "function",
-                  whatIsRegExp: true,
-                  what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                  to: (key, matchData) => {
-                    const triggers = inputStore.getAllActiveTriggersForActions({
-                      actions: [
-                        constants.controls.controlEvent.gameUnpause,
-                        constants.controls.controlEvent.gamePauseToggle,
-                      ],
-                    });
-                    return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+              {getLangStringConverted({
+                lang,
+                pathArray: ["pauseMenu", "tipUnpause"],
+                conversionList: [
+                  {
+                    type: "function",
+                    whatIsRegExp: true,
+                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                    to: (key, matchData) => {
+                      const triggers = inputStore.getAllActiveTriggersForActions({
+                        actions: [
+                          constants.controls.controlEvent.gameUnpause,
+                          constants.controls.controlEvent.gamePauseToggle,
+                        ],
+                      });
+                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+                    },
                   },
-                },
-              ])}
+                ],
+              })}
             </div>
             <div className="content">
               <div className="btns-container">
                 <div className="btns-wrapper">
-                  <button
+                  <Button
+                    gameStore={gameStore}
                     className="continue-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-continueBtn`}
+                    namePath={["pauseMenu", "continueBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.gameUnpause);
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["pauseMenu", "continueBtnTitle"] }).string}
-                  </button>
-
-                  <button
+                  />
+                  <Button
+                    gameStore={gameStore}
                     className="help-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-helpBtn`}
+                    namePath={["pauseMenu", "helpBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.helpMenuToggle);
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["pauseMenu", "helpBtnTitle"] }).string}
-                  </button>
-
-                  <button
+                  />
+                  <Button
+                    gameStore={gameStore}
                     className="options-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-optionsBtn`}
+                    namePath={["pauseMenu", "optionsBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       viewStore.viewLayerEnable({
                         layerID: constants.viewData.layer.optionsMenu,
                         isAdditive: true,
                       });
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["pauseMenu", "optionsBtnTitle"] }).string}
-                  </button>
-
-                  <button
+                  />
+                  <Button
+                    gameStore={gameStore}
                     className="restart-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-restartBtn`}
+                    namePath={["pauseMenu", "restartBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.gameRestart();
                       viewStore.viewLayerDisable();
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["pauseMenu", "restartBtnTitle"] }).string}
-                  </button>
-
-                  <button
+                  />
+                  <Button
+                    gameStore={gameStore}
                     className="exit-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.pauseMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-exitBtn`}
+                    namePath={["pauseMenu", "exitBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.gameEnd();
                       viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["pauseMenu", "exitBtnTitle"] }).string}
-                  </button>
+                  />
                 </div>
               </div>
             </div>

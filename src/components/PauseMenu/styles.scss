@@ -6,10 +6,5 @@
     @include common.menu-preset;
     @include common.popup-menu-preset;
     z-index: var(--popup-menu-layer);
-
-    &.h {
-      opacity: 0;
-      pointer-events: none;
-    }
   }
 }

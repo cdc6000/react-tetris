@@ -2,6 +2,8 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import Button from "@components/common/Button";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -10,58 +12,69 @@ export default observer(
       super(props);
 
       this.viewID = constants.viewData.view.gameOverMenu;
+      this.layerID = constants.viewData.layer.gameOverMenu;
+    }
+
+    get canInteract() {
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      return viewStore.inputFocusViewLayerID == this.layerID;
     }
 
     //
 
     render() {
-      const { viewID } = this;
+      const { viewID, layerID, canInteract } = this;
       const { gameStore } = this.props;
       const { viewStore } = gameStore;
       const { viewData } = viewStore.observables;
       const { lang } = gameStore.observables;
-      const { getLangString } = constants.lang;
+      const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`game-over-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
-            <div className="title">{getLangString({ lang, pathArray: ["gameOverMenu", "menuTitle"] }).string}</div>
+            <div className="title">{getLangStringConverted({ lang, pathArray: ["gameOverMenu", "menuTitle"] })}</div>
             <div className="content">
               <div className="btns-container">
                 <div className="btns-wrapper">
-                  <button
+                  <Button
+                    gameStore={gameStore}
                     className="restart-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-restartBtn`}
+                    namePath={["gameOverMenu", "restartBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.gameRestart();
                       viewStore.viewLayerDisable();
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["gameOverMenu", "restartBtnTitle"] }).string}
-                  </button>
-
-                  <button
+                  />
+                  <Button
+                    gameStore={gameStore}
                     className="help-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-helpBtn`}
+                    namePath={["gameOverMenu", "helpBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.helpMenuToggle);
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["gameOverMenu", "helpBtnTitle"] }).string}
-                  </button>
-
-                  <button
+                  />
+                  <Button
+                    gameStore={gameStore}
                     className="exit-btn"
-                    onClick={(ev) => {
-                      if (viewStore.inputFocusLayerID != constants.viewData.layer.gameOverMenu) return;
+                    navLayerID={layerID}
+                    navElemID={`${viewID}-exitBtn`}
+                    namePath={["gameOverMenu", "exitBtnTitle"]}
+                    canInteract={canInteract}
+                    onClick={() => {
                       gameStore.gameEnd();
                       viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
                     }}
-                  >
-                    {getLangString({ lang, pathArray: ["gameOverMenu", "exitBtnTitle"] }).string}
-                  </button>
+                  />
                 </div>
               </div>
             </div>

@@ -6,6 +6,8 @@ export const view = {
   pauseMenu: "view_pauseMenu",
   gameOverMenu: "view_gameOverMenu",
   helpMenu: "view_helpMenu",
+  getInputMenu: "view_getInputMenu",
+  controlsOverlapMenu: "view_controlsOverlapMenu",
 };
 
 export const layer = {
@@ -16,4 +18,6 @@ export const layer = {
   pauseMenu: "layer_pauseMenu",
   gameOverMenu: "layer_gameOverMenu",
   helpMenu: "layer_helpMenu",
+  getInputMenu: "layer_getInputMenu",
+  controlsOverlapMenu: "layer_controlsOverlapMenu",
 };

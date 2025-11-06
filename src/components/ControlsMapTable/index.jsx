@@ -2,7 +2,8 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import KeyboardKey from "@components/common/KeyboardKey";
+import InputTip from "@components/common/InputTip";
+import Button from "@components/common/Button";
 
 import * as reactHelpers from "@utils/react-helpers";
 import * as eventHelpers from "@utils/event-helpers";
@@ -18,7 +19,18 @@ export default observer(
 
       this.controlEventGroupsList = [
         {
-          nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "groupFigureControlTitle"],
+          namePath: ["optionsMenu", "controlsTab", "controlScheme", "groupAnyMenuTitle"],
+          actions: [
+            controlEvent.menuNavUp,
+            controlEvent.menuNavDown,
+            controlEvent.menuNavLeft,
+            controlEvent.menuNavRight,
+            controlEvent.menuNavSelect,
+            controlEvent.menuNavBack,
+          ],
+        },
+        {
+          namePath: ["optionsMenu", "controlsTab", "controlScheme", "groupFigureControlTitle"],
           actions: [
             controlEvent.moveCurrentFigureRight,
             controlEvent.moveCurrentFigureLeft,
@@ -29,19 +41,14 @@ export default observer(
           ],
         },
         {
-          nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "groupGameplayTitle"],
+          namePath: ["optionsMenu", "controlsTab", "controlScheme", "groupGameplayTitle"],
           actions: [controlEvent.gamePause, controlEvent.gameUnpause, controlEvent.gamePauseToggle],
         },
         {
-          nameStringPath: ["optionsMenu", "controlsTab", "controlScheme", "groupMiscTitle"],
+          namePath: ["optionsMenu", "controlsTab", "controlScheme", "groupMiscTitle"],
           actions: [controlEvent.helpMenuToggle],
         },
       ];
-
-      this.state = {
-        getInputBlindShow: false,
-        getInputBlindContent: null,
-      };
 
       this.forceUpdateAsync = reactHelpers.forceUpdateAsync.bind(this);
       this.setStateAsync = reactHelpers.setStateAsync.bind(this);
@@ -49,98 +56,23 @@ export default observer(
 
     //
 
-    onBindKey = async ({ action }) => {
-      const { gameStore, controlScheme } = this.props;
-      const { inputStore } = gameStore;
-      const { lang } = gameStore.observables;
-      const { getLangString, stringConverter } = constants.lang;
-
-      await this.setStateAsync({
-        getInputBlindShow: true,
-        getInputBlindContent: (
-          <div className="content-wrapper">
-            <div className="title">
-              {
-                getLangString({ lang, pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "awaitingInput"] })
-                  .string
-              }
-            </div>
-            <div className="content">
-              <div className="row">
-                {stringConverter(
-                  getLangString({
-                    lang,
-                    pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "awaitingInputExitTip"],
-                  }).string,
-                  [
-                    {
-                      type: "function",
-                      whatIsRegExp: true,
-                      what: `\\$\\{keyboardKey\\|([^\\}]+)\\}`,
-                      to: (key, matchData) => {
-                        return (
-                          <KeyboardKey
-                            key={key}
-                            gameStore={gameStore}
-                            input={`input-${constants.controls.inputEvent[matchData[1]]}`}
-                          />
-                        );
-                      },
-                    },
-                  ]
-                )}
-              </div>
-            </div>
-          </div>
-        ),
-      });
-
-      const { promise, onFinished } = inputStore.getInput();
-      const input = await promise;
-      if (input) {
-        inputStore.addControlSchemeBind({
-          id: controlScheme.id,
-          action,
-          triggers: [input],
-        });
-
-        // await this.setStateAsync({
-        //   getInputBlindContent: (
-        //     <div className="content-wrapper">
-        //       <div className="title">
-        //         {
-        //           getLangString({ lang, pathArray: ["optionsMenu", "controlsTab", "getInputBlind", "inputRegistered"] })
-        //             .string
-        //         }
-        //       </div>
-        //       <div className="content">
-        //         <KeyboardKey
-        //           gameStore={gameStore}
-        //           input={input}
-        //         />
-        //       </div>
-        //     </div>
-        //   ),
-        // });
-        // await eventHelpers.sleep(1000);
-      }
-
-      await this.setStateAsync({ getInputBlindShow: false, getInputBlindContent: null });
-      onFinished();
-      this.props.onInputMap?.();
-    };
-
-    //
-
     render() {
       const { controlEventGroupsList } = this;
-      const { gameStore, disabled, hasFocus, inputMapAllowed, controlScheme, showAllActiveTriggers, hideEmpty } =
-        this.props;
-      const { getInputBlindShow, getInputBlindContent } = this.state;
+      const {
+        gameStore,
+        viewID,
+        layerID,
+        inputMapAllowed,
+        disabled,
+        hasFocus,
+        controlScheme,
+        showAllActiveTriggers,
+        hideEmpty,
+      } = this.props;
       const { inputStore } = gameStore;
       const { controlSchemes: allControlSchemes } = inputStore.observables;
       const { lang } = gameStore.observables;
-      const { getLangString } = constants.lang;
+      const { getLangStringConverted } = constants.lang;
 
       return (
         <div className="controls-map-wrapper">
@@ -155,7 +87,7 @@ export default observer(
                   let hasActionTriggers = false;
                   const actionRender = (
                     <tr key={aIndex}>
-                      <td>{getLangString({ lang, pathArray: ["controlEventName", action] }).string}</td>
+                      <td>{getLangStringConverted({ lang, pathArray: ["controlEventName", action] })}</td>
                       <td>
                         <div className="cell-content">
                           {Boolean(controlScheme) && (
@@ -171,16 +103,18 @@ export default observer(
                                         key={trigger}
                                         className="key-bind"
                                       >
-                                        <KeyboardKey
+                                        <InputTip
                                           gameStore={gameStore}
-                                          input={trigger}
+                                          inputEvent={trigger}
                                         />
                                         {Boolean(inputMapAllowed) && (
-                                          <button
+                                          <Button
+                                            gameStore={gameStore}
                                             className="remove-btn"
-                                            onClick={(ev) => {
-                                              if (!hasFocus) return;
-                                              if (this.state.getInputBlindShow) return;
+                                            navLayerID={layerID}
+                                            navElemID={`${viewID}-removeBtn-${gIndex}-${aIndex}-${trigger}`}
+                                            canInteract={hasFocus}
+                                            onClick={() => {
                                               inputStore.removeControlSchemeBind({
                                                 id: controlScheme.id,
                                                 action,
@@ -189,7 +123,7 @@ export default observer(
                                             }}
                                           >
                                             <span>&#x1F7AA;</span>
-                                          </button>
+                                          </Button>
                                         )}
                                       </div>
                                     );
@@ -197,24 +131,18 @@ export default observer(
                                 })}
                               {Boolean(controlScheme) && Boolean(inputMapAllowed) && (
                                 <div className="btn-wrapper">
-                                  <button
+                                  <Button
+                                    gameStore={gameStore}
                                     className="add-btn"
+                                    navLayerID={layerID}
+                                    navElemID={`${viewID}-addBtn-${gIndex}-${aIndex}`}
+                                    namePath={["optionsMenu", "controlsTab", "controlScheme", "mapInputBtnTitle"]}
+                                    canInteract={hasFocus}
                                     onClick={(ev) => {
-                                      if (!hasFocus) return;
-                                      if (this.state.getInputBlindShow) return;
-
-                                      this.onBindKey({ action });
-
                                       ev.target.blur();
+                                      gameStore.bindInput({ controlScheme, action });
                                     }}
-                                  >
-                                    {
-                                      getLangString({
-                                        lang,
-                                        pathArray: ["optionsMenu", "controlsTab", "controlScheme", "mapInputBtnTitle"],
-                                      }).string
-                                    }
-                                  </button>
+                                  />
                                 </div>
                               )}
                             </Fragment>
@@ -234,9 +162,9 @@ export default observer(
                                             key={trigger}
                                             className="key-bind"
                                           >
-                                            <KeyboardKey
+                                            <InputTip
                                               gameStore={gameStore}
-                                              input={trigger}
+                                              inputEvent={trigger}
                                             />
                                           </div>
                                         );
@@ -263,7 +191,7 @@ export default observer(
                     <tr className="group-header">
                       <td colSpan={2}>
                         <div className="cell-content">
-                          {getLangString({ lang, pathArray: group.nameStringPath }).string}
+                          {getLangStringConverted({ lang, pathArray: group.namePath })}
                         </div>
                       </td>
                     </tr>
@@ -273,8 +201,6 @@ export default observer(
               })}
             </tbody>
           </table>
-
-          <div className={`get-input-blind${!getInputBlindShow ? " h" : ""}`}>{getInputBlindContent}</div>
         </div>
       );
     }

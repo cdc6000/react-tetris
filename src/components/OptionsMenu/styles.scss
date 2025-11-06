@@ -1,5 +1,6 @@
 @use "@assets/styles/common.scss" as common;
-@use "../ControlsMapTable/styles.scss" as ControlsMapTable;
+@use "./TestTab/styles.scss" as TestTab;
+@use "./ControlsTab/styles.scss" as ControlsTab;
 
 @mixin main {
   .options-menu {
@@ -17,10 +18,6 @@
         .tab-btns-container {
           display: flex;
           gap: 10px;
-
-          button {
-            height: 40px;
-          }
         }
 
         .options-list-container {
@@ -45,29 +42,6 @@
             box-sizing: border-box;
             overflow-x: hidden;
             overflow-y: auto;
-
-            label {
-              display: flex;
-              align-items: center;
-              gap: 5px;
-
-              input {
-                margin: 0;
-
-                &[type="checkbox"] {
-                  width: 15px;
-                  height: 15px;
-                  margin-top: 1px;
-                }
-              }
-
-              &:not([disabled]) {
-                cursor: pointer;
-              }
-              &[disabled] {
-                opacity: 0.4;
-              }
-            }
 
             .section {
               display: flex;
@@ -103,29 +77,8 @@
               }
             }
 
-            &.controls {
-              .section {
-                .content {
-                  .control-scheme-controls {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-
-                    .row {
-                      display: flex;
-                      gap: 10px;
-
-                      select,
-                      button {
-                        height: 40px;
-                      }
-                    }
-                  }
-
-                  @include ControlsMapTable.main;
-                }
-              }
-            }
+            @include TestTab.main;
+            @include ControlsTab.main;
 
             &.h {
               opacity: 0;
@@ -137,62 +90,8 @@
         .control-btns-container {
           display: flex;
           justify-content: center;
-
-          button {
-            height: 40px;
-            padding: 0 20px;
-            font-size: 20px;
-          }
         }
       }
-    }
-
-    .overlap-controls-blind {
-      @include common.view-preset;
-      @include common.menu-preset;
-      @include common.popup-menu-preset;
-      position: fixed;
-
-      .content-wrapper {
-        .content {
-          gap: 30px;
-
-          .control-scheme-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-
-            >.title {
-              font-style: italic;
-              text-align: center;
-            }
-          }
-
-          @include ControlsMapTable.main;
-        }
-
-        .control-btns-container {
-          display: flex;
-          justify-content: center;
-          padding-bottom: 10px;
-
-          button {
-            height: 40px;
-            padding: 0 20px;
-            font-size: 20px;
-          }
-        }
-      }
-
-      &.h {
-        opacity: 0;
-        pointer-events: none;
-      }
-    }
-
-    &.h {
-      opacity: 0;
-      pointer-events: none;
     }
   }
 }

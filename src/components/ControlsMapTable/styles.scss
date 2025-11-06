@@ -30,15 +30,18 @@
               align-items: center;
 
               .remove-btn {
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 width: 22px;
                 height: 22px;
+                padding: 0;
+                font-size: 14px;
+              }
+            }
 
-                span {
-                  margin: -1px 0 0 1px;
-                }
+            .btn-wrapper {
+              .add-btn {
+                height: 22px;
+                padding: 0 10px;
+                font-size: 14px;
               }
             }
           }
@@ -87,26 +90,6 @@
 
       &[disabled] {
         opacity: 0.4;
-      }
-    }
-
-    .get-input-blind {
-      @include common.view-preset;
-      @include common.menu-preset;
-      @include common.popup-menu-preset;
-      position: fixed;
-
-      .content-wrapper {
-        .content {
-          .row {
-            text-align: center;
-          }
-        }
-      }
-
-      &.h {
-        opacity: 0;
-        pointer-events: none;
       }
     }
   }

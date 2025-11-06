@@ -11,25 +11,7 @@
     .content-wrapper {
       .content {
         @include ControlsMapTable.main;
-        padding-bottom: 0;
       }
-
-      .control-btns-container {
-        display: flex;
-        justify-content: center;
-        padding-bottom: 10px;
-
-        button {
-          height: 40px;
-          padding: 0 20px;
-          font-size: 20px;
-        }
-      }
-    }
-
-    &.h {
-      opacity: 0;
-      pointer-events: none;
     }
   }
 }

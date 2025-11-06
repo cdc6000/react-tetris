@@ -5,6 +5,8 @@
 @use "../GameOverMenu/styles.scss" as GameOverMenu;
 @use "../OptionsMenu/styles.scss" as OptionsMenu;
 @use "../HelpMenu/styles.scss" as HelpMenu;
+@use "../GetInputMenu/styles.scss" as GetInputMenu;
+@use "../ControlsOverlapMenu/styles.scss" as ControlsOverlapMenu;
 
 @use "../GamePlayView/styles.scss" as GamePlayView;
 
@@ -24,12 +26,12 @@ i {
   color: #333;
 
   .main-view-controller {
-    .kb-key {
+    .input-tip {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 0 5px;
-      
+
       .symbol {
         --size: 16px;
         display: flex;
@@ -61,10 +63,114 @@ i {
       }
     }
 
+    .button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 20px;
+      box-sizing: border-box;
+      font-size: 20px;
+      text-decoration: none;
+      color: var(--black);
+      background-color: #eee;
+      border: 1px solid var(--black);
+      border-radius: 3px;
+
+      &:focus-visible {
+        outline: none;
+      }
+
+      * {
+        pointer-events: none;
+      }
+
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.4;
+      }
+      &:not([disabled]) {
+        cursor: pointer;
+
+        &:hover {
+          background-color: #dedede;
+        }
+      }
+
+      &.nav-selected {
+        color: red;
+      }
+    }
+
+    .select {
+      border-radius: 3px;
+
+      &:focus-visible {
+        outline: none;
+      }
+
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.4;
+      }
+      &:not([disabled]) {
+        cursor: pointer;
+
+        &:hover {
+        }
+      }
+
+      &.nav-selected {
+        color: red;
+      }
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      color: var(--black);
+
+      * {
+        pointer-events: none;
+      }
+
+      > input {
+        margin: 0;
+
+        &[type="checkbox"] {
+          width: 15px;
+          height: 15px;
+          margin-top: 1px;
+        }
+      }
+
+      &:focus-visible {
+        outline: none;
+      }
+
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.4;
+      }
+      &:not([disabled]) {
+        cursor: pointer;
+
+        &:hover {
+        }
+      }
+
+      &.nav-selected {
+        color: red;
+      }
+    }
+
     --main-view-layer: 1;
     --overlay-layer: 2;
     --popup-menu-layer: 3;
     --options-menu-layer: 4;
+    --options-popup-menu-layer: 5;
     --help-menu-layer: 10;
 
     --menu-background-color: var(--white);
@@ -74,6 +180,8 @@ i {
     @include GameOverMenu.main;
     @include OptionsMenu.main;
     @include HelpMenu.main;
+    @include GetInputMenu.main;
+    @include ControlsOverlapMenu.main;
 
     @include GamePlayView.main;
 

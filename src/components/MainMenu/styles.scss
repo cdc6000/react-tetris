@@ -6,10 +6,5 @@
     @include common.menu-preset;
     background-color: var(--menu-background-color);
     z-index: var(--main-view-layer);
-
-    &.h {
-      opacity: 0;
-      pointer-events: none;
-    }
   }
 }

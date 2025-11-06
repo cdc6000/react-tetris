@@ -24,7 +24,7 @@ export default class EventBus {
 
     eventType.listeners.push({ id, fn });
     if (options.fireIfHappened && eventType.hasFired) {
-      return this.execListener(fn, eventType.lastFireData);
+      return this.execListener(fn, { ...(eventType.lastFireData || {}), __eventType: type });
     }
     return true;
   };
@@ -60,7 +60,7 @@ export default class EventBus {
     eventType.lastFireData = data;
     eventType.fireCount++;
     eventType.hasFired = true;
-    return this.execListeners(eventType.listeners, data);
+    return this.execListeners(eventType, data);
   };
 
   getEventType = (type) => {
@@ -87,11 +87,15 @@ export default class EventBus {
     return (fn && (await fn(data))) || false;
   };
 
-  execListeners = async (listeners, data) => {
+  execListeners = async (eventType, data = {}) => {
+    const { type, listeners } = eventType;
     const results = [];
     for (let lIndex = 0; lIndex < listeners.length; lIndex++) {
       const fn = listeners[lIndex].fn;
-      results.push(await this.execListener(fn, data));
+      const _data = { ...data, __eventType: type };
+      const result = await this.execListener(fn, _data);
+      results.push(result);
+      if (result?.stopListenerProcessing) break;
     }
     return results;
   };

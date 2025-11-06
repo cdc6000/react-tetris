@@ -8,6 +8,8 @@ import GamePlayView from "@components/GamePlayView";
 import PauseMenu from "@components/PauseMenu";
 import GameOverMenu from "@components/GameOverMenu";
 import HelpMenu from "@components/HelpMenu";
+import GetInputMenu from "@components/GetInputMenu";
+import ControlsOverlapMenu from "@components/ControlsOverlapMenu";
 
 import * as reactHelpers from "@utils/react-helpers";
 
@@ -30,8 +32,6 @@ export default observer(
 
     render() {
       const { gameStore } = this.props;
-      // const { lang } = gameStore.observables;
-      // const { getLangString } = constants.lang;
 
       //console.log("Main state", this.state)
 
@@ -43,6 +43,8 @@ export default observer(
           <GameOverMenu gameStore={gameStore} />
           <OptionsMenu gameStore={gameStore} />
           <HelpMenu gameStore={gameStore} />
+          <GetInputMenu gameStore={gameStore} />
+          <ControlsOverlapMenu gameStore={gameStore} />
 
           <div className="version">{process.env.npm_package_version}</div>
         </div>

@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import Button from "@components/common/Button";
 import ControlsMapTable from "@components/ControlsMapTable";
 
 import * as customHelpers from "@utils/custom-helpers";
@@ -14,38 +15,49 @@ export default observer(
       super(props);
 
       this.viewID = constants.viewData.view.helpMenu;
+      this.layerID = constants.viewData.layer.helpMenu;
+    }
+
+    get canInteract() {
+      const { gameStore } = this.props;
+      const { viewStore } = gameStore;
+      return viewStore.inputFocusViewLayerID == this.layerID;
     }
 
     //
 
     render() {
-      const { viewID } = this;
+      const { viewID, layerID, canInteract } = this;
       const { gameStore } = this.props;
       const { inputStore, viewStore } = gameStore;
       const { viewData } = viewStore.observables;
       const { lang } = gameStore.observables;
-      const { getLangString, stringConverter } = constants.lang;
+      const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
 
       return (
         <div className={`help-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
-            <div className="title">{getLangString({ lang, pathArray: ["helpMenu", "menuTitle"] }).string}</div>
+            <div className="title">{getLangStringConverted({ lang, pathArray: ["helpMenu", "menuTitle"] })}</div>
             <div className="tip">
-              {stringConverter(getLangString({ lang, pathArray: ["helpMenu", "tipHelpClose"] }).string, [
-                {
-                  type: "function",
-                  whatIsRegExp: true,
-                  what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                  to: (key, matchData) => {
-                    const triggers = inputStore.getAllActiveTriggersForActions({
-                      actions: [constants.controls.controlEvent.helpMenuToggle],
-                    });
-                    return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+              {getLangStringConverted({
+                lang,
+                pathArray: ["helpMenu", "tipHelpClose"],
+                conversionList: [
+                  {
+                    type: "function",
+                    whatIsRegExp: true,
+                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
+                    to: (key, matchData) => {
+                      const triggers = inputStore.getAllActiveTriggersForActions({
+                        actions: [constants.controls.controlEvent.helpMenuToggle],
+                      });
+                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
+                    },
                   },
-                },
-              ])}
+                ],
+              })}
             </div>
             <div className="content">
               <ControlsMapTable
@@ -54,18 +66,17 @@ export default observer(
               />
             </div>
             <div className="control-btns-container">
-              <button
+              <Button
+                gameStore={gameStore}
                 className="back-btn"
-                onClick={(ev) => {
-                  if (viewStore.inputFocusLayerID != constants.viewData.layer.helpMenu) return;
-                  viewStore.shiftInputFocusToLayerID({
-                    layerID: constants.viewData.layer.helpMenu,
-                    isPrevious: true,
-                  });
+                navLayerID={layerID}
+                navElemID={`${viewID}-backBtn`}
+                namePath={["helpMenu", "backBtnTitle"]}
+                canInteract={canInteract}
+                onClick={() => {
+                  viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
                 }}
-              >
-                {getLangString({ lang, pathArray: ["helpMenu", "backBtnTitle"] }).string}
-              </button>
+              />
             </div>
           </div>
         </div>

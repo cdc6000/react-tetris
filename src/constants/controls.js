@@ -1,4 +1,11 @@
 export const controlEvent = {
+  menuNavUp: "control-menuNavUp",
+  menuNavDown: "control-menuNavDown",
+  menuNavLeft: "control-menuNavLeft",
+  menuNavRight: "control-menuNavRight",
+  menuNavSelect: "control-menuNavSelect",
+  menuNavBack: "control-menuNavBack",
+
   moveCurrentFigureRight: "control-moveCurrentFigureRight",
   moveCurrentFigureLeft: "control-moveCurrentFigureLeft",
   moveCurrentFigureCupPointX: "control-moveCurrentFigureCupPointX",
@@ -6,19 +13,71 @@ export const controlEvent = {
   rotateCurrentFigureCounterclockwise: "control-rotateCurrentFigureCounterclockwise",
   speedUpFallingCurrentFigure: "control-speedUpFallingCurrentFigure",
   dropCurrentFigure: "control-dropCurrentFigure",
+
   gamePause: "control-gamePause",
   gameUnpause: "control-gameUnpause",
   gamePauseToggle: "control-gamePauseToggle",
+
   helpMenuToggle: "control-helpMenuToggle",
 };
 
 export const controlGroup = {
   anywhere: "anywhere",
+  anyMenu: "anyMenu",
   gameplay: "gameplay",
   pauseMenu: "pauseMenu",
 };
 
 export const controlEventData = {
+  [controlEvent.menuNavUp]: {
+    groupID: controlGroup.anyMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.menuNavDown]: {
+    groupID: controlGroup.anyMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.menuNavLeft]: {
+    groupID: controlGroup.anyMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.menuNavRight]: {
+    groupID: controlGroup.anyMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.menuNavSelect]: {
+    groupID: controlGroup.anyMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.menuNavBack]: {
+    groupID: controlGroup.anyMenu,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+
   [controlEvent.moveCurrentFigureRight]: {
     groupID: controlGroup.gameplay,
     getTriggerData: ({ options }) => {
@@ -68,6 +127,7 @@ export const controlEventData = {
       };
     },
   },
+
   [controlEvent.gamePause]: {
     groupID: controlGroup.gameplay,
     getTriggerData: ({ options }) => {
@@ -92,6 +152,7 @@ export const controlEventData = {
       };
     },
   },
+
   [controlEvent.helpMenuToggle]: {
     groupID: controlGroup.anywhere,
     getTriggerData: ({ options }) => {
@@ -102,7 +163,8 @@ export const controlEventData = {
   },
 };
 
-export const inputEvent = {
+export const input = {
+  mouse: "mouse",
   mouseLeftButton: "mouseLeftButton",
   mouseRightButton: "mouseRightButton",
   mouseWheelUp: "mouseWheelUp",
@@ -221,331 +283,344 @@ export const inputEvent = {
   clear: "Clear",
 };
 
-export const inputEventData = {
-  [inputEvent.mouseLeftButton]: {
+export function getInputEvent(input) {
+  return `input-${input}`;
+}
+
+export function getInput(inputEvent) {
+  return inputEvent.split("input-")[1];
+}
+
+export const inputData = {
+  [input.mouseLeftButton]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Left_Key.png`,
   },
-  [inputEvent.mouseRightButton]: {
+  [input.mouseRightButton]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Right_Key.png`,
   },
-  [inputEvent.mouseWheelUp]: {
+  [input.mouseWheelUp]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Wheel_Up.png`,
   },
-  [inputEvent.mouseWheelDown]: {
+  [input.mouseWheelDown]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Wheel_Down.png`,
   },
 
-  [inputEvent.arrowLeft]: {
+  [input.arrowLeft]: {
+    preventDefault: true,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Arrow_Left_Key.png`,
   },
-  [inputEvent.arrowRight]: {
+  [input.arrowRight]: {
+    preventDefault: true,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Arrow_Right_Key.png`,
   },
-  [inputEvent.arrowUp]: {
+  [input.arrowUp]: {
+    preventDefault: true,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Arrow_Up_Key.png`,
   },
-  [inputEvent.arrowDown]: {
+  [input.arrowDown]: {
+    preventDefault: true,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Arrow_Down_Key.png`,
   },
 
-  [inputEvent.nDiv]: {
+  [input.nDiv]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Divide_key.png`,
   },
-  [inputEvent.nMult]: {
+  [input.nMult]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Asterisk_Key.png`,
   },
-  [inputEvent.nSub]: {
+  [input.nSub]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Minus_Key.png`,
   },
-  [inputEvent.nAdd]: {
+  [input.nAdd]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Plus_Tall_Key.png`,
   },
-  [inputEvent.nDec]: {},
-  [inputEvent.nEnter]: {
+  [input.nDec]: {},
+  [input.nEnter]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Enter_Tall_Key.png`,
   },
-  [inputEvent.n0]: {
+  [input.n0]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_0_Key.png`,
   },
-  [inputEvent.n1]: {
+  [input.n1]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_1_Key.png`,
   },
-  [inputEvent.n2]: {
+  [input.n2]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_2_Key.png`,
   },
-  [inputEvent.n3]: {
+  [input.n3]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_3_Key.png`,
   },
-  [inputEvent.n4]: {
+  [input.n4]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_4_Key.png`,
   },
-  [inputEvent.n5]: {
+  [input.n5]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_5_Key.png`,
   },
-  [inputEvent.n6]: {
+  [input.n6]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_6_Key.png`,
   },
-  [inputEvent.n7]: {
+  [input.n7]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_7_Key.png`,
   },
-  [inputEvent.n8]: {
+  [input.n8]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_8_Key.png`,
   },
-  [inputEvent.n9]: {
+  [input.n9]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_9_Key.png`,
   },
 
-  [inputEvent.space]: {
+  [input.space]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Space_Key.png`,
   },
-  [inputEvent.ctrlL]: {
+  [input.ctrlL]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Ctrl_Key.png`,
   },
-  [inputEvent.ctrlR]: {
+  [input.ctrlR]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Ctrl_Key.png`,
   },
-  [inputEvent.metaL]: {
+  [input.metaL]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Win_Key.png`,
   },
-  [inputEvent.metaR]: {
+  [input.metaR]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Win_Key.png`,
   },
-  [inputEvent.altL]: {
+  [input.altL]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Alt_Key.png`,
   },
-  [inputEvent.altR]: {
+  [input.altR]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Alt_Key.png`,
   },
-  [inputEvent.ctxMenu]: {},
-  [inputEvent.shiftL]: {
+  [input.ctxMenu]: {},
+  [input.shiftL]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Shift_Key.png`,
   },
-  [inputEvent.shiftR]: {
+  [input.shiftR]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Shift_Key.png`,
   },
-  [inputEvent.tab]: {
+  [input.tab]: {
+    preventDefault: true,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Tab_Key.png`,
   },
-  [inputEvent.enter]: {
+  [input.enter]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Enter_Key.png`,
   },
 
-  [inputEvent.tilda]: {
+  [input.tilda]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Tilda_Key.png`,
   },
-  [inputEvent.d0]: {
+  [input.d0]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/0_Key.png`,
   },
-  [inputEvent.d1]: {
+  [input.d1]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/1_Key.png`,
   },
-  [inputEvent.d2]: {
+  [input.d2]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/2_Key.png`,
   },
-  [inputEvent.d3]: {
+  [input.d3]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/3_Key.png`,
   },
-  [inputEvent.d4]: {
+  [input.d4]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/4_Key.png`,
   },
-  [inputEvent.d5]: {
+  [input.d5]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/5_Key.png`,
   },
-  [inputEvent.d6]: {
+  [input.d6]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/6_Key.png`,
   },
-  [inputEvent.d7]: {
+  [input.d7]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/7_Key.png`,
   },
-  [inputEvent.d8]: {
+  [input.d8]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/8_Key.png`,
   },
-  [inputEvent.d9]: {
+  [input.d9]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/9_Key.png`,
   },
-  [inputEvent.minus]: {
+  [input.minus]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Minus_Key.png`,
   },
-  [inputEvent.equal]: {
+  [input.equal]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Plus_Key.png`,
   },
-  [inputEvent.backspace]: {
+  [input.backspace]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Backspace_Key.png`,
   },
 
-  [inputEvent.esc]: {
+  [input.esc]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Esc_Key.png`,
   },
-  [inputEvent.f1]: {
+  [input.f1]: {
     preventDefault: true,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F1_Key.png`,
   },
-  [inputEvent.f2]: {
+  [input.f2]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F2_Key.png`,
   },
-  [inputEvent.f3]: {
+  [input.f3]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F3_Key.png`,
   },
-  [inputEvent.f4]: {
+  [input.f4]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F4_Key.png`,
   },
-  [inputEvent.f5]: {
+  [input.f5]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F5_Key.png`,
   },
-  [inputEvent.f6]: {
+  [input.f6]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F6_Key.png`,
   },
-  [inputEvent.f7]: {
+  [input.f7]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F7_Key.png`,
   },
-  [inputEvent.f8]: {
+  [input.f8]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F8_Key.png`,
   },
-  [inputEvent.f9]: {
+  [input.f9]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F9_Key.png`,
   },
-  [inputEvent.f10]: {
+  [input.f10]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F10_Key.png`,
   },
-  [inputEvent.f11]: {
+  [input.f11]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F11_Key.png`,
   },
-  [inputEvent.f12]: {
+  [input.f12]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F12_Key.png`,
   },
-  [inputEvent.backslash]: {
+  [input.backslash]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Slash_Key.png`,
   },
 
-  [inputEvent.brLeft]: {
+  [input.brLeft]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Bracket_Left_Key.png`,
   },
-  [inputEvent.brRight]: {
+  [input.brRight]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Bracket_Right_Key.png`,
   },
-  [inputEvent.semicolon]: {
+  [input.semicolon]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Quote_Key.png`,
   },
-  [inputEvent.quote]: {
+  [input.quote]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Semicolon_Key.png`,
   },
-  [inputEvent.comma]: {
+  [input.comma]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mark_Left_Key.png`,
   },
-  [inputEvent.period]: {
+  [input.period]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mark_Right_Key.png`,
   },
-  [inputEvent.slash]: {
+  [input.slash]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Question_Key.png`,
   },
 
-  [inputEvent.kA]: {
+  [input.kA]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/A_Key.png`,
   },
-  [inputEvent.kB]: {
+  [input.kB]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/B_Key.png`,
   },
-  [inputEvent.kC]: {
+  [input.kC]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/C_Key.png`,
   },
-  [inputEvent.kD]: {
+  [input.kD]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/D_Key.png`,
   },
-  [inputEvent.kE]: {
+  [input.kE]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/E_Key.png`,
   },
-  [inputEvent.kF]: {
+  [input.kF]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/F_Key.png`,
   },
-  [inputEvent.kG]: {
+  [input.kG]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/G_Key.png`,
   },
-  [inputEvent.kH]: {
+  [input.kH]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/H_Key.png`,
   },
-  [inputEvent.kI]: {
+  [input.kI]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/I_Key.png`,
   },
-  [inputEvent.kJ]: {
+  [input.kJ]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/J_Key.png`,
   },
-  [inputEvent.kK]: {
+  [input.kK]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/K_Key.png`,
   },
-  [inputEvent.kL]: {
+  [input.kL]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/L_Key.png`,
   },
-  [inputEvent.kM]: {
+  [input.kM]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/M_Key.png`,
   },
-  [inputEvent.kN]: {
+  [input.kN]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/N_Key.png`,
   },
-  [inputEvent.kO]: {
+  [input.kO]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/O_Key.png`,
   },
-  [inputEvent.kP]: {
+  [input.kP]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/P_Key.png`,
   },
-  [inputEvent.kQ]: {
+  [input.kQ]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Q_Key.png`,
   },
-  [inputEvent.kR]: {
+  [input.kR]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/R_Key.png`,
   },
-  [inputEvent.kS]: {
+  [input.kS]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/S_Key.png`,
   },
-  [inputEvent.kT]: {
+  [input.kT]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/T_Key.png`,
   },
-  [inputEvent.kU]: {
+  [input.kU]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/U_Key.png`,
   },
-  [inputEvent.kV]: {
+  [input.kV]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/V_Key.png`,
   },
-  [inputEvent.kW]: {
+  [input.kW]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/W_Key.png`,
   },
-  [inputEvent.kX]: {
+  [input.kX]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/X_Key.png`,
   },
-  [inputEvent.kY]: {
+  [input.kY]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Y_Key.png`,
   },
-  [inputEvent.kZ]: {
+  [input.kZ]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Z_Key.png`,
   },
 
-  [inputEvent.capsLock]: {
+  [input.capsLock]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Caps_Lock_Key.png`,
   },
-  [inputEvent.scrollLock]: {},
-  [inputEvent.numLock]: {
+  [input.scrollLock]: {},
+  [input.numLock]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_Lock_Key.png`,
   },
 
-  [inputEvent.insert]: {
+  [input.insert]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Insert_Key.png`,
   },
-  [inputEvent.delete]: {
+  [input.delete]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Del_Key.png`,
   },
-  [inputEvent.home]: {
+  [input.home]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Home_Key.png`,
   },
-  [inputEvent.end]: {
+  [input.end]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/End_Key.png`,
   },
-  [inputEvent.pgUp]: {
+  [input.pgUp]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Page_Up_Key.png`,
   },
-  [inputEvent.pgDn]: {
+  [input.pgDn]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Page_Down_Key.png`,
   },
-  [inputEvent.pause]: {},
-  [inputEvent.clear]: {
+  [input.pause]: {},
+  [input.clear]: {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_5_Key.png`,
   },
 };

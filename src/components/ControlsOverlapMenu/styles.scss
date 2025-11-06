@@ -1,0 +1,32 @@
+@use "@assets/styles/common.scss" as common;
+@use "../ControlsMapTable/styles.scss" as ControlsMapTable;
+
+@mixin main {
+  .controls-overlap-menu {
+    @include common.view-preset;
+    @include common.menu-preset;
+    @include common.popup-menu-preset;
+    z-index: var(--options-popup-menu-layer);
+
+    .content-wrapper {
+      .content {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+
+        .control-scheme-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+
+          >.title {
+            font-style: italic;
+            text-align: center;
+          }
+        }
+
+        @include ControlsMapTable.main;
+      }
+    }
+  }
+}
