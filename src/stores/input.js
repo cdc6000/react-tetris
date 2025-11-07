@@ -30,6 +30,8 @@ class Storage {
 
       inputOptions: {
         allowFigureMoveByMouse: true,
+        inputRepeatDelay: 150,
+        inputRepeatRate: 50,
       },
     };
     this.nonObservables = {
@@ -353,8 +355,14 @@ class Storage {
 
     this.nonObservables.getInputPromise = new Promise((resolve) => {
       this.nonObservables.getInputPromiseResolve = resolve;
+      const triggers = this.getAllActiveTriggersForActions({
+        actions: [constants.controls.controlEvent.menuNavBack],
+      });
+      const cancelInputEvents = [...triggers, constants.controls.getInputEvent(constants.controls.input.f1)];
+
       eventBus.addEventListener(evenBusID, "BindInput", ({ input, state }) => {
-        if (input == constants.controls.input.f1) {
+        const inputEvent = constants.controls.getInputEvent(input);
+        if (cancelInputEvents.some((_) => _ == inputEvent)) {
           resolve(false);
         } else {
           if (state.justPressed) {
@@ -541,31 +549,38 @@ class Storage {
   };
 
   inputUpdateState = ({ ev, input, isPressed, isReleased, isClicked }) => {
+    const { inputState, inputOptions } = this.observables;
+    const { inputRepeatDelay, inputRepeatRate } = inputOptions;
     // console.log({ input });
-    const { inputState } = this.observables;
+
     if (!inputState[input]) {
       inputState[input] = {
         justPressed: false,
+        _isPressed: false,
         isPressed: false,
         justReleased: false,
-        timeout: undefined,
-        interval: undefined,
+        timeout: 0,
+        intervalTimeout: 0,
+        interval: 0,
       };
     }
     const state = inputState[input];
 
-    if (isPressed && !state.isPressed) {
+    if (isPressed && !state._isPressed) {
       state.justPressed = true;
       state.justReleased = false;
-      state.isPressed = true;
+      state._isPressed = true;
+      state.isPressed = false;
     } else if (isReleased) {
       state.justPressed = false;
       state.justReleased = true;
+      state._isPressed = false;
       state.isPressed = false;
     } else if (isClicked) {
       state.justPressed = true;
       state.justReleased = true;
-      state.isPressed = true;
+      state._isPressed = false;
+      state.isPressed = false;
     }
 
     if (state.timeout) {
@@ -574,10 +589,11 @@ class Storage {
     state.timeout = setTimeout(() => {
       state.timeout = undefined;
       let isChanged = false;
-      if (state.justReleased && state.isPressed) {
-        state.isPressed = false;
-        isChanged = true;
+
+      if (state.justReleased && state._isPressed) {
+        state._isPressed = false;
       }
+
       if (state.justPressed) {
         state.justPressed = false;
         isChanged = true;
@@ -591,18 +607,29 @@ class Storage {
       }
     }, 1);
 
-    if (state.isPressed) {
+    if (state.justPressed) {
+      if (state.intervalTimeout) {
+        clearTimeout(state.intervalTimeout);
+      }
       if (state.interval) {
         clearInterval(state.interval);
+        state.interval = 0;
       }
-      state.interval = setInterval(() => {
-        if (state.isPressed) {
-          this.fireInputEvent({ input });
-        } else {
-          clearInterval(state.interval);
-          state.interval = undefined;
+      state.intervalTimeout = setTimeout(() => {
+        state.intervalTimeout = 0;
+        if (state._isPressed) {
+          state.isPressed = true;
         }
-      }, 50);
+
+        state.interval = setInterval(() => {
+          if (state.isPressed) {
+            this.fireInputEvent({ input });
+          } else {
+            clearInterval(state.interval);
+            state.interval = undefined;
+          }
+        }, inputRepeatRate);
+      }, inputRepeatDelay);
     }
 
     return this.fireInputEvent({ ev, input });

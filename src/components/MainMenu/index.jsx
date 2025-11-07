@@ -43,25 +43,6 @@ export default observer(
         <div className={`main-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
             <div className="title">{getLangStringConverted({ lang, pathArray: ["mainMenu", "menuTitle"] })}</div>
-            <div className="tip">
-              {getLangStringConverted({
-                lang,
-                pathArray: ["mainMenu", "tip"],
-                conversionList: [
-                  {
-                    type: "function",
-                    whatIsRegExp: true,
-                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                    to: (key, matchData) => {
-                      const triggers = inputStore.getAllActiveTriggersForActions({
-                        actions: [constants.controls.controlEvent.helpMenuToggle],
-                      });
-                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
-                    },
-                  },
-                ],
-              })}
-            </div>
             <div className="content">
               <div className="btns-container">
                 <div className="btns-wrapper">
@@ -81,12 +62,22 @@ export default observer(
                     className="help-btn"
                     navLayerID={layerID}
                     navElemID={`${viewID}-helpBtn`}
-                    namePath={["mainMenu", "helpBtnTitle"]}
                     canInteract={canInteract}
                     onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.helpMenuToggle);
                     }}
-                  />
+                  >
+                    {getLangStringConverted({
+                      lang,
+                      pathArray: ["mainMenu", "helpBtnTitle"],
+                      conversionList: [
+                        customHelpers.insertBtnConversion({
+                          gameStore,
+                          actions: [constants.controls.controlEvent.helpMenuToggle],
+                        }),
+                      ],
+                    })}
+                  </Button>
                   <Button
                     gameStore={gameStore}
                     className="options-btn"

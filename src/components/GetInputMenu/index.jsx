@@ -4,6 +4,8 @@ import { observer } from "mobx-react";
 
 import InputTip from "@components/common/InputTip";
 
+import * as customHelpers from "@utils/custom-helpers";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -26,7 +28,7 @@ export default observer(
     render() {
       const { viewID, layerID, canInteract } = this;
       const { gameStore } = this.props;
-      const { viewStore } = gameStore;
+      const { viewStore, inputStore } = gameStore;
       const { registeredInput } = viewStore.getViewLayerData(layerID).data || {};
       const { viewData } = viewStore.observables;
       const { lang } = gameStore.observables;
@@ -46,20 +48,11 @@ export default observer(
                   lang,
                   pathArray: ["getInputMenu", "awaitingInputExitTip"],
                   conversionList: [
-                    {
-                      type: "function",
-                      whatIsRegExp: true,
-                      what: `\\$\\{input\\|([^\\}]+)\\}`,
-                      to: (key, matchData) => {
-                        return (
-                          <InputTip
-                            key={key}
-                            gameStore={gameStore}
-                            input={constants.controls.input[matchData[1]]}
-                          />
-                        );
-                      },
-                    },
+                    customHelpers.insertBtnConversion({
+                      gameStore,
+                      actions: [constants.controls.controlEvent.menuNavBack],
+                      triggers: [constants.controls.getInputEvent(constants.controls.input.f1)],
+                    }),
                   ],
                 })}
               </div>

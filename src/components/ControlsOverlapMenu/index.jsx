@@ -64,6 +64,9 @@ export default observer(
                         gameStore={gameStore}
                         controlScheme={overlapControlScheme}
                         hideEmpty={true}
+                        hasFocus={canInteract}
+                        layerID={layerID}
+                        viewID={viewID}
                       />
                     </div>
                   );

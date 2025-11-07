@@ -39,28 +39,6 @@ export default observer(
         <div className={`pause-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
             <div className="title">{getLangStringConverted({ lang, pathArray: ["pauseMenu", "menuTitle"] })}</div>
-            <div className="tip">
-              {getLangStringConverted({
-                lang,
-                pathArray: ["pauseMenu", "tipUnpause"],
-                conversionList: [
-                  {
-                    type: "function",
-                    whatIsRegExp: true,
-                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                    to: (key, matchData) => {
-                      const triggers = inputStore.getAllActiveTriggersForActions({
-                        actions: [
-                          constants.controls.controlEvent.gameUnpause,
-                          constants.controls.controlEvent.gamePauseToggle,
-                        ],
-                      });
-                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
-                    },
-                  },
-                ],
-              })}
-            </div>
             <div className="content">
               <div className="btns-container">
                 <div className="btns-wrapper">
@@ -69,23 +47,47 @@ export default observer(
                     className="continue-btn"
                     navLayerID={layerID}
                     navElemID={`${viewID}-continueBtn`}
-                    namePath={["pauseMenu", "continueBtnTitle"]}
                     canInteract={canInteract}
                     onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.gameUnpause);
                     }}
-                  />
+                  >
+                    {getLangStringConverted({
+                      lang,
+                      pathArray: ["pauseMenu", "continueBtnTitle"],
+                      conversionList: [
+                        customHelpers.insertBtnConversion({
+                          gameStore,
+                          actions: [
+                            constants.controls.controlEvent.gameUnpause,
+                            constants.controls.controlEvent.gamePauseToggle,
+                            constants.controls.controlEvent.menuNavBack,
+                          ],
+                        }),
+                      ],
+                    })}
+                  </Button>
                   <Button
                     gameStore={gameStore}
                     className="help-btn"
                     navLayerID={layerID}
                     navElemID={`${viewID}-helpBtn`}
-                    namePath={["pauseMenu", "helpBtnTitle"]}
                     canInteract={canInteract}
                     onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.helpMenuToggle);
                     }}
-                  />
+                  >
+                    {getLangStringConverted({
+                      lang,
+                      pathArray: ["pauseMenu", "helpBtnTitle"],
+                      conversionList: [
+                        customHelpers.insertBtnConversion({
+                          gameStore,
+                          actions: [constants.controls.controlEvent.helpMenuToggle],
+                        }),
+                      ],
+                    })}
+                  </Button>
                   <Button
                     gameStore={gameStore}
                     className="options-btn"

@@ -40,29 +40,13 @@ export default observer(
         <div className={`help-menu${!show ? " h" : ""}`}>
           <div className="content-wrapper">
             <div className="title">{getLangStringConverted({ lang, pathArray: ["helpMenu", "menuTitle"] })}</div>
-            <div className="tip">
-              {getLangStringConverted({
-                lang,
-                pathArray: ["helpMenu", "tipHelpClose"],
-                conversionList: [
-                  {
-                    type: "function",
-                    whatIsRegExp: true,
-                    what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                    to: (key, matchData) => {
-                      const triggers = inputStore.getAllActiveTriggersForActions({
-                        actions: [constants.controls.controlEvent.helpMenuToggle],
-                      });
-                      return customHelpers.actionTriggersDrawer({ gameStore, triggers, concatWord: matchData[1], key });
-                    },
-                  },
-                ],
-              })}
-            </div>
             <div className="content">
               <ControlsMapTable
                 gameStore={gameStore}
                 showAllActiveTriggers={true}
+                hasFocus={canInteract}
+                layerID={layerID}
+                viewID={viewID}
               />
             </div>
             <div className="control-btns-container">
@@ -71,12 +55,25 @@ export default observer(
                 className="back-btn"
                 navLayerID={layerID}
                 navElemID={`${viewID}-backBtn`}
-                namePath={["helpMenu", "backBtnTitle"]}
                 canInteract={canInteract}
                 onClick={() => {
                   viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
                 }}
-              />
+              >
+                {getLangStringConverted({
+                  lang,
+                  pathArray: ["helpMenu", "backBtnTitle"],
+                  conversionList: [
+                    customHelpers.insertBtnConversion({
+                      gameStore,
+                      actions: [
+                        constants.controls.controlEvent.helpMenuToggle,
+                        constants.controls.controlEvent.menuNavBack,
+                      ],
+                    }),
+                  ],
+                })}
+              </Button>
             </div>
           </div>
         </div>

@@ -38,6 +38,8 @@ class Storage {
     };
     this.nonObservables = {
       evenBusID: "NavigationStore",
+
+      scrollIntoViewLastTimestamp: 0,
     };
 
     makeObservable(this, {
@@ -220,7 +222,16 @@ class Storage {
       elem = this.getCurrentNavElem();
       if (!elem) return;
     }
-    elem.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+
+    let behavior = "smooth";
+    const now = Date.now();
+    const { scrollIntoViewLastTimestamp } = this.nonObservables;
+    if (now - scrollIntoViewLastTimestamp < 300) {
+      behavior = "instant";
+    }
+    this.nonObservables.scrollIntoViewLastTimestamp = now;
+
+    elem.scrollIntoView({ block: "center", inline: "center", behavior });
   };
 
   unfocusAnyElem = (elem) => {
@@ -319,6 +330,37 @@ class Storage {
         this.setCurrentNavElemData(nextElem, elem);
       }
     }
+  };
+
+  //
+
+  getNavComponentData = (props) => {
+    const { navCurrentElemData } = this.observables;
+    const {
+      canInteract = true,
+      disabled = false,
+
+      navLayerID,
+      navElemID,
+      navIsHorizontal,
+      navGroupID,
+    } = props;
+
+    const isNavSelected =
+      canInteract && navLayerID == navCurrentElemData.layerID && navElemID == navCurrentElemData.elemID;
+
+    return {
+      props: {
+        isNavSelected,
+      },
+      renderProps: {
+        "data-nav-able": canInteract && !disabled ? 1 : 0,
+        "data-nav-layer-id": navLayerID,
+        "data-nav-elem-id": navElemID,
+        "data-nav-hor": navIsHorizontal ? 1 : 0,
+        "data-nav-group-id": [navGroupID && navLayerID, navGroupID].filter(Boolean).join("-") || undefined,
+      },
+    };
   };
 }
 

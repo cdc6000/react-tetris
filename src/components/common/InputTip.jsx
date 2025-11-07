@@ -45,7 +45,10 @@ export default observer(
           }
         }
 
-        description = getLangStringConverted({ lang, pathArray: ["inputDescription", _input] });
+        let getDescriptionResult = getLangString({ lang, pathArray: ["inputDescription", _input] });
+        if (!getDescriptionResult.notFound) {
+          description = stringConverter(getDescriptionResult.string);
+        }
       }
 
       return (

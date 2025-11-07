@@ -4,6 +4,8 @@ import { observer } from "mobx-react";
 
 import Button from "@components/common/Button";
 
+import * as customHelpers from "@utils/custom-helpers";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -57,12 +59,22 @@ export default observer(
                     className="help-btn"
                     navLayerID={layerID}
                     navElemID={`${viewID}-helpBtn`}
-                    namePath={["gameOverMenu", "helpBtnTitle"]}
                     canInteract={canInteract}
                     onClick={() => {
                       gameStore.eventBus.fireEvent(constants.controls.controlEvent.helpMenuToggle);
                     }}
-                  />
+                  >
+                    {getLangStringConverted({
+                      lang,
+                      pathArray: ["gameOverMenu", "helpBtnTitle"],
+                      conversionList: [
+                        customHelpers.insertBtnConversion({
+                          gameStore,
+                          actions: [constants.controls.controlEvent.helpMenuToggle],
+                        }),
+                      ],
+                    })}
+                  </Button>
                   <Button
                     gameStore={gameStore}
                     className="exit-btn"

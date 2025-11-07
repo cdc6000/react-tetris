@@ -34,6 +34,7 @@ export const controlEventData = {
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
+        onIsPressed: true,
       };
     },
   },
@@ -42,6 +43,7 @@ export const controlEventData = {
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
+        onIsPressed: true,
       };
     },
   },
@@ -50,6 +52,7 @@ export const controlEventData = {
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
+        onIsPressed: true,
       };
     },
   },
@@ -58,6 +61,7 @@ export const controlEventData = {
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
+        onIsPressed: true,
       };
     },
   },
@@ -83,6 +87,7 @@ export const controlEventData = {
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
+        onIsPressed: true,
       };
     },
   },
@@ -91,6 +96,7 @@ export const controlEventData = {
     getTriggerData: ({ options }) => {
       return {
         onJustPressed: true,
+        onIsPressed: true,
       };
     },
   },

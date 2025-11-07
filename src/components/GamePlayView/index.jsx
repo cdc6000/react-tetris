@@ -37,7 +37,7 @@ export default observer(
     render() {
       const { viewID } = this;
       const { gameStore } = this.props;
-      const { inputStore, viewStore, gameModeData, cellsMaxSize } = gameStore;
+      const { viewStore, gameModeData, cellsMaxSize } = gameStore;
       const { viewData } = viewStore.observables;
       const { score, level, cup } = gameModeData;
       const { lang, gameMode } = gameStore.observables;
@@ -66,22 +66,10 @@ export default observer(
                   lang,
                   pathArray: ["gameView", "tipHelp"],
                   conversionList: [
-                    {
-                      type: "function",
-                      whatIsRegExp: true,
-                      what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                      to: (key, matchData) => {
-                        const triggers = inputStore.getAllActiveTriggersForActions({
-                          actions: [constants.controls.controlEvent.helpMenuToggle],
-                        });
-                        return customHelpers.actionTriggersDrawer({
-                          gameStore,
-                          triggers,
-                          concatWord: matchData[1],
-                          key,
-                        });
-                      },
-                    },
+                    customHelpers.insertBtnConversion({
+                      gameStore,
+                      actions: [constants.controls.controlEvent.helpMenuToggle],
+                    }),
                   ],
                 })}
               </div>
@@ -90,25 +78,13 @@ export default observer(
                   lang,
                   pathArray: ["gameView", "tipPause"],
                   conversionList: [
-                    {
-                      type: "function",
-                      whatIsRegExp: true,
-                      what: `\\$\\{btns\\|([^\\}]+)\\}`,
-                      to: (key, matchData) => {
-                        const triggers = inputStore.getAllActiveTriggersForActions({
-                          actions: [
-                            constants.controls.controlEvent.gamePause,
-                            constants.controls.controlEvent.gamePauseToggle,
-                          ],
-                        });
-                        return customHelpers.actionTriggersDrawer({
-                          gameStore,
-                          triggers,
-                          concatWord: matchData[1],
-                          key,
-                        });
-                      },
-                    },
+                    customHelpers.insertBtnConversion({
+                      gameStore,
+                      actions: [
+                        constants.controls.controlEvent.gamePause,
+                        constants.controls.controlEvent.gamePauseToggle,
+                      ],
+                    }),
                   ],
                 })}
               </div>

@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 
 import InputTip from "@components/common/InputTip";
 import Button from "@components/common/Button";
+import NavigationPoint from "@components/common/NavigationPoint";
 
 import * as reactHelpers from "@utils/react-helpers";
 import * as eventHelpers from "@utils/event-helpers";
@@ -87,7 +88,17 @@ export default observer(
                   let hasActionTriggers = false;
                   const actionRender = (
                     <tr key={aIndex}>
-                      <td>{getLangStringConverted({ lang, pathArray: ["controlEventName", action] })}</td>
+                      <td>
+                        {getLangStringConverted({ lang, pathArray: ["controlEventName", action] })}
+                        {!inputMapAllowed && (
+                          <NavigationPoint
+                            gameStore={gameStore}
+                            canInteract={hasFocus}
+                            navLayerID={layerID}
+                            navElemID={`${viewID}-navPoint-${gIndex}-${aIndex}`}
+                          />
+                        )}
+                      </td>
                       <td>
                         <div className="cell-content">
                           {Boolean(controlScheme) && (

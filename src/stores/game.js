@@ -74,6 +74,8 @@ class Storage {
             prevY: 0,
             prevRotation: 0,
             cells: {
+              x: 0,
+              y: 0,
               width: 0,
               height: 0,
               data: [],
@@ -204,8 +206,16 @@ class Storage {
       const currentLayerData = viewStore.getViewLayerData(currentLayerID) || {};
       if (!currentLayerData.isBackAllowed) return;
 
-      if (currentLayerID == constants.viewData.layer.getInputMenu) {
-        inputStore.getInputDisable();
+      switch (currentLayerID) {
+        case constants.viewData.layer.getInputMenu: {
+          inputStore.getInputDisable();
+          break;
+        }
+
+        case constants.viewData.layer.helpMenu: {
+          this.helpMenuToggle();
+          break;
+        }
       }
       viewStore.shiftInputFocusToViewLayerID({ layerID: currentLayerID, isPrevious: true });
 
@@ -277,16 +287,7 @@ class Storage {
     });
 
     eventBus.addEventListener(evenBusID, controlEvent.helpMenuToggle, () => {
-      const isEnabled = viewStore.getViewLayerData(constants.viewData.layer.helpMenu)?.isEnabled;
-      const isPauseMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.pauseMenu)?.isEnabled;
-      const isGameOverMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.gameOverMenu)?.isEnabled;
-      if (!isEnabled) {
-        if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: true });
-        viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
-      } else {
-        if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: false });
-        viewStore.shiftInputFocusToViewLayerID({ layerID: constants.viewData.layer.helpMenu, isPrevious: true });
-      }
+      this.helpMenuToggle();
     });
   };
 
@@ -353,6 +354,21 @@ class Storage {
       override: false,
     });
     viewStore.viewLayerEnable({ layerID, isAdditive: true });
+  };
+
+  helpMenuToggle = () => {
+    const { viewStore } = this;
+
+    const isEnabled = viewStore.getViewLayerData(constants.viewData.layer.helpMenu)?.isEnabled;
+    const isPauseMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.pauseMenu)?.isEnabled;
+    const isGameOverMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.gameOverMenu)?.isEnabled;
+    if (!isEnabled) {
+      if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: true });
+      viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
+    } else {
+      if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: false });
+      viewStore.shiftInputFocusToViewLayerID({ layerID: constants.viewData.layer.helpMenu, isPrevious: true });
+    }
   };
 
   //
@@ -506,17 +522,19 @@ class Storage {
   //
 
   moveCurrentFigureAlongX = (targetX) => {
-    const { gameModeData } = this;
+    const { gameModeData, cellsMaxSize } = this;
     const { cup, currentFigure } = gameModeData;
     const { gameState } = this.observables;
 
     if (currentFigure.type == constants.figureType.none) return false;
     if (gameState == constants.gameState.pause) return false;
 
+    const xMin = -1 * (cellsMaxSize.width - 1);
+    const xMax = cup.width - 1;
     let _x = currentFigure.x;
     if (targetX < _x) {
-      if (targetX < 0) {
-        targetX = 0;
+      if (targetX < xMin) {
+        targetX = xMin;
       }
 
       while (!this.checkFigureOverlap({ x: _x }) && _x > targetX) {
@@ -526,8 +544,8 @@ class Storage {
         _x++;
       }
     } else {
-      if (targetX > cup.width - currentFigure.cells.width - 1) {
-        targetX = cup.width - currentFigure.cells.width - 1;
+      if (targetX > xMax) {
+        targetX = xMax;
       }
 
       while (!this.checkFigureOverlap({ x: _x }) && _x < targetX) {
@@ -551,13 +569,16 @@ class Storage {
     const { lastCupPointX, cellSizePx } = this.nonObservables;
     if (!lastCupPointX) return false;
 
-    const targetX = Math.floor(lastCupPointX / cellSizePx);
+    const { gameModeData } = this;
+    const { currentFigure } = gameModeData;
+
+    const targetX = Math.floor(lastCupPointX / cellSizePx) - currentFigure.cells.x;
     return this.moveCurrentFigureAlongX(targetX);
   };
 
   rotateCurrentFigure = (step = 1) => {
     const { gameModeData } = this;
-    const { cup, currentFigure } = gameModeData;
+    const { currentFigure } = gameModeData;
     const { gameState } = this.observables;
 
     if (currentFigure.type == constants.figureType.none) return false;
@@ -566,55 +587,45 @@ class Storage {
     const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
     if (figureTypeData.rotations.length <= 1) return false;
 
-    const newRotation = (currentFigure.rotation + step) % figureTypeData.rotations.length;
-    if (newRotation == currentFigure.rotation) return false;
+    const currentRotation = currentFigure.rotation;
+    const newRotation = (currentRotation + step) % figureTypeData.rotations.length;
+    if (newRotation == currentRotation) return false;
 
-    this.generateCurrentFigure({ type: currentFigure.type, rotation: newRotation });
+    const currentRotationOffsets = figureTypeData.rotationData[currentRotation].offsets;
+    const newRotationOffsets = figureTypeData.rotationData[newRotation].offsets;
+    for (let oIndex = 0; oIndex < currentRotationOffsets.length; oIndex++) {
+      const [currentOffsetX, currentOffsetY] = currentRotationOffsets[oIndex];
+      const [newOffsetX, newOffsetY] = newRotationOffsets[oIndex];
+      const newX = currentFigure.x + currentOffsetX - newOffsetX;
+      const newY = currentFigure.y + currentOffsetY - newOffsetY;
 
-    let cupViewGenerated = false;
-    if (this.checkFigureOverlap()) {
-      let newX = currentFigure.x;
-      if (currentFigure.x <= cup.width / 2) {
-        newX++;
-        while (this.checkFigureOverlap({ x: newX }) && newX < cup.width - currentFigure.cells.width - 1) {
-          newX++;
+      if (!this.checkFigureOverlap({ x: newX, y: newY, rotation: newRotation })) {
+        this.generateCurrentFigure({ type: currentFigure.type, rotation: newRotation });
+        currentFigure.x = newX;
+        currentFigure.y = newY;
+        const moveResult = this.moveCurrentFigureCupPointX();
+        if (!moveResult) {
+          this.calcShadowFigureY();
+          this.generateCupView();
         }
-      } else {
-        newX--;
-        while (this.checkFigureOverlap({ x: newX }) && newX > 0) {
-          newX--;
-        }
+        return true;
       }
-
-      if (this.checkFigureOverlap({ x: newX })) {
-        this.gameOver();
-        return false;
-      }
-
-      currentFigure.x = newX;
-      this.calcShadowFigureY();
-      this.generateCupView();
-    } else {
-      cupViewGenerated = this.moveCurrentFigureCupPointX();
-      this.calcShadowFigureY();
     }
 
-    if (!cupViewGenerated) {
-      this.generateCupView();
-    }
-    return true;
+    return false;
   };
 
   dropCurrentFigure = () => {
     const { gameModeData } = this;
-    const { addScoreTable, currentFigure } = gameModeData;
+    const { addScoreTable, currentFigure, cup } = gameModeData;
     const { gameState } = this.observables;
 
     if (currentFigure.type == constants.figureType.none) return false;
     if (gameState == constants.gameState.pause) return false;
 
     let y = currentFigure.y;
-    while (!this.checkFigureOverlap({ y })) {
+    const maxY = cup.height - 1;
+    while (!this.checkFigureOverlap({ y }) && y < maxY) {
       y++;
     }
     y--;
@@ -655,11 +666,14 @@ class Storage {
     });
     if (!result) return false;
 
-    const { cellsData, cellsW, cellsH } = result;
+    const { cellsData, pXMin, pYMin, cellsW, cellsH } = result;
     currentFigure.type = type;
     currentFigure.cells.data = cellsData;
+    currentFigure.cells.x = pXMin;
+    currentFigure.cells.y = pYMin;
     currentFigure.cells.width = cellsW;
     currentFigure.cells.height = cellsH;
+
     return true;
   };
 
@@ -675,7 +689,8 @@ class Storage {
     if (currentFigure.type == constants.figureType.none) return false;
 
     let y = currentFigure.y;
-    while (!this.checkFigureOverlap({ y })) {
+    const maxY = cup.height - 1;
+    while (!this.checkFigureOverlap({ y }) && y < maxY) {
       y++;
     }
     y--;
@@ -715,7 +730,7 @@ class Storage {
   };
 
   gameLoop = async () => {
-    const { gameModeData } = this;
+    const { gameModeData, cellsMaxSize } = this;
     const { addScoreTable, cup, currentFigure } = gameModeData;
     const { gameState } = this.observables;
     // console.log("game loop");
@@ -818,20 +833,22 @@ class Storage {
   spawnFigure = (figureType, rotation, x, y) => {
     const { gameModeData } = this;
     const { cup } = gameModeData;
-    const figureTypeData = constants.figureType.figureTypeData[figureType];
-    const figureData = figureTypeData.rotations[rotation];
-    const figureCellData = figureTypeData.cellData;
 
-    for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
-      let pX = figureData[pIndex][0] + x;
-      let pY = figureData[pIndex][1] + y;
+    const figureDataResult = this.generateFigureData({ type: figureType, rotation });
+    if (figureDataResult) {
+      const { figureData, figureCellData } = figureDataResult;
+      for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
+        let [_pX, _pY] = figureData[pIndex];
+        let pX = x + _pX;
+        let pY = y + _pY;
 
-      cup.data[pY][pX] = {
-        ...cup.data[pY][pX],
-        ...figureCellData,
-      };
+        cup.data[pY][pX] = {
+          ...cup.data[pY][pX],
+          ...figureCellData,
+        };
+      }
+      this.generateCupView();
     }
-    this.generateCupView();
   };
 
   clearFullLines = async () => {
@@ -884,7 +901,10 @@ class Storage {
       const cupRow = [];
       for (let _x = 0; _x < cup.width; _x++) {
         const cellDataToAdd = {};
-        if (_x >= currentFigure.x && _x <= currentFigure.x + currentFigure.cells.width) {
+        if (
+          _x >= currentFigure.x + currentFigure.cells.x &&
+          _x <= currentFigure.x + currentFigure.cells.x + currentFigure.cells.width - 1
+        ) {
           cellDataToAdd.isCurrentFigureColumn = true;
         }
 
@@ -894,29 +914,29 @@ class Storage {
     }
 
     if (currentFigure.type != constants.figureType.none) {
-      const figureTypeData = constants.figureType.figureTypeData[currentFigure.type];
-      const figureData = figureTypeData.rotations[currentFigure.rotation];
-      const figureCellData = figureTypeData.cellData;
+      const figureDataResult = this.generateFigureData({ type: currentFigure.type, rotation: currentFigure.rotation });
+      if (figureDataResult) {
+        const { figureData, figureCellData } = figureDataResult;
+        for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
+          let [_pX, _pY] = figureData[pIndex];
+          let pX = currentFigure.x + _pX;
+          let pY = currentFigure.y + _pY;
+          if (cup.view[pY]?.[pX]) {
+            cup.view[pY][pX] = {
+              ...cup.view[pY][pX],
+              ...figureCellData,
+              isCurrentFigure: true,
+            };
+          }
 
-      for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
-        let [_pX, _pY] = figureData[pIndex];
-        let pX = _pX + currentFigure.x;
-        let pY = _pY + currentFigure.y;
-        if (cup.view[pY]?.[pX]) {
-          cup.view[pY][pX] = {
-            ...cup.view[pY][pX],
-            ...figureCellData,
-            isCurrentFigure: true,
-          };
-        }
-
-        pY = _pY + shadowFigureY;
-        if (cup.view[pY]?.[pX]) {
-          cup.view[pY][pX] = {
-            ...cup.view[pY][pX],
-            ...figureCellData,
-            isShadowFigure: true,
-          };
+          pY = _pY + shadowFigureY;
+          if (cup.view[pY]?.[pX]) {
+            cup.view[pY][pX] = {
+              ...cup.view[pY][pX],
+              ...figureCellData,
+              isShadowFigure: true,
+            };
+          }
         }
       }
     }
@@ -935,12 +955,14 @@ class Storage {
     const _y = y == undefined ? currentFigure.y : y;
     const _rotation = rotation == undefined ? currentFigure.rotation : rotation;
 
-    const figureTypeData = constants.figureType.figureTypeData[_type];
-    const figureData = figureTypeData.rotations[_rotation];
+    const figureDataResult = this.generateFigureData({ type: _type, rotation: _rotation });
+    if (!figureDataResult) return false;
+
+    const { figureData } = figureDataResult;
 
     const hasOverlap = figureData.some(([_pX, _pY]) => {
-      const pX = _pX + _x;
-      const pY = _pY + _y;
+      const pX = _x + _pX;
+      const pY = _y + _pY;
       return (
         pX < 0 || pX >= cup.width || pY < 0 || pY >= cup.height || (cup.data[pY]?.[pX] && cup.data[pY][pX].type > 0)
       );
@@ -961,19 +983,38 @@ class Storage {
 
     const cellsData = [];
     this.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
-    let cellsW = 0;
-    let cellsH = 0;
-    for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
-      const [pX, pY] = figureData[pIndex];
-      cellsData[pY][pX] = {
-        ...cellsData[pY][pX],
-        ...figureCellData,
-      };
-      cellsW = pX > cellsW ? pX : cellsW;
-      cellsH = pY > cellsH ? pY : cellsH;
+    let pXMin = 0;
+    let pXMax = 0;
+    let pYMin = 0;
+    let pYMax = 0;
+    if (figureData.length) {
+      pXMin = cellsMaxSize.width;
+      pYMin = cellsMaxSize.height;
+      for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
+        const [pX, pY] = figureData[pIndex];
+        cellsData[pY][pX] = {
+          ...cellsData[pY][pX],
+          ...figureCellData,
+        };
+        pXMin = pX < pXMin ? pX : pXMin;
+        pXMax = pX > pXMax ? pX : pXMax;
+        pYMin = pY < pYMin ? pY : pYMin;
+        pYMax = pY > pYMax ? pY : pYMax;
+      }
     }
 
-    return { cellsData, cellsW, cellsH };
+    return {
+      figureTypeData,
+      figureData,
+      figureCellData,
+      cellsData,
+      pXMin,
+      pXMax,
+      pYMin,
+      pYMax,
+      cellsW: pXMax - pXMin + 1,
+      cellsH: pYMax - pYMin + 1,
+    };
   };
 }
 

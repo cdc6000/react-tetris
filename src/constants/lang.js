@@ -9,17 +9,16 @@ export const strings = {
 
     mainMenu: {
       menuTitle: "Главное меню",
-      tip: "Нажмите${btns|или}для показа окна помощи",
 
       playBtnTitle: "Играть",
-      helpBtnTitle: "Помощь",
+      helpBtnTitle: "Помощь&nbsp;${btns|или}",
       optionsBtnTitle: "Настройки",
       exitBtnTitle: "Выход",
     },
 
     optionsMenu: {
       menuTitle: "Настройки",
-      backBtnTitle: "Вернуться",
+      backBtnTitle: "Назад&nbsp;${btns|или}",
 
       testTab: {
         tabBtnTitle: "Тестовая вкладка",
@@ -61,7 +60,7 @@ export const strings = {
 
     getInputMenu: {
       awaitingInput: "Ожидание ввода",
-      awaitingInputExitTip: "Нажмите ${input|f1} для выхода",
+      awaitingInputExitTip: "Отмена&nbsp;${btns|или}",
       inputRegistered: "Ввод зарегистрирован",
     },
 
@@ -73,10 +72,9 @@ export const strings = {
 
     pauseMenu: {
       menuTitle: "Пауза",
-      tipUnpause: "Нажмите${btns|или}для продолжения игры",
 
-      continueBtnTitle: "Продолжить",
-      helpBtnTitle: "Помощь",
+      continueBtnTitle: "Продолжить&nbsp;${btns|или}",
+      helpBtnTitle: "Помощь&nbsp;${btns|или}",
       optionsBtnTitle: "Настройки",
       restartBtnTitle: "Начать заново",
       exitBtnTitle: "Выход",
@@ -86,19 +84,18 @@ export const strings = {
       menuTitle: "Игра окончена",
 
       restartBtnTitle: "Начать заново",
-      helpBtnTitle: "Помощь",
+      helpBtnTitle: "Помощь&nbsp;${btns|или}",
       exitBtnTitle: "Выход",
     },
 
     helpMenu: {
       menuTitle: "Помощь",
-      tipHelpClose: "Нажмите${btns|или}для закрытия окна помощи",
-      backBtnTitle: "Закрыть",
+      backBtnTitle: "Закрыть&nbsp;${btns|или}",
     },
 
     gameView: {
-      tipHelp: "Нажмите${btns|или}для показа окна помощи",
-      tipPause: "Нажмите${btns|или}для постановки игры на паузу",
+      tipHelp: "Помощь&nbsp;${btns|или}",
+      tipPause: "Пауза&nbsp;${btns|или}",
 
       scoreTitle: "Очки",
       levelTitle: "Уровень",
@@ -138,6 +135,7 @@ export const strings = {
       [controls.input.arrowUp]: "&#x1F81D;",
       [controls.input.arrowDown]: "&#x1F81F;",
       [controls.input.space]: "Пробел",
+      [controls.input.esc]: "Esc",
     },
 
     inputDescription: {

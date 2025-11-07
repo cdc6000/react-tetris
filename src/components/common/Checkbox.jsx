@@ -22,19 +22,13 @@ export default observer(
         disabled = false,
         value,
         onChange,
-
-        navLayerID,
-        navElemID,
-        navIsHorizontal,
-        navGroupID,
       } = this.props;
       const { navigationStore } = gameStore;
-      const { navCurrentElemData } = navigationStore.observables;
       const { lang } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;
 
-      const isNavSelected =
-        canInteract && navLayerID == navCurrentElemData.layerID && navElemID == navCurrentElemData.elemID;
+      const navigationData = navigationStore.getNavComponentData(this.props);
+      const { isNavSelected } = navigationData.props;
 
       let content = children;
       if (namePath) {
@@ -51,11 +45,7 @@ export default observer(
             if (!canInteract || disabled) return;
             onChange?.(!value, ev);
           }}
-          data-nav-able={canInteract && !disabled ? 1 : 0}
-          data-nav-layer-id={navLayerID}
-          data-nav-elem-id={navElemID}
-          data-nav-hor={navIsHorizontal ? 1 : 0}
-          data-nav-group-id={[navGroupID && navLayerID, navGroupID].filter(Boolean).join("-") || undefined}
+          {...navigationData.renderProps}
         >
           <input
             type="checkbox"

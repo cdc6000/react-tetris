@@ -26,11 +26,13 @@ i {
   color: #333;
 
   .main-view-controller {
+    --input-tip-color: var(--black);
+
     .input-tip {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0 5px;
+      color: var(--input-tip-color);
 
       .symbol {
         --size: 16px;
@@ -46,6 +48,7 @@ i {
         border-radius: 3px;
         margin-top: 1px;
         font-size: 12px;
+        background-color: var(--white);
 
         .unicode-symbol {
           margin-top: -2px;

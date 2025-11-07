@@ -198,12 +198,12 @@ export default observer(
 
               <ControlsMapTable
                 gameStore={gameStore}
-                layerID={layerID}
-                viewID={`${viewID}-${tabID}`}
                 inputMapAllowed={true}
                 controlScheme={selectedControlScheme}
                 disabled={!selectedControlScheme}
                 hasFocus={canInteract}
+                layerID={layerID}
+                viewID={`${viewID}-${tabID}`}
               />
             </div>
           </div>

@@ -9,6 +9,7 @@ import ControlsTab from "./ControlsTab";
 
 import * as reactHelpers from "@utils/react-helpers";
 import * as eventHelpers from "@utils/event-helpers";
+import * as customHelpers from "@utils/custom-helpers";
 
 import * as constants from "@constants/index";
 
@@ -116,12 +117,22 @@ export default observer(
                   className="back-btn"
                   navLayerID={layerID}
                   navElemID={`${viewID}-backBtn`}
-                  namePath={["optionsMenu", "backBtnTitle"]}
                   canInteract={canInteract}
                   onClick={() => {
                     viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
                   }}
-                />
+                >
+                  {getLangStringConverted({
+                    lang,
+                    pathArray: ["optionsMenu", "backBtnTitle"],
+                    conversionList: [
+                      customHelpers.insertBtnConversion({
+                        gameStore,
+                        actions: [constants.controls.controlEvent.menuNavBack],
+                      }),
+                    ],
+                  })}
+                </Button>
               </div>
             </div>
           </div>
