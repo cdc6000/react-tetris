@@ -588,18 +588,27 @@ class Storage {
     if (figureTypeData.rotations.length <= 1) return false;
 
     const currentRotation = currentFigure.rotation;
-    const newRotation = (currentRotation + step) % figureTypeData.rotations.length;
+    let newRotation = currentRotation + step;
+    while (newRotation < 0) {
+      newRotation += figureTypeData.rotations.length;
+    }
+    newRotation = newRotation % figureTypeData.rotations.length;
     if (newRotation == currentRotation) return false;
 
     const currentRotationOffsets = figureTypeData.rotationData[currentRotation].offsets;
     const newRotationOffsets = figureTypeData.rotationData[newRotation].offsets;
+    console.log("rotation check");
     for (let oIndex = 0; oIndex < currentRotationOffsets.length; oIndex++) {
       const [currentOffsetX, currentOffsetY] = currentRotationOffsets[oIndex];
       const [newOffsetX, newOffsetY] = newRotationOffsets[oIndex];
-      const newX = currentFigure.x + currentOffsetX - newOffsetX;
-      const newY = currentFigure.y + currentOffsetY - newOffsetY;
+      const offsetX = currentOffsetX - newOffsetX;
+      const offsetY = newOffsetY - currentOffsetY; // Y-axis is upside-down from "classic"
+      console.log([offsetX, offsetY]);
+      const newX = currentFigure.x + offsetX;
+      const newY = currentFigure.y + offsetY;
 
       if (!this.checkFigureOverlap({ x: newX, y: newY, rotation: newRotation })) {
+        console.log("rotation success");
         this.generateCurrentFigure({ type: currentFigure.type, rotation: newRotation });
         currentFigure.x = newX;
         currentFigure.y = newY;
