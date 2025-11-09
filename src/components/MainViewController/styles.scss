@@ -31,6 +31,7 @@ body {
     --input-tip-color: var(--black);
 
     .input-tip {
+      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -78,7 +79,7 @@ body {
       height: var(--input-tip-height);
       overflow: hidden;
 
-      @keyframes input-tip-move-smooth {
+      @keyframes input-tip-move-translate-one {
         0% {
           transform: translate3d(0, 0, 0);
         }
@@ -88,7 +89,17 @@ body {
         }
       }
 
-      @keyframes input-tip-move-instant {
+      @keyframes input-tip-move-translate-multiple {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+
+        100% {
+          transform: translate3d(0, calc(-100% * var(--input-tip-elements)), 0);
+        }
+      }
+
+      @keyframes input-tip-move-top {
         0% {
           top: 0%;
         }
@@ -98,22 +109,19 @@ body {
         }
       }
 
-      .input-tip {
-        position: relative;
-        animation: input-tip-move-instant calc(var(--input-tip-animation-time) * var(--input-tip-elements))
-          steps(var(--input-tip-elements), jump-end) infinite;
-      }
-
       &.smooth {
         .input-tip {
           animation:
-            input-tip-move-smooth var(--input-tip-animation-time) cubic-bezier(0.5, 0, 0.5, 1) infinite,
-            input-tip-move-instant calc(var(--input-tip-animation-time) * var(--input-tip-elements))
+            input-tip-move-translate-one var(--input-tip-animation-time) cubic-bezier(0.5, 0, 0.5, 1) infinite,
+            input-tip-move-top calc(var(--input-tip-animation-time) * var(--input-tip-elements))
               steps(var(--input-tip-elements), jump-end) infinite;
         }
       }
       &:not(.smooth) {
         .input-tip {
+          animation: input-tip-move-translate-multiple calc(var(--input-tip-animation-time) * var(--input-tip-elements))
+            steps(var(--input-tip-elements), jump-end) infinite;
+
           .symbol {
             width: 100%;
           }
