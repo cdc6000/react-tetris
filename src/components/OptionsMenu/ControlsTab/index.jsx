@@ -86,7 +86,7 @@ export default observer(
             </div>
             <div className="content">
               <div className="control-scheme-controls">
-                <div className="row">
+                {/* <div className="row">
                   <Button
                     gameStore={gameStore}
                     className="controls-check-overlap-btn"
@@ -98,7 +98,7 @@ export default observer(
                       gameStore.checkControlsOverlap();
                     }}
                   />
-                </div>
+                </div> */}
                 <div className="row">
                   <Select
                     gameStore={gameStore}

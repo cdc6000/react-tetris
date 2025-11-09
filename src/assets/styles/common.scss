@@ -34,12 +34,26 @@
 
 @mixin menu-preset {
   .content-wrapper {
+    --gap-size: 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--gap-size);
     max-width: calc(100% - 20px);
     max-height: calc(100% - 20px);
     box-sizing: border-box;
+
+    > * {
+      padding: 0 var(--gap-size);
+      box-sizing: border-box;
+
+      &:first-child {
+        padding-top: var(--gap-size);
+      }
+
+      &:last-child {
+        padding-bottom: var(--gap-size);
+      }
+    }
 
     > .title {
       text-align: center;
@@ -54,8 +68,18 @@
       font-size: 14px;
     }
 
-    .content {
+    >.content {
       overflow: auto;
+
+      &:not(:first-child) {
+        margin-top: calc(-1 * var(--gap-size));
+        padding-top: var(--gap-size);
+      }
+
+      &:not(:last-child) {
+        margin-bottom: calc(-1 * var(--gap-size));
+        padding-bottom: var(--gap-size);
+      }
 
       .btns-container {
         display: flex;
@@ -64,7 +88,7 @@
         .btns-wrapper {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: var(--gap-size);
 
           .button {
             height: 40px;
@@ -83,19 +107,6 @@
   .content-wrapper {
     border: 2px solid #0099ff;
     background-color: var(--white);
-
-    > *  {
-      padding: 0 10px;
-      box-sizing: border-box;
-
-      &:first-child {
-        padding-top: 5px;
-      }
-
-      &:last-child {
-        padding-bottom: 10px;
-      }
-    }
 
     .control-btns-container {
       display: flex;

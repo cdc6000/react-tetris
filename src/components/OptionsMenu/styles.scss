@@ -38,7 +38,6 @@
             gap: 30px;
             width: 100%;
             height: 100%;
-            padding: 10px;
             box-sizing: border-box;
             overflow-x: hidden;
             overflow-y: auto;
@@ -46,12 +45,23 @@
             .section {
               display: flex;
               flex-direction: column;
-              gap: 10px;
+              gap: var(--gap-size);
+
+              &:first-child {
+                padding-top: var(--gap-size);
+              }
+
+              &:last-child {
+                padding-bottom: var(--gap-size);
+              }
 
               > .header {
                 position: relative;
                 display: flex;
                 justify-content: center;
+                border-width: 0 var(--gap-size);
+                border-style: solid;
+                border-color: transparent;
 
                 .text {
                   background-color: var(--menu-background-color);
@@ -70,10 +80,11 @@
                 }
               }
 
-              .content {
+              > .content {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                padding: 0 var(--gap-size);
               }
             }
 

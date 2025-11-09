@@ -55,6 +55,7 @@ export default observer(
                 className="back-btn"
                 navLayerID={layerID}
                 navElemID={`${viewID}-backBtn`}
+                navAutoFocus={true}
                 canInteract={canInteract}
                 onClick={() => {
                   viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });

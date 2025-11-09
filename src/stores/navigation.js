@@ -65,6 +65,10 @@ class Storage {
     return document.querySelector(`[data-nav-able='1']`);
   };
 
+  getAutofocusNavAbleElem = () => {
+    return document.querySelector(`[data-nav-able='1'][data-nav-autofocus='1']`);
+  };
+
   getAllNavAbleElems = () => {
     return [...document.querySelectorAll(`[data-nav-able='1']`)];
   };
@@ -177,7 +181,12 @@ class Storage {
 
     const allNavAbleElems = this.getAllNavAbleElems();
     if (!elem) {
-      elem = allNavAbleElems[0];
+      const autofocusNavAbleElem = this.getAutofocusNavAbleElem();
+      if (autofocusNavAbleElem) {
+        elem = autofocusNavAbleElem;
+      } else {
+        elem = allNavAbleElems[0];
+      }
     }
     let elemData = this.getNavElemData(elem);
     let index = -1;
@@ -344,6 +353,7 @@ class Storage {
       navElemID,
       navIsHorizontal,
       navGroupID,
+      navAutoFocus = false,
     } = props;
 
     const isNavSelected =
@@ -357,8 +367,9 @@ class Storage {
         "data-nav-able": canInteract && !disabled ? 1 : 0,
         "data-nav-layer-id": navLayerID,
         "data-nav-elem-id": navElemID,
-        "data-nav-hor": navIsHorizontal ? 1 : 0,
+        "data-nav-hor": navIsHorizontal ? 1 : undefined,
         "data-nav-group-id": [navGroupID && navLayerID, navGroupID].filter(Boolean).join("-") || undefined,
+        "data-nav-autofocus": navAutoFocus ? 1 : undefined,
       },
     };
   };

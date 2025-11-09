@@ -122,6 +122,7 @@ body {
     }
 
     .button {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -134,6 +135,7 @@ body {
       background-color: #eee;
       border: 1px solid var(--black);
       border-radius: 3px;
+      box-sizing: border-box;
 
       &:focus-visible {
         outline: none;
@@ -156,7 +158,18 @@ body {
       }
 
       &.nav-selected {
-        color: red;
+        @keyframes button-nav-selected {
+          0%,
+          100% {
+            box-shadow: 0 0 0 1px var(--black);
+          }
+
+          50% {
+            box-shadow: 0 0 0 4px var(--black);
+          }
+        }
+
+        animation: button-nav-selected 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
       }
     }
 
@@ -204,6 +217,10 @@ body {
         }
       }
 
+      .content {
+        position: relative;
+      }
+
       &:focus-visible {
         outline: none;
       }
@@ -220,7 +237,31 @@ body {
       }
 
       &.nav-selected {
-        color: red;
+        @keyframes checkbox-nav-selected {
+          0%,
+          100% {
+            height: 1px;
+          }
+
+          50% {
+            height: 4px;
+          }
+        }
+
+        .content {
+          &:after {
+            content: "";
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: var(--black);
+            animation: checkbox-nav-selected 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+          }
+        }
+
+
       }
     }
 

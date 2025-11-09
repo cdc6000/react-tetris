@@ -330,7 +330,26 @@ class Storage {
     if (!bind) return false;
 
     if (controlScheme.isActive) {
-      this.inputEventsUnbind({ ids: [id], action, triggers, ignoreActive: true });
+      let _triggers = objectHelpers.deepCopy(triggers);
+
+      const actionData = constants.controls.controlEventData[bind.action];
+      controlScheme.binds.forEach((_bind) => {
+        if (action == _bind.action) return false;
+
+        const _actionData = constants.controls.controlEventData[_bind.action];
+        if (_actionData.groupID != actionData.groupID) return false;
+
+        for (let tIndex = _triggers.length - 1; tIndex >= 0; tIndex--) {
+          const _trigger = _triggers[tIndex];
+          if (_bind.triggers.some((_) => _ == _trigger)) {
+            _triggers.splice(tIndex, 1);
+          }
+        }
+      });
+
+      if (_triggers.length) {
+        this.inputEventsUnbind({ ids: [id], action, triggers: _triggers, ignoreActive: true });
+      }
     }
     if (triggers?.length) {
       triggers.forEach((trigger) => {

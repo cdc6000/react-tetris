@@ -53,7 +53,7 @@ export default observer(
             checked={value}
             readOnly={true}
           />
-          {content}
+          <div className="content">{content}</div>
         </a>
       );
     }

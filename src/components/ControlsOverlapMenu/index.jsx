@@ -79,8 +79,9 @@ export default observer(
                 className="back-btn"
                 navLayerID={layerID}
                 navElemID={`${viewID}-backBtn`}
-                namePath={["overlapControlsMenu", "backBtnTitle"]}
+                navAutoFocus={true}
                 canInteract={canInteract}
+                namePath={["overlapControlsMenu", "backBtnTitle"]}
                 onClick={() => {
                   viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
                 }}
