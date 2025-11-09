@@ -111,6 +111,10 @@
     .control-btns-container {
       display: flex;
       justify-content: center;
+
+      &:not(:first-child) {
+        padding-top: var(--gap-size);
+      }
     }
   }
 }
