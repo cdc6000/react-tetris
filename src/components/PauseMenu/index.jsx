@@ -63,6 +63,7 @@ export default observer(
                             constants.controls.controlEvent.gamePauseToggle,
                             constants.controls.controlEvent.menuNavBack,
                           ],
+                          isCompact: true,
                         }),
                       ],
                     })}
@@ -84,6 +85,7 @@ export default observer(
                         customHelpers.insertBtnConversion({
                           gameStore,
                           actions: [constants.controls.controlEvent.helpMenuToggle],
+                          isCompact: true,
                         }),
                       ],
                     })}

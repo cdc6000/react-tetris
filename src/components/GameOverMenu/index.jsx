@@ -71,6 +71,7 @@ export default observer(
                         customHelpers.insertBtnConversion({
                           gameStore,
                           actions: [constants.controls.controlEvent.helpMenuToggle],
+                          isCompact: true,
                         }),
                       ],
                     })}

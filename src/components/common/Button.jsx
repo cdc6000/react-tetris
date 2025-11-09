@@ -13,15 +13,7 @@ export default observer(
     //
 
     render() {
-      const {
-        children,
-        gameStore,
-        className,
-        namePath,
-        canInteract = true,
-        disabled = false,
-        onClick,
-      } = this.props;
+      const { children, gameStore, className, namePath, canInteract = true, disabled = false, onClick } = this.props;
       const { navigationStore } = gameStore;
       const { lang } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;
@@ -39,6 +31,7 @@ export default observer(
           href={"#"}
           className={`button${className ? " " + className : ""}${isNavSelected ? " nav-selected" : ""}`}
           disabled={disabled}
+          draggable={false}
           onClick={(ev) => {
             ev.preventDefault();
             if (!canInteract || disabled) return;

@@ -40,6 +40,7 @@ export default observer(
           href={"#"}
           className={`checkbox${value ? " checked" : ""}${className ? " " + className : ""}${isNavSelected ? " nav-selected" : ""}`}
           disabled={disabled}
+          draggable={false}
           onClick={(ev) => {
             ev.preventDefault();
             if (!canInteract || disabled) return;

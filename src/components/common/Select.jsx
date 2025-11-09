@@ -34,6 +34,7 @@ export default observer(
         <select
           className={`select${className ? " " + className : ""}${isNavSelected ? " nav-selected" : ""}`}
           disabled={disabled}
+          draggable={false}
           value={value}
           onChange={(ev) => {
             if (!canInteract || disabled) return;

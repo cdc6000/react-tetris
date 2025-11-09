@@ -10,20 +10,22 @@
 
 @use "../GamePlayView/styles.scss" as GamePlayView;
 
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
 body {
   margin: 0;
   padding: 0;
-}
-
-i {
-  font-style: normal;
 }
 
 #game {
   @include common.colors;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
-  color: #333;
+  color: var(--black);
 
   .main-view-controller {
     --input-tip-color: var(--black);
@@ -47,7 +49,8 @@ i {
         border-width: 1px 1px 2px 1px;
         border-radius: 3px;
         margin-top: 1px;
-        font-size: 12px;
+        font-size: 14px;
+        font-weight: bold;
         background-color: var(--white);
 
         .unicode-symbol {
@@ -63,6 +66,58 @@ i {
         background-position: center;
         background-repeat: no-repeat;
         background-size: contain;
+      }
+    }
+
+    .input-tips {
+      --input-tip-height: 24px;
+      --input-tip-elements: 3;
+      --input-tip-animation-time: 1s;
+      display: inline-flex;
+      flex-direction: column;
+      height: var(--input-tip-height);
+      overflow: hidden;
+
+      @keyframes input-tip-move-smooth {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+
+        100% {
+          transform: translate3d(0, -100%, 0);
+        }
+      }
+
+      @keyframes input-tip-move-instant {
+        0% {
+          top: 0%;
+        }
+
+        100% {
+          top: calc(-100% * var(--input-tip-elements));
+        }
+      }
+
+      .input-tip {
+        position: relative;
+        animation: input-tip-move-instant calc(var(--input-tip-animation-time) * var(--input-tip-elements))
+          steps(var(--input-tip-elements), jump-end) infinite;
+      }
+
+      &.smooth {
+        .input-tip {
+          animation:
+            input-tip-move-smooth var(--input-tip-animation-time) cubic-bezier(0.5, 0, 0.5, 1) infinite,
+            input-tip-move-instant calc(var(--input-tip-animation-time) * var(--input-tip-elements))
+              steps(var(--input-tip-elements), jump-end) infinite;
+        }
+      }
+      &:not(.smooth) {
+        .input-tip {
+          .symbol {
+            width: 100%;
+          }
+        }
       }
     }
 

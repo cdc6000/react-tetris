@@ -3,7 +3,7 @@ import InputTip from "@components/common/InputTip";
 
 import * as constants from "@constants/index";
 
-export function actionTriggersDrawer({ gameStore, triggers, concatWord, key }) {
+export function actionTriggersInlineDrawer({ gameStore, triggers, concatWord, key }) {
   const elements = [];
   if (triggers.length) {
     if (triggers.length >= 2) {
@@ -35,18 +35,59 @@ export function actionTriggersDrawer({ gameStore, triggers, concatWord, key }) {
   }
 }
 
-export function insertBtnConversion({ gameStore, actions = [], triggers = [] }) {
+export function actionTriggersAnimatedDrawer({ gameStore, triggers, isSmooth = false, key }) {
+  if (triggers.length == 1) {
+    return (
+      <InputTip
+        key={key}
+        gameStore={gameStore}
+        inputEvent={triggers[0]}
+      />
+    );
+  } else if (triggers.length > 1) {
+    return (
+      <div
+        key={key}
+        className={`input-tips${isSmooth ? " smooth" : ""}`}
+        style={{ "--input-tip-elements": triggers.length }}
+      >
+        {triggers.map((trigger, tIndex) => {
+          return (
+            <InputTip
+              key={tIndex}
+              gameStore={gameStore}
+              inputEvent={trigger}
+            />
+          );
+        })}
+        {isSmooth && (
+          <InputTip
+            key={"last"}
+            gameStore={gameStore}
+            inputEvent={triggers[0]}
+          />
+        )}
+      </div>
+    );
+  } else {
+    return "";
+  }
+}
+
+export function insertBtnConversion({ gameStore, actions = [], triggers = [], isCompact = false }) {
   const { inputStore } = gameStore;
+  const drawFunction = isCompact ? actionTriggersAnimatedDrawer : actionTriggersInlineDrawer;
   return {
     type: "function",
     whatIsRegExp: true,
     what: `\\$\\{btns\\|([^\\}]+)\\}`,
     to: (key, matchData) => {
       const _triggers = [...inputStore.getAllActiveTriggersForActions({ actions }), ...triggers];
-      return actionTriggersDrawer({
+      return drawFunction({
         gameStore,
         triggers: _triggers,
         concatWord: matchData[1],
+        // isSmooth: true,
         key,
       });
     },

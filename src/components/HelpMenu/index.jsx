@@ -70,6 +70,7 @@ export default observer(
                         constants.controls.controlEvent.helpMenuToggle,
                         constants.controls.controlEvent.menuNavBack,
                       ],
+                      isCompact: true,
                     }),
                   ],
                 })}
