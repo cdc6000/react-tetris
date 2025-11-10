@@ -390,7 +390,7 @@ class Storage {
         }
       });
     });
-    
+
     return this.nonObservables.getInputPromise;
   };
 
@@ -717,18 +717,12 @@ class Storage {
   };
 
   onMouseMove = (ev) => {
-    const { inputOptions } = this.observables;
-    if (!inputOptions.allowFigureMoveByMouse) return;
-
-    const { cupElemRect } = this.props.nonObservables;
-    if (!cupElemRect) return;
-
     const callTime = Date.now();
     if (callTime - this.nonObservables.lastMouseMoveTime < this.nonObservables.mouseMoveTimeoutMs) return;
 
     this.nonObservables.lastMouseMoveTime = callTime;
-    this.props.eventBus.fireEvent(constants.controls.controlEvent.moveCurrentFigureCupPointX, {
-      x: ev.pageX - cupElemRect.left,
+    this.props.eventBus.fireEvent(constants.controls.controlEvent.moveCursorPointer, {
+      x: ev.pageX,
     });
   };
 

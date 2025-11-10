@@ -344,6 +344,7 @@ class Storage {
   //
 
   getNavComponentData = (props) => {
+    const { isCursorPointerUsed } = this.props.observables;
     const { navCurrentElemData } = this.observables;
     const {
       canInteract = true,
@@ -357,7 +358,10 @@ class Storage {
     } = props;
 
     const isNavSelected =
-      canInteract && navLayerID == navCurrentElemData.layerID && navElemID == navCurrentElemData.elemID;
+      !isCursorPointerUsed &&
+      canInteract &&
+      navLayerID == navCurrentElemData.layerID &&
+      navElemID == navCurrentElemData.elemID;
 
     return {
       props: {

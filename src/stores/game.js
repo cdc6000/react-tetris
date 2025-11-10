@@ -85,34 +85,19 @@ class Storage {
           shadowFigureY: 0,
         },
       },
+
+      isCursorPointerUsed: false,
     };
     this.nonObservables = {
       evenBusID: "GameStore",
 
+      lastCursorPointerX: 0,
       cellSizePx: 30,
-      lastCupPointX: 0,
       cupElem: undefined,
       cupElemRect: undefined,
 
       gameLoopTimeout: undefined,
     };
-
-    this.eventBus = new EventBus();
-    this.inputStore = new InputStore({
-      eventBus: this.eventBus,
-      observables: this.observables,
-      nonObservables: this.nonObservables,
-    });
-    this.viewStore = new ViewStore({
-      eventBus: this.eventBus,
-      observables: this.observables,
-      nonObservables: this.nonObservables,
-    });
-    this.navigationStore = new NavigationStore({
-      eventBus: this.eventBus,
-      observables: this.observables,
-      nonObservables: this.nonObservables,
-    });
 
     makeObservable(this, {
       // observable
@@ -138,6 +123,23 @@ class Storage {
       // computed
       gameModeData: computed,
       cellsMaxSize: computed,
+    });
+
+    this.eventBus = new EventBus();
+    this.inputStore = new InputStore({
+      eventBus: this.eventBus,
+      observables: this.observables,
+      nonObservables: this.nonObservables,
+    });
+    this.viewStore = new ViewStore({
+      eventBus: this.eventBus,
+      observables: this.observables,
+      nonObservables: this.nonObservables,
+    });
+    this.navigationStore = new NavigationStore({
+      eventBus: this.eventBus,
+      observables: this.observables,
+      nonObservables: this.nonObservables,
     });
 
     this.eventBusBind();
@@ -179,63 +181,91 @@ class Storage {
       navigationStore.updateMenuNavElem();
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavUp, () => {
-      navigationStore.menuNavVertical(-1);
+      if (this.observables.isCursorPointerUsed) {
+        this.observables.isCursorPointerUsed = false;
+      } else {
+        navigationStore.menuNavVertical(-1);
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavDown, () => {
-      navigationStore.menuNavVertical(1);
+      if (this.observables.isCursorPointerUsed) {
+        this.observables.isCursorPointerUsed = false;
+      } else {
+        navigationStore.menuNavVertical(1);
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavLeft, () => {
-      navigationStore.menuNavHorizontal(-1);
+      if (this.observables.isCursorPointerUsed) {
+        this.observables.isCursorPointerUsed = false;
+      } else {
+        navigationStore.menuNavHorizontal(-1);
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavRight, () => {
-      navigationStore.menuNavHorizontal(1);
+      if (this.observables.isCursorPointerUsed) {
+        this.observables.isCursorPointerUsed = false;
+      } else {
+        navigationStore.menuNavHorizontal(1);
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavSelect, async () => {
-      const elem = navigationStore.getCurrentNavElem();
-      if (!elem) return;
+      if (this.observables.isCursorPointerUsed) {
+        this.observables.isCursorPointerUsed = false;
+      } else {
+        const elem = navigationStore.getCurrentNavElem();
+        if (!elem) return;
 
-      navigationStore.unfocusAnyElem();
-      elem.click();
+        navigationStore.unfocusAnyElem();
+        elem.click();
 
-      await eventHelpers.sleep(1);
-      navigationStore.updateMenuNavElem();
+        await eventHelpers.sleep(1);
+        navigationStore.updateMenuNavElem();
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavBack, () => {
-      const currentLayerID = viewStore.inputFocusViewLayerID;
-      if (!currentLayerID) return;
+      if (this.observables.isCursorPointerUsed) {
+        this.observables.isCursorPointerUsed = false;
+      } else {
+        const currentLayerID = viewStore.inputFocusViewLayerID;
+        if (!currentLayerID) return;
 
-      const currentLayerData = viewStore.getViewLayerData(currentLayerID) || {};
-      if (!currentLayerData.isBackAllowed) return;
+        const currentLayerData = viewStore.getViewLayerData(currentLayerID) || {};
+        if (!currentLayerData.isBackAllowed) return;
 
-      switch (currentLayerID) {
-        case constants.viewData.layer.getInputMenu: {
-          inputStore.getInputDisable();
-          break;
+        switch (currentLayerID) {
+          case constants.viewData.layer.getInputMenu: {
+            inputStore.getInputDisable();
+            break;
+          }
+
+          case constants.viewData.layer.helpMenu: {
+            this.helpMenuToggle();
+            break;
+          }
         }
+        viewStore.shiftInputFocusToViewLayerID({ layerID: currentLayerID, isPrevious: true });
 
-        case constants.viewData.layer.helpMenu: {
-          this.helpMenuToggle();
-          break;
-        }
+        return { stopInputListenersProcessing: true };
       }
-      viewStore.shiftInputFocusToViewLayerID({ layerID: currentLayerID, isPrevious: true });
-
-      return { stopInputListenersProcessing: true };
     });
 
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, () => {
+      this.observables.isCursorPointerUsed = false;
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
-      this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
     });
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureLeft, () => {
+      this.observables.isCursorPointerUsed = false;
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
-      this.nonObservables.lastCupPointX = 0;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureCupPointX, ({ x }) => {
-      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
-      this.moveCurrentFigureCupPointX(x);
+    eventBus.addEventListener(evenBusID, controlEvent.moveCursorPointer, ({ x }) => {
+      this.nonObservables.lastCursorPointerX = x;
+      this.observables.isCursorPointerUsed = true;
+
+      if (viewStore.inputFocusViewLayerID == gamePlayLayerID) {
+        this.moveCurrentFigureCupPointX();
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureClockwise, () => {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
@@ -606,17 +636,22 @@ class Storage {
     return true;
   };
 
-  moveCurrentFigureCupPointX = (x) => {
-    if (x != undefined) {
-      this.nonObservables.lastCupPointX = x;
-    }
-    const { lastCupPointX, cellSizePx } = this.nonObservables;
-    if (!lastCupPointX) return false;
+  moveCurrentFigureCupPointX = () => {
+    const { isCursorPointerUsed } = this.observables;
+    if (!isCursorPointerUsed) return false;
+
+    const { inputStore } = this;
+    const { inputOptions } = inputStore.observables;
+    if (!inputOptions.allowFigureMoveByMouse) return;
+
+    const { cupElemRect } = this.nonObservables;
+    if (!cupElemRect) return;
 
     const { gameModeData } = this;
     const { currentFigure } = gameModeData;
+    const { lastCursorPointerX, cellSizePx } = this.nonObservables;
 
-    const targetX = Math.floor(lastCupPointX / cellSizePx) - currentFigure.cells.x;
+    const targetX = Math.floor((lastCursorPointerX - cupElemRect.left) / cellSizePx) - currentFigure.cells.x;
     return this.moveCurrentFigureAlongX(targetX);
   };
 

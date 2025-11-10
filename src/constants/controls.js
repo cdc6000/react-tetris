@@ -6,9 +6,10 @@ export const controlEvent = {
   menuNavSelect: "control-menuNavSelect",
   menuNavBack: "control-menuNavBack",
 
+  moveCursorPointer: "control-moveCursorPointer",
+  
   moveCurrentFigureRight: "control-moveCurrentFigureRight",
   moveCurrentFigureLeft: "control-moveCurrentFigureLeft",
-  moveCurrentFigureCupPointX: "control-moveCurrentFigureCupPointX",
   rotateCurrentFigureClockwise: "control-rotateCurrentFigureClockwise",
   rotateCurrentFigureCounterclockwise: "control-rotateCurrentFigureCounterclockwise",
   speedUpFallingCurrentFigure: "control-speedUpFallingCurrentFigure",
