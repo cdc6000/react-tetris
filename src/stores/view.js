@@ -294,7 +294,7 @@ class Storage {
     return true;
   };
 
-  viewLayerEnable = ({ layerID, isAdditive = false, transferFocus = true } = {}) => {
+  viewLayerEnable = ({ layerID, isAdditive = false, transferFocus = true }) => {
     if (!layerID || layerID == constants.viewData.layer.none) return;
     const { viewData } = this.observables;
 
@@ -373,7 +373,7 @@ class Storage {
       : constants.viewData.layer.none;
   }
 
-  shiftInputFocusToViewLayerID = ({ layerID, isPrevious = false, isSafe = true } = {}) => {
+  shiftInputFocusToViewLayerID = ({ layerID, isPrevious = false, isSafe = true }) => {
     if (!layerID || layerID == constants.viewData.layer.none) return;
     const { viewData } = this.observables;
 
