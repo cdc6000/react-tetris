@@ -10,6 +10,7 @@ import GameOverMenu from "@components/GameOverMenu";
 import HelpMenu from "@components/HelpMenu";
 import GetInputMenu from "@components/GetInputMenu";
 import ControlsOverlapMenu from "@components/ControlsOverlapMenu";
+import SelectMenu from "@components/SelectMenu";
 
 import * as reactHelpers from "@utils/react-helpers";
 
@@ -45,6 +46,7 @@ export default observer(
           <HelpMenu gameStore={gameStore} />
           <GetInputMenu gameStore={gameStore} />
           <ControlsOverlapMenu gameStore={gameStore} />
+          <SelectMenu gameStore={gameStore} />
 
           <div className="version">{process.env.npm_package_version}</div>
         </div>

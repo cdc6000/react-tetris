@@ -8,6 +8,7 @@ export const view = {
   helpMenu: "view_helpMenu",
   getInputMenu: "view_getInputMenu",
   controlsOverlapMenu: "view_controlsOverlapMenu",
+  selectMenu: "view_selectMenu",
 };
 
 export const layer = {
@@ -20,4 +21,5 @@ export const layer = {
   helpMenu: "layer_helpMenu",
   getInputMenu: "layer_getInputMenu",
   controlsOverlapMenu: "layer_controlsOverlapMenu",
+  selectMenu: "layer_selectMenu",
 };

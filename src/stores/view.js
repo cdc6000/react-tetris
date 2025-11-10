@@ -32,6 +32,9 @@ class Storage {
     };
     this.nonObservables = {
       evenBusID: "ViewStore",
+
+      optionSelectPromise: undefined,
+      optionSelectPromiseResolve: undefined,
     };
 
     makeObservable(this, {
@@ -40,6 +43,7 @@ class Storage {
 
       // action
       viewStateInit: action,
+      setViewLayerData: action,
       viewLayerEnable: action,
       viewLayerDisable: action,
       shiftInputFocusToViewLayerID: action,
@@ -89,6 +93,10 @@ class Storage {
       show: false,
     };
     viewData.viewState[constants.viewData.view.controlsOverlapMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.selectMenu] = {
       canBeShown: true,
       show: false,
     };
@@ -242,6 +250,25 @@ class Storage {
         data: {},
       },
     });
+    this.setViewLayerData({
+      layerID: constants.viewData.layer.selectMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.selectMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
   };
 
   getViewLayerData = (layerID) => {
@@ -259,7 +286,10 @@ class Storage {
     }
 
     const layerDataCopy = objectHelpers.deepCopy(viewData.viewLayers[layerID]);
-    this.props.eventBus.fireEvent("viewLayerUpdate", { layerID, layerData: layerDataCopy });
+    this.props.eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
+      layerID,
+      layerData: layerDataCopy,
+    });
 
     return true;
   };
@@ -301,7 +331,10 @@ class Storage {
     }
 
     const layerDataCopy = objectHelpers.deepCopy(layerData);
-    this.props.eventBus.fireEvent("viewLayerUpdate", { layerID, layerData: layerDataCopy });
+    this.props.eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
+      layerID,
+      layerData: layerDataCopy,
+    });
   };
 
   viewLayerDisable = ({ layerID, fireEvent = true, isSafe = true } = {}) => {
@@ -326,7 +359,10 @@ class Storage {
 
     if (fireEvent) {
       const layerDataCopy = objectHelpers.deepCopy(layerData);
-      this.props.eventBus.fireEvent("viewLayerUpdate", { layerID, layerData: layerDataCopy });
+      this.props.eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
+        layerID,
+        layerData: layerDataCopy,
+      });
     }
   };
 
@@ -352,6 +388,37 @@ class Storage {
     for (let i = viewData.inputFocusViewLayerIDs.length - 1; i >= layerIndex; i--) {
       this.viewLayerDisable();
     }
+  };
+
+  //
+
+  optionSelectSubscribe = () => {
+    const { eventBus } = this.props;
+    const { evenBusID, optionSelectPromise } = this.nonObservables;
+    if (optionSelectPromise) return optionSelectPromise;
+
+    this.nonObservables.optionSelectPromise = new Promise((resolve) => {
+      this.nonObservables.optionSelectPromiseResolve = resolve;
+
+      eventBus.addEventListener(evenBusID, constants.eventsData.eventType.optionSelected, ({ id }) => {
+        resolve(id);
+      });
+    });
+
+    return this.nonObservables.optionSelectPromise;
+  };
+
+  optionSelectUnsubscribe = () => {
+    const { eventBus } = this.props;
+    const { evenBusID, optionSelectPromiseResolve } = this.nonObservables;
+
+    if (!optionSelectPromiseResolve) return;
+
+    optionSelectPromiseResolve(false);
+    eventBus.removeEventListener(evenBusID, constants.eventsData.eventType.optionSelected);
+
+    this.nonObservables.optionSelectPromise = undefined;
+    this.nonObservables.optionSelectPromiseResolve = undefined;
   };
 }
 

@@ -20,6 +20,7 @@ export default observer(
         disabled = false,
         value,
         defOptionName,
+        title,
         options,
         onChange,
       } = this.props;
@@ -30,38 +31,25 @@ export default observer(
       const navigationData = navigationStore.getNavComponentData(this.props);
       const { isNavSelected } = navigationData.props;
 
+      const selectedOption = value ? options.find((_) => _.id == value) : { name: defOptionName || "nothing-selected" };
+
       return (
-        <select
-          className={`select${className ? " " + className : ""}${isNavSelected ? " nav-selected" : ""}`}
+        <a
+          href={"#"}
+          className={`button select${className ? " " + className : ""}${isNavSelected ? " nav-selected" : ""}`}
           disabled={disabled}
           draggable={false}
-          value={value}
-          onChange={(ev) => {
+          onClick={(ev) => {
+            ev.preventDefault();
             if (!canInteract || disabled) return;
-            onChange?.(ev.target.value, ev);
+            gameStore.selectMenuOpen({ title, options, value, onChange });
           }}
           {...navigationData.renderProps}
         >
-          {Boolean(defOptionName) && (
-            <option
-              value={0}
-              disabled={true}
-              hidden={true}
-            >
-              {defOptionName}
-            </option>
-          )}
-          {options.map((item) => {
-            return (
-              <option
-                key={item.id}
-                value={item.id}
-              >
-                {item.name || getLangStringConverted({ lang, pathArray: item.namePath })}
-              </option>
-            );
-          })}
-        </select>
+          <div className="text">
+            {selectedOption.name || getLangStringConverted({ lang, pathArray: selectedOption.namePath })}
+          </div>
+        </a>
       );
     }
   }

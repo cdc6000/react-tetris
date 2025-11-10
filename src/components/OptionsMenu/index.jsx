@@ -79,11 +79,11 @@ export default observer(
                     <Button
                       key={tabID}
                       gameStore={gameStore}
-                      className={`tab-btn ${tabID}${isSelected ? " sel" : ""}`}
+                      className={`tab-btn ${tabID}${isSelected ? " pressed" : ""}`}
                       navLayerID={layerID}
                       navElemID={tabData.tabNavElemID}
                       namePath={tabData.namePath}
-                      canInteract={canInteract}
+                      canInteract={canInteract && !isSelected}
                       onClick={() => {
                         this.setState({ selectedMainTabID: tabID });
                       }}

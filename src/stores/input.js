@@ -379,7 +379,7 @@ class Storage {
       });
       const cancelInputEvents = [...triggers, constants.controls.getInputEvent(constants.controls.input.f1)];
 
-      eventBus.addEventListener(evenBusID, "BindInput", ({ input, state }) => {
+      eventBus.addEventListener(evenBusID, constants.eventsData.eventType.bindInput, ({ input, state }) => {
         const inputEvent = constants.controls.getInputEvent(input);
         if (cancelInputEvents.some((_) => _ == inputEvent)) {
           resolve(false);
@@ -390,6 +390,7 @@ class Storage {
         }
       });
     });
+    
     return this.nonObservables.getInputPromise;
   };
 
@@ -400,7 +401,7 @@ class Storage {
     if (!getInputPromiseResolve) return;
 
     getInputPromiseResolve(false);
-    eventBus.removeEventListener(evenBusID, "BindInput");
+    eventBus.removeEventListener(evenBusID, constants.eventsData.eventType.bindInput);
 
     this.nonObservables.getInputPromise = undefined;
     this.nonObservables.getInputPromiseResolve = undefined;
@@ -659,9 +660,9 @@ class Storage {
     const { inputState } = this.observables;
 
     const state = objectHelpers.deepCopy(inputState[input]);
-    if (eventBus.getListeners("BindInput")?.length) {
+    if (eventBus.getListeners(constants.eventsData.eventType.bindInput)?.length) {
       if (ev?.cancelable) ev?.preventDefault?.();
-      return eventBus.fireEvent("BindInput", { input, state });
+      return eventBus.fireEvent(constants.eventsData.eventType.bindInput, { input, state });
     } else {
       const inputData = constants.controls.inputData[input] || {};
       if (inputData.preventDefault) ev?.preventDefault?.();

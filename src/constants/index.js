@@ -1,5 +1,6 @@
 import * as lang from "./lang";
 import * as controls from "./controls";
+import * as eventsData from "./events-data";
 
 import * as viewData from "./viewData";
 
@@ -9,4 +10,4 @@ import gameMode from "./game-mode";
 import figureType from "./figure-type";
 import cellTypes from "./cell-types";
 
-export { lang, controls, viewData, gameState, gameMode, figureType, cellTypes };
+export { lang, controls, eventsData, viewData, gameState, gameMode, figureType, cellTypes };

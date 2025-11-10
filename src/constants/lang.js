@@ -43,9 +43,10 @@ export const strings = {
           defaultMouse: "Мышь (стандартная)",
 
           checkOverlapsBtnTitle: "Проверить конфликты ввода",
-          addBtnTitle: "Добавить",
-          removeBtnTitle: "Удалить",
-          resetBtnTitle: "Сбросить",
+          selectTitle: "Выберите схему управления",
+          addBtnTitle: "&#x002B;",//"Добавить",
+          removeBtnTitle: "&#x1F7AA;",//"Удалить",
+          resetBtnTitle: "&#x2B8C;",//"Сбросить",
           activeToggleTitle: "Включить схему",
 
           groupAnyMenuTitle: "Навигация по меню",
@@ -67,7 +68,11 @@ export const strings = {
     overlapControlsMenu: {
       foundOverlapsTitle: "Проверьте эти привязки",
       notFoundOverlapsTitle: "Конфликтов не обнаружено",
-      backBtnTitle: "Закрыть",
+      backBtnTitle: "Закрыть&nbsp;${btns|или}",
+    },
+
+    selectMenu: {
+      backBtnTitle: "Отмена&nbsp;${btns|или}",
     },
 
     pauseMenu: {

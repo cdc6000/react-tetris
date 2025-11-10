@@ -2,6 +2,8 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import Button from "./Button";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -48,11 +50,14 @@ export default observer(
           }}
           {...navigationData.renderProps}
         >
-          <input
+          {/* <input
             type="checkbox"
             checked={value}
             readOnly={true}
-          />
+          /> */}
+          <div
+            className={`button${value ? " pressed" : ""}${isNavSelected ? " nav-selected" : ""}`}
+          >&#x2714;</div>
           <div className="content">{content}</div>
         </a>
       );

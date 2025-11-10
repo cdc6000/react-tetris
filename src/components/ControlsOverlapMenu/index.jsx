@@ -5,6 +5,8 @@ import { observer } from "mobx-react";
 import Button from "@components/common/Button";
 import ControlsMapTable from "@components/ControlsMapTable";
 
+import * as customHelpers from "@utils/custom-helpers";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -81,11 +83,22 @@ export default observer(
                 navElemID={`${viewID}-backBtn`}
                 navAutoFocus={true}
                 canInteract={canInteract}
-                namePath={["overlapControlsMenu", "backBtnTitle"]}
                 onClick={() => {
                   viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
                 }}
-              />
+              >
+                {getLangStringConverted({
+                  lang,
+                  pathArray: ["overlapControlsMenu", "backBtnTitle"],
+                  conversionList: [
+                    customHelpers.insertBtnConversion({
+                      gameStore,
+                      actions: [constants.controls.controlEvent.menuNavBack],
+                      isCompact: true,
+                    }),
+                  ],
+                })}
+              </Button>
             </div>
           </div>
         </div>

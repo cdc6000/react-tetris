@@ -7,6 +7,7 @@
 @use "../HelpMenu/styles.scss" as HelpMenu;
 @use "../GetInputMenu/styles.scss" as GetInputMenu;
 @use "../ControlsOverlapMenu/styles.scss" as ControlsOverlapMenu;
+@use "../SelectMenu/styles.scss" as SelectMenu;
 
 @use "../GamePlayView/styles.scss" as GamePlayView;
 
@@ -31,25 +32,33 @@ body {
     --input-tip-color: var(--black);
 
     .input-tip {
+      // --size: 24px;
       position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      // min-width: var(--size);
+      // min-height: var(--size);
       color: var(--input-tip-color);
 
       .symbol {
-        --size: 16px;
+        --size: 17px;
+        position: relative;
+        // top: -1px;
         display: flex;
         align-items: center;
         justify-content: center;
         min-width: var(--size);
         min-height: var(--size);
         padding: 2px;
+        // padding: 0 2px;
         border-style: solid;
-        border-color: #333 #333 #555 #333;
-        border-width: 1px 1px 2px 1px;
+        border-color: #333 #666 #666 #333;
+        // border-color: #555 #888 #ccc #888;
+        border-width: 1px 2px 2px 1px;
+        // border-width: 2px 4px 6px 4px;
         border-radius: 3px;
-        margin-top: 1px;
+        // box-sizing: border-box;
         font-size: 14px;
         font-weight: bold;
         background-color: var(--white);
@@ -130,7 +139,11 @@ body {
     }
 
     .button {
+      --button-depth: 2px;
+      --button-depth-color: var(--black);
       position: relative;
+      top: calc(-1 * var(--button-depth));
+      left: calc(-1 * var(--button-depth));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -144,6 +157,33 @@ body {
       border: 1px solid var(--black);
       border-radius: 3px;
       box-sizing: border-box;
+      box-shadow: var(--button-depth) var(--button-depth) 0 0 var(--button-depth-color);
+
+      &:before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        opacity: 0;
+        z-index: 1;
+      }
+
+      &.select {
+        &:after {
+          position: relative;
+          // content: "\25BC";
+          content: "\2B65";
+          padding-left: 5px;
+          font-size: 22px;
+        }
+
+        .text {
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+      }
 
       &:focus-visible {
         outline: none;
@@ -160,8 +200,27 @@ body {
       &:not([disabled]) {
         cursor: pointer;
 
-        &:hover {
-          background-color: #dedede;
+        &.pressed {
+          box-shadow: var(--button-depth) var(--button-depth) 0 0 var(--button-depth-color) inset;
+          top: auto;
+          left: auto;
+          background-color: #bbb;
+
+          &:before {
+            background-color: rgba(255, 255, 255, 0.5);
+          }
+        }
+        &:not(.pressed) {
+          &:hover {
+            background-color: #dedede;
+
+            &:active {
+              box-shadow: var(--button-depth) var(--button-depth) 0 0 var(--button-depth-color) inset;
+              top: auto;
+              left: auto;
+              background-color: #bbb;
+            }
+          }
         }
       }
 
@@ -169,38 +228,18 @@ body {
         @keyframes button-nav-selected {
           0%,
           100% {
-            box-shadow: 0 0 0 1px var(--black);
+            // box-shadow: 0 0 0 1px var(--black);
+            opacity: 0;
           }
-
           50% {
-            box-shadow: 0 0 0 4px var(--black);
+            // box-shadow: 0 0 0 4px var(--black);
+            opacity: 1;
           }
         }
 
-        animation: button-nav-selected 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-      }
-    }
-
-    .select {
-      border-radius: 3px;
-
-      &:focus-visible {
-        outline: none;
-      }
-
-      &[disabled] {
-        pointer-events: none;
-        opacity: 0.4;
-      }
-      &:not([disabled]) {
-        cursor: pointer;
-
-        &:hover {
+        &:before {
+          animation: button-nav-selected 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         }
-      }
-
-      &.nav-selected {
-        color: red;
       }
     }
 
@@ -215,14 +254,10 @@ body {
         pointer-events: none;
       }
 
-      > input {
-        margin: 0;
-
-        &[type="checkbox"] {
-          width: 15px;
-          height: 15px;
-          margin-top: 1px;
-        }
+      .button {
+        pointer-events: all;
+        width: 22px;
+        height: 22px;
       }
 
       .content {
@@ -248,28 +283,19 @@ body {
         @keyframes checkbox-nav-selected {
           0%,
           100% {
-            height: 1px;
+            // height: 1px;
+            opacity: 1;
           }
 
           50% {
-            height: 4px;
+            // height: 4px;
+            opacity: 0.2;
           }
         }
 
         .content {
-          &:after {
-            content: "";
-            position: absolute;
-            top: calc(100% + 2px);
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background-color: var(--black);
-            animation: checkbox-nav-selected 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-          }
+          animation: checkbox-nav-selected 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         }
-
-
       }
     }
 
@@ -289,6 +315,7 @@ body {
     @include HelpMenu.main;
     @include GetInputMenu.main;
     @include ControlsOverlapMenu.main;
+    @include SelectMenu.main;
 
     @include GamePlayView.main;
 

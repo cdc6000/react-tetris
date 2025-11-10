@@ -110,6 +110,10 @@ export default observer(
                       lang,
                       pathArray: ["optionsMenu", "controlsTab", "controlScheme", "none"],
                     })}
+                    title={getLangStringConverted({
+                      lang,
+                      pathArray: ["optionsMenu", "controlsTab", "controlScheme", "selectTitle"],
+                    })}
                     options={controlSchemes}
                     value={selectedControlSchemeID}
                     onChange={(value) => {

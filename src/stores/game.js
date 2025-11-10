@@ -166,11 +166,12 @@ class Storage {
     const { eventBus, viewStore, inputStore, navigationStore } = this;
     const { evenBusID } = this.nonObservables;
     const { controlEvent } = constants.controls;
+    const { eventType } = constants.eventsData;
 
     // TODO
     const gamePlayLayerID = `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`;
 
-    eventBus.addEventListener(evenBusID, "viewLayerUpdate", async ({ layerID }) => {
+    eventBus.addEventListener(evenBusID, eventType.viewLayerUpdate, async ({ layerID }) => {
       if (layerID == constants.viewData.layer.mainMenu) {
         navigationStore.clearLastSelectedElemData();
       }
@@ -369,6 +370,49 @@ class Storage {
       if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: false });
       viewStore.shiftInputFocusToViewLayerID({ layerID: constants.viewData.layer.helpMenu, isPrevious: true });
     }
+  };
+
+  selectMenuOpen = async ({ title, options, value, onChange }) => {
+    const { viewStore } = this;
+
+    const layerID = constants.viewData.layer.selectMenu;
+
+    runInAction(() => {
+      viewStore.setViewLayerData({
+        layerID,
+        data: {
+          data: {
+            title,
+            options,
+            value,
+          },
+        },
+        override: false,
+      });
+      viewStore.viewLayerEnable({ layerID, isAdditive: true });
+    });
+
+    const selectedID = await viewStore.optionSelectSubscribe();
+
+    if (selectedID !== false) {
+      onChange?.(selectedID);
+    }
+
+    runInAction(() => {
+      viewStore.setViewLayerData({
+        layerID,
+        data: {
+          data: {
+            title: "",
+            options: [],
+            value: "",
+          },
+        },
+        override: false,
+      });
+      viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
+    });
+    viewStore.optionSelectUnsubscribe();
   };
 
   //
