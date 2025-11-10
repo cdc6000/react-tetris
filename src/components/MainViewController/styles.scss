@@ -300,6 +300,36 @@ body {
       }
     }
 
+    .number-input {
+      display: flex;
+      gap: 10px;
+
+      .text {
+
+      }
+
+      .controls {
+        display: flex;
+        gap: 5px;
+
+        .button {
+          width: 22px;
+        }
+
+        .value {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-width: 40px;
+        }
+      }
+
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.4;
+      }
+    }
+
     --main-view-layer: 1;
     --overlay-layer: 2;
     --popup-menu-layer: 3;

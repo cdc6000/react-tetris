@@ -32,15 +32,17 @@ export const strings = {
           sectionTitle: "Основные",
 
           allowFigureMoveByMouse: "Перемещать фигуру с помощью мыши",
+          inputRepeatDelayInputTitle: "Задерка повтороения ввода",
+          inputRepeatRateInputTitle: "Частота повторения ввода",
         },
 
         controlScheme: {
           sectionTitle: "Настройка схем управления",
 
           none: "Нет схем управления",
-          new: "Новая схема",
-          defaultKeyboard: "Клавиатура (стандартная)",
-          defaultMouse: "Мышь (стандартная)",
+          new: "Cхема",
+          defaultKeyboard: "Клавиатура",
+          defaultMouse: "Мышь",
 
           checkOverlapsBtnTitle: "Проверить конфликты ввода",
           selectTitle: "Выберите схему управления",

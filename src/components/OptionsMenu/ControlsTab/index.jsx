@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import Button from "@components/common/Button";
 import Select from "@components/common/Select";
 import Checkbox from "@components/common/Checkbox";
+import NumberInput from "@components/common/NumberInput";
 import ControlsMapTable from "@components/ControlsMapTable";
 
 import * as constants from "@constants/index";
@@ -40,6 +41,7 @@ export default observer(
       const { gameStore, tabID, isTabActive, tabData } = this.props;
       const { inputStore } = gameStore;
       const { inputOptions, controlSchemes } = inputStore.observables;
+      const { inputOptions: defaultInputOptions } = inputStore.defaults.observables;
       const { lang } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;
 
@@ -58,20 +60,52 @@ export default observer(
               </div>
             </div>
             <div className="content">
-              <div className="row">
-                <Checkbox
-                  gameStore={gameStore}
-                  className="allow-figure-move-by-mouse-checkbox"
-                  navLayerID={layerID}
-                  navElemID={`${viewID}-${tabID}-allowFigureMoveByMouseCheckbox`}
-                  namePath={["optionsMenu", "controlsTab", "main", "allowFigureMoveByMouse"]}
-                  canInteract={canInteract}
-                  value={inputOptions.allowFigureMoveByMouse}
-                  onChange={(value) => {
-                    inputOptions.allowFigureMoveByMouse = value;
-                  }}
-                />
-              </div>
+              <Checkbox
+                gameStore={gameStore}
+                className="allow-figure-move-by-mouse-checkbox"
+                navLayerID={layerID}
+                navElemID={`${viewID}-${tabID}-allowFigureMoveByMouseCheckbox`}
+                namePath={["optionsMenu", "controlsTab", "main", "allowFigureMoveByMouse"]}
+                canInteract={canInteract}
+                value={inputOptions.allowFigureMoveByMouse}
+                onChange={(value) => {
+                  inputOptions.allowFigureMoveByMouse = value;
+                }}
+              />
+              <NumberInput
+                gameStore={gameStore}
+                className="input-repeat-delay"
+                navLayerID={layerID}
+                navElemID={`${viewID}-${tabID}-inputRepeatDelayInput`}
+                navGroupID={`inputRepeatDelayInput`}
+                namePath={["optionsMenu", "controlsTab", "main", "inputRepeatDelayInputTitle"]}
+                canInteract={canInteract}
+                value={inputOptions.inputRepeatDelay}
+                valueDefault={defaultInputOptions.inputRepeatDelay}
+                valueMin={0}
+                valueMax={1000}
+                step={10}
+                onChange={(value) => {
+                  inputOptions.inputRepeatDelay = value;
+                }}
+              />
+              <NumberInput
+                gameStore={gameStore}
+                className="input-repeat-rate"
+                navLayerID={layerID}
+                navElemID={`${viewID}-${tabID}-inputRepeatRateInput`}
+                navGroupID={`inputRepeatRateInput`}
+                namePath={["optionsMenu", "controlsTab", "main", "inputRepeatRateInputTitle"]}
+                canInteract={canInteract}
+                value={inputOptions.inputRepeatRate}
+                valueDefault={defaultInputOptions.inputRepeatRate}
+                valueMin={10}
+                valueMax={1000}
+                step={10}
+                onChange={(value) => {
+                  inputOptions.inputRepeatRate = value;
+                }}
+              />
             </div>
           </div>
 
@@ -131,6 +165,7 @@ export default observer(
                     canInteract={canInteract}
                     onClick={() => {
                       const id = inputStore.addControlScheme();
+                      if (!id) return;
                       this.setState({ selectedControlSchemeID: id });
                     }}
                     navIsHorizontal={true}
