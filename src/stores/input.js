@@ -42,6 +42,9 @@ class Storage {
 
       getInputPromise: undefined,
       getInputPromiseResolve: undefined,
+
+      gamepadsState: undefined,
+      gamepadInterval: undefined,
     };
 
     makeObservable(this, {
@@ -482,7 +485,7 @@ class Storage {
   inputUpdateState = ({ ev, input, isPressed, isReleased, isClicked }) => {
     const { inputState, inputOptions } = this.observables;
     const { inputRepeatDelay, inputRepeatRate } = inputOptions;
-    // console.log({ input });
+    // console.log({ input, isPressed, isReleased, isClicked });
 
     if (!inputState[input]) {
       inputState[input] = {
@@ -596,6 +599,13 @@ class Storage {
 
     window.addEventListener("focus", this.onWindowFocus);
     window.addEventListener("blur", this.onWindowBlur);
+
+    if (navigator.getGamepads) {
+      if (this.nonObservables.gamepadInterval) {
+        clearInterval(this.nonObservables.gamepadInterval);
+      }
+      this.nonObservables.gamepadInterval = setInterval(this.gamepadUpdate, 33);
+    }
   };
 
   inputsUnbind = () => {
@@ -611,6 +621,11 @@ class Storage {
 
     window.removeEventListener("focus", this.onWindowFocus);
     window.removeEventListener("blur", this.onWindowBlur);
+
+    if (this.nonObservables.gamepadInterval) {
+      clearInterval(this.nonObservables.gamepadInterval);
+      this.nonObservables.gamepadInterval = undefined;
+    }
   };
 
   onKeyPress = (ev) => {
@@ -664,6 +679,43 @@ class Storage {
       this.inputUpdateState({ ev, input: constants.controls.input.mouseWheelUp, isClicked: true });
     }
   };
+
+  gamepadUpdate = () => {
+    const gamepadsState = navigator.getGamepads();
+    if (!this.nonObservables.gamepadsState) {
+      this.nonObservables.gamepadsState = gamepadsState;
+      return;
+    }
+
+    const { gamepadsState: prevGamepadsState } = this.nonObservables;
+    // console.log({ gamepadsState, prevGamepadsState });
+
+    // const gamepadCount = gamepadsState.filter(Boolean).length;
+    let isFirstGamepad = true;
+    gamepadsState.forEach((gamepadState, gpIndex) => {
+      if (!gamepadState) return;
+
+      gamepadState.buttons.forEach((buttonState, bIndex) => {
+        const inputName =
+          gamepadState.mapping == "standard" ? constants.controls.gamepadStandartButtonMapping[bIndex] : `B${bIndex}`;
+        const input = isFirstGamepad ? inputName : `P${gpIndex}|${inputName}`;
+        const prevButtonState = prevGamepadsState[gpIndex]?.buttons[bIndex];
+        const isPressed = buttonState.value > 0 || buttonState.pressed;
+        const wasPressed = prevButtonState ? prevButtonState.value > 0 || prevButtonState.pressed : false;
+        if (isPressed && !wasPressed) {
+          this.inputUpdateState({ input, isPressed: true });
+        } else if (!isPressed && wasPressed) {
+          this.inputUpdateState({ input, isReleased: true });
+        }
+      });
+
+      isFirstGamepad = false;
+    });
+
+    this.nonObservables.gamepadsState = gamepadsState;
+  };
+
+  //
 
   onDocumentFocusIn = (ev) => {
     // console.log("document focus in", { target: ev.target });

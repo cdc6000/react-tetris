@@ -43,6 +43,7 @@ export const strings = {
           custom: "Своя",
           defaultKeyboard: "Клавиатура",
           defaultMouse: "Мышь",
+          defaultGamepad: "Геймпад",
 
           selectTitle: "Выберите схему управления",
 

@@ -25,6 +25,7 @@ export default observer(
       let content = children;
       let iconPath;
       let description;
+      let isGamepadButton = false;
       if (_input) {
         // const inputData = constants.controls.inputData[_input];
         // if (inputData) {
@@ -39,6 +40,9 @@ export default observer(
               content = content.substring(3);
             } else if (content.indexOf("Digit") == 0) {
               content = content.substring(5);
+            } else if (content.indexOf("GPB_") == 0) {
+              content = content.substring(4);
+              isGamepadButton = true;
             }
           } else {
             content = stringConverter(nameGetStringResult.string);
@@ -53,7 +57,7 @@ export default observer(
 
       return (
         <div
-          className={`input-tip${iconPath ? " icon" : ""}`}
+          className={`input-tip${iconPath ? " icon" : ""}${isGamepadButton ? " gamepad-button" : ""}`}
           style={{ backgroundImage: iconPath ? `url("${iconPath}")` : undefined }}
           title={description || undefined}
         >

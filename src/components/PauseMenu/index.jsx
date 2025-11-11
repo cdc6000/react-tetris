@@ -61,7 +61,6 @@ export default observer(
                           actions: [
                             constants.controls.controlEvent.gameUnpause,
                             constants.controls.controlEvent.gamePauseToggle,
-                            constants.controls.controlEvent.menuNavBack,
                           ],
                           isCompact: true,
                         }),

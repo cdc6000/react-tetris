@@ -7,7 +7,7 @@ export const controlEvent = {
   menuNavBack: "control-menuNavBack",
 
   moveCursorPointer: "control-moveCursorPointer",
-  
+
   moveCurrentFigureRight: "control-moveCurrentFigureRight",
   moveCurrentFigureLeft: "control-moveCurrentFigureLeft",
   rotateCurrentFigureClockwise: "control-rotateCurrentFigureClockwise",
@@ -288,6 +288,29 @@ export const input = {
   pgDn: "PageDown",
   pause: "Pause",
   clear: "Clear",
+
+  GPB_A: "GPB_A",
+  GPB_B: "GPB_B",
+  GPB_X: "GPB_X",
+  GPB_Y: "GPB_Y",
+  GPB_LB: "GPB_LB",
+  GPB_RB: "GPB_RB",
+  GPB_LT: "GPB_LT",
+  GPB_RT: "GPB_RT",
+  GPB_LSB: "GPB_LSB",
+  GPB_RSB: "GPB_RSB",
+  GPB_Select: "GPB_Select",
+  GPB_Start: "GPB_Start",
+  GPB_Home: "GPB_Home",
+  GPB_DPUp: "GPB_DPadUp",
+  GPB_DPDown: "GPB_DPadDown",
+  GPB_DPLeft: "GPB_DPadLeft",
+  GPB_DPRight: "GPB_DPadRight",
+
+  GPA_LSX: "GPA_LSX",
+  GPA_LSY: "GPA_LSY",
+  GPA_RSX: "GPA_RSX",
+  GPA_RSY: "GPA_RSY",
 };
 
 export function getInputEvent(input) {
@@ -631,3 +654,19 @@ export const inputData = {
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Num_5_Key.png`,
   },
 };
+
+//prettier-ignore
+export const gamepadStandartButtonMapping = [
+  input.GPB_A, input.GPB_B, input.GPB_X, input.GPB_Y,
+  input.GPB_LB, input.GPB_RB, input.GPB_LT, input.GPB_RT,
+  input.GPB_Select, input.GPB_Start,
+  input.GPB_LSB, input.GPB_RSB,
+  input.GPB_DPUp, input.GPB_DPDown, input.GPB_DPLeft, input.GPB_DPRight,
+  input.GPB_Home,
+];
+
+//prettier-ignore
+export const gamepadStandartAxisMapping = [
+  input.GPA_LSX, input.GPA_LSY,
+  input.GPA_RSX, input.GPA_RSY,
+];

@@ -213,7 +213,7 @@ class Storage {
         navigationStore.menuNavHorizontal(1);
       }
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavSelect, async () => {
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavSelect, () => {
       if (this.observables.isCursorPointerUsed) {
         this.observables.isCursorPointerUsed = false;
       } else {
@@ -223,8 +223,11 @@ class Storage {
         navigationStore.unfocusAnyElem();
         elem.click();
 
-        await eventHelpers.sleep(1);
-        navigationStore.updateMenuNavElem();
+        setTimeout(() => {
+          navigationStore.updateMenuNavElem();
+        }, 1);
+
+        return { stopInputListenersProcessing: true };
       }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavBack, () => {
@@ -451,11 +454,94 @@ class Storage {
 
     //
 
+    id = "DefaultGamepad";
     addControlScheme({
       id,
-      isActive: true,
-      props: {},
+      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultGamepad"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
     });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavUp,
+      triggers: [getInputEvent(input.GPB_DPUp)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavDown,
+      triggers: [getInputEvent(input.GPB_DPDown)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavLeft,
+      triggers: [getInputEvent(input.GPB_DPLeft)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavRight,
+      triggers: [getInputEvent(input.GPB_DPRight)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavSelect,
+      triggers: [getInputEvent(input.GPB_A)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavBack,
+      triggers: [getInputEvent(input.GPB_B)],
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureLeft,
+      triggers: [getInputEvent(input.GPB_DPLeft)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureRight,
+      triggers: [getInputEvent(input.GPB_DPRight)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [getInputEvent(input.GPB_RT)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureCounterclockwise,
+      triggers: [getInputEvent(input.GPB_LT)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [getInputEvent(input.GPB_DPDown)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [getInputEvent(input.GPB_A)],
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.gamePauseToggle,
+      triggers: [getInputEvent(input.GPB_Start)],
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.helpMenuToggle,
+      triggers: [getInputEvent(input.GPB_Select)],
+    });
+
+    setActiveControlScheme({ id, state: true });
+
+    //
+
     addControlScheme({
       id,
       isActive: true,
