@@ -29,7 +29,7 @@ export default observer(
       const { viewID, layerID, canInteract } = this;
       const { gameStore } = this.props;
       const { viewStore, inputStore } = gameStore;
-      const { registeredInput } = viewStore.getViewLayerData(layerID).data || {};
+      const { registeredInput } = viewStore.getViewLayerData(layerID).data;
       const { viewData } = viewStore.observables;
       const { lang } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;

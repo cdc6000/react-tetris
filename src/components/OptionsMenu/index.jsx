@@ -83,7 +83,7 @@ export default observer(
                       navLayerID={layerID}
                       navElemID={tabData.tabNavElemID}
                       namePath={tabData.namePath}
-                      canInteract={canInteract && !isSelected}
+                      canInteract={canInteract}
                       onClick={() => {
                         this.setState({ selectedMainTabID: tabID });
                       }}

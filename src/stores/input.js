@@ -55,7 +55,7 @@ class Storage {
       setActiveControlScheme: action,
       addControlSchemeBind: action,
       removeControlSchemeBind: action,
-      setupDefaultControlSchemes: action,
+      replaceControlSchemeBind: action,
 
       inputUpdateState: action,
 
@@ -63,7 +63,6 @@ class Storage {
     });
 
     this.inputsBind();
-    this.setupDefaultControlSchemes();
 
     this.defaults = {
       observables: objectHelpers.deepCopy(this.observables),
@@ -72,132 +71,6 @@ class Storage {
   }
 
   //
-
-  setupDefaultControlSchemes = () => {
-    const { controlEvent, input, getInputEvent } = constants.controls;
-
-    let id = "DefaultKeyboard";
-    this.addControlScheme({
-      id,
-      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
-      isActive: false,
-      props: {
-        isDefault: true,
-      },
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.menuNavUp,
-      triggers: [getInputEvent(input.arrowUp)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.menuNavDown,
-      triggers: [getInputEvent(input.arrowDown)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.menuNavLeft,
-      triggers: [getInputEvent(input.arrowLeft)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.menuNavRight,
-      triggers: [getInputEvent(input.arrowRight)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.menuNavSelect,
-      triggers: [getInputEvent(input.enter), getInputEvent(input.nEnter), getInputEvent(input.space)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.menuNavBack,
-      triggers: [getInputEvent(input.esc), getInputEvent(input.backspace)],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.moveCurrentFigureLeft,
-      triggers: [getInputEvent(input.arrowLeft)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.moveCurrentFigureRight,
-      triggers: [getInputEvent(input.arrowRight)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [getInputEvent(input.arrowUp)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [getInputEvent(input.arrowDown)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.dropCurrentFigure,
-      triggers: [getInputEvent(input.space)],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.gamePauseToggle,
-      triggers: [getInputEvent(input.kP), getInputEvent(input.esc)],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.helpMenuToggle,
-      triggers: [getInputEvent(input.f1)],
-    });
-
-    this.setActiveControlScheme({ id, state: true });
-
-    //
-
-    id = "DefaultMouse";
-    this.addControlScheme({
-      id,
-      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
-      isActive: false,
-      props: {
-        isDefault: true,
-      },
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [getInputEvent(input.mouseRightButton)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [getInputEvent(input.mouseWheelDown)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.dropCurrentFigure,
-      triggers: [getInputEvent(input.mouseLeftButton)],
-    });
-
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.gameUnpause,
-      triggers: [getInputEvent(input.mouseWheelDown)],
-    });
-    this.addControlSchemeBind({
-      id,
-      action: controlEvent.gamePause,
-      triggers: [getInputEvent(input.mouseWheelUp)],
-    });
-
-    this.setActiveControlScheme({ id, state: true });
-  };
 
   addControlScheme = ({ id, name, namePath, isActive = true, binds = [], props } = {}) => {
     const { controlSchemes, controlSchemesMaxCount } = this.observables;
@@ -213,7 +86,7 @@ class Storage {
     if (!namePath) {
       if (!name || controlSchemes.some((_) => _.name == name)) {
         for (let i = 1; i <= controlSchemesMaxCount; i++) {
-          name = `${constants.lang.strings[lang].optionsMenu.controlsTab.controlScheme.new} ${i}`;
+          name = `${constants.lang.strings[lang].optionsMenu.controlsTab.controlScheme.custom} ${i}`;
           if (!controlSchemes.some((_) => _.name == name)) break;
         }
       }
@@ -293,7 +166,7 @@ class Storage {
 
   addControlSchemeBind = ({ id, action, triggers }) => {
     const { controlSchemes } = this.observables;
-    if (!id) return false;
+    if (!id || !action) return false;
 
     const controlScheme = controlSchemes.find((_) => _.id == id);
     if (!controlScheme) return false;
@@ -321,7 +194,7 @@ class Storage {
 
   removeControlSchemeBind = ({ id, action, triggers }) => {
     const { controlSchemes } = this.observables;
-    if (!id) return false;
+    if (!id || !action) return false;
 
     const controlScheme = controlSchemes.find((_) => _.id == id);
     if (!controlScheme) return false;
@@ -362,6 +235,44 @@ class Storage {
       for (let i = bind.triggers.length - 1; i >= 0; i--) {
         bind.triggers.pop();
       }
+    }
+
+    return true;
+  };
+
+  replaceControlSchemeBind = ({ id, action, triggerOld, triggerNew }) => {
+    const { controlSchemes } = this.observables;
+    if (!id || !action || !triggerOld || !triggerNew) return false;
+
+    const controlScheme = controlSchemes.find((_) => _.id == id);
+    if (!controlScheme) return false;
+
+    const bind = controlScheme.binds.find((_) => _.action == action);
+    if (!bind) return false;
+
+    if (controlScheme.isActive) {
+      const actionData = constants.controls.controlEventData[bind.action];
+      if (
+        !controlScheme.binds.some((_bind) => {
+          if (action == _bind.action) return false;
+
+          const _actionData = constants.controls.controlEventData[_bind.action];
+          if (_actionData.groupID != actionData.groupID) return false;
+
+          return _bind.triggers.some((_) => _ == triggerOld);
+        })
+      ) {
+        this.inputEventsUnbind({ ids: [id], action, triggers: [triggerOld], ignoreActive: true });
+      }
+    }
+
+    const index = bind.triggers.findIndex((_) => _ == triggerOld);
+    if (index < 0) return;
+
+    bind.triggers[index] = triggerNew;
+
+    if (controlScheme.isActive) {
+      this.inputEventsBind({ ids: [id], action, triggers: [triggerNew] });
     }
 
     return true;

@@ -30,7 +30,7 @@ export default observer(
       const { viewID, layerID, canInteract } = this;
       const { gameStore } = this.props;
       const { viewStore, inputStore } = gameStore;
-      const { overlapControlSchemes } = viewStore.getViewLayerData(layerID).data || {};
+      const { overlapControlSchemes } = viewStore.getViewLayerData(layerID).data;
       const { viewData } = viewStore.observables;
       const { controlSchemes } = inputStore.observables;
       const { lang } = gameStore.observables;

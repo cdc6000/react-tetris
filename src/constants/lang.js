@@ -40,23 +40,16 @@ export const strings = {
           sectionTitle: "Настройка схем управления",
 
           none: "Нет схем управления",
-          new: "Cхема",
+          custom: "Своя",
           defaultKeyboard: "Клавиатура",
           defaultMouse: "Мышь",
 
-          checkOverlapsBtnTitle: "Проверить конфликты ввода",
           selectTitle: "Выберите схему управления",
-          addBtnTitle: "&#x002B;",//"Добавить",
-          removeBtnTitle: "&#x1F7AA;",//"Удалить",
-          resetBtnTitle: "&#x2B8C;",//"Сбросить",
-          activeToggleTitle: "Включить схему",
 
           groupAnyMenuTitle: "Навигация по меню",
           groupFigureControlTitle: "Управление фигурой",
           groupGameplayTitle: "Игровой процесс",
           groupMiscTitle: "Общее",
-
-          mapInputBtnTitle: "Привязать",
         },
       },
     },

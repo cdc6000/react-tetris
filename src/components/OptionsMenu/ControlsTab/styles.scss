@@ -19,22 +19,49 @@
           }
         }
 
-        .control-scheme-controls {
+        .settings-table {
+          border-spacing: 0;
+
+          tr {
+            td {
+              &:nth-child(1) {
+
+              }
+
+              &:nth-child(2) {
+                width: 0;
+              }
+            }
+
+            &:not(:first-child) {
+              td {
+                padding-top: 5px;
+              }
+            }
+          }
+
+          .setting-name {
+
+          }
+
+          .setting-controls {
+            display: flex;
+            flex-direction: column;
+            // align-items: center;
+
+            .checkbox {
+              width: 22px;
+              padding: 0;
+            }
+          }
+        }
+
+        .control-scheme-select {
           display: flex;
-          flex-direction: column;
           gap: 5px;
 
-          .row {
-            display: flex;
-            gap: 10px;
-
-            .control-scheme-add-btn,
-            .control-scheme-remove-btn,
-            .control-scheme-reset-btn {
-              width: 22px;
-              font-size: 15px;
-              font-weight: bold
-            }
+          .button {
+            flex-grow: 1;
           }
         }
 

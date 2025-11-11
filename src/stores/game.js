@@ -104,6 +104,9 @@ class Storage {
       observables: observable,
 
       // action
+      setupDefaultControlSchemes: action,
+      viewStateInit: action,
+
       gameStartClassic: action,
       gameStart: action,
       gameEnd: action,
@@ -143,6 +146,8 @@ class Storage {
     });
 
     this.eventBusBind();
+    this.setupDefaultControlSchemes();
+    this.viewStateInit();
 
     this.defaults = {
       observables: objectHelpers.deepCopy(this.observables),
@@ -223,30 +228,26 @@ class Storage {
       }
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavBack, () => {
-      if (this.observables.isCursorPointerUsed) {
-        this.observables.isCursorPointerUsed = false;
-      } else {
-        const currentLayerID = viewStore.inputFocusViewLayerID;
-        if (!currentLayerID) return;
+      const currentLayerID = viewStore.inputFocusViewLayerID;
+      if (!currentLayerID) return;
 
-        const currentLayerData = viewStore.getViewLayerData(currentLayerID) || {};
-        if (!currentLayerData.isBackAllowed) return;
+      const currentLayerData = viewStore.getViewLayerData(currentLayerID) || {};
+      if (!currentLayerData.isBackAllowed) return;
 
-        switch (currentLayerID) {
-          case constants.viewData.layer.getInputMenu: {
-            inputStore.getInputDisable();
-            break;
-          }
-
-          case constants.viewData.layer.helpMenu: {
-            this.helpMenuToggle();
-            break;
-          }
+      switch (currentLayerID) {
+        case constants.viewData.layer.getInputMenu: {
+          inputStore.getInputDisable();
+          break;
         }
-        viewStore.shiftInputFocusToViewLayerID({ layerID: currentLayerID, isPrevious: true });
 
-        return { stopInputListenersProcessing: true };
+        case constants.viewData.layer.helpMenu: {
+          this.helpMenuToggle();
+          break;
+        }
       }
+      viewStore.shiftInputFocusToViewLayerID({ layerID: currentLayerID, isPrevious: true });
+
+      return { stopInputListenersProcessing: true };
     });
 
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, () => {
@@ -322,10 +323,372 @@ class Storage {
     });
   };
 
-  bindInput = async ({ controlScheme, action }) => {
+  setupDefaultControlSchemes = () => {
+    const { inputStore } = this;
+    const { addControlScheme, addControlSchemeBind, setActiveControlScheme } = inputStore;
+    const { controlEvent, input, getInputEvent } = constants.controls;
+
+    let id = "DefaultKeyboard";
+    addControlScheme({
+      id,
+      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultKeyboard"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavUp,
+      triggers: [getInputEvent(input.arrowUp)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavDown,
+      triggers: [getInputEvent(input.arrowDown)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavLeft,
+      triggers: [getInputEvent(input.arrowLeft)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavRight,
+      triggers: [getInputEvent(input.arrowRight)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavSelect,
+      triggers: [getInputEvent(input.enter)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.menuNavBack,
+      triggers: [getInputEvent(input.esc)],
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureLeft,
+      triggers: [getInputEvent(input.arrowLeft)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.moveCurrentFigureRight,
+      triggers: [getInputEvent(input.arrowRight)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [getInputEvent(input.kX)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureCounterclockwise,
+      triggers: [getInputEvent(input.kZ)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [getInputEvent(input.arrowUp)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [getInputEvent(input.arrowDown)],
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.gamePauseToggle,
+      triggers: [getInputEvent(input.esc)],
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.helpMenuToggle,
+      triggers: [getInputEvent(input.f1)],
+    });
+
+    setActiveControlScheme({ id, state: true });
+
+    //
+
+    id = "DefaultMouse";
+    addControlScheme({
+      id,
+      namePath: ["optionsMenu", "controlsTab", "controlScheme", "defaultMouse"],
+      isActive: false,
+      props: {
+        isDefault: true,
+      },
+    });
+
+    addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureClockwise,
+      triggers: [getInputEvent(input.mouseWheelDown)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.rotateCurrentFigureCounterclockwise,
+      triggers: [getInputEvent(input.mouseWheelUp)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.speedUpFallingCurrentFigure,
+      triggers: [getInputEvent(input.mouseRightButton)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.dropCurrentFigure,
+      triggers: [getInputEvent(input.mouseLeftButton)],
+    });
+
+    setActiveControlScheme({ id, state: true });
+
+    //
+
+    addControlScheme({
+      id,
+      isActive: true,
+      props: {},
+    });
+    addControlScheme({
+      id,
+      isActive: true,
+      props: {},
+    });
+    addControlScheme({
+      id,
+      isActive: true,
+      props: {},
+    });
+  };
+
+  viewStateInit = () => {
+    const { viewStore } = this;
+    const { setViewLayerData } = viewStore;
+    const { viewData } = viewStore.observables;
+
+    // views
+    viewData.viewState[constants.viewData.view.mainMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.optionsMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[`${constants.viewData.view.gamePlayView}-${constants.gameMode.classic}`] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.pauseMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.gameOverMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.helpMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.getInputMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.controlsOverlapMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+    viewData.viewState[constants.viewData.view.selectMenu] = {
+      canBeShown: true,
+      show: false,
+    };
+
+    // layers
+    setViewLayerData({
+      layerID: constants.viewData.layer.mainMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.mainMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.optionsMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.optionsMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: `${constants.viewData.layer.gamePlayView}-${constants.gameMode.classic}`,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: `${constants.viewData.view.gamePlayView}-${constants.gameMode.classic}`,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.pauseMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.pauseMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.gameOverMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.gameOverMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.helpMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.helpMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.getInputMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.getInputMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.controlsOverlapMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.controlsOverlapMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.selectMenu,
+      data: {
+        isEnabled: false,
+        isBackAllowed: true,
+        views: [
+          {
+            id: constants.viewData.view.selectMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+  };
+
+  //
+
+  bindInput = async ({ controlScheme, action, triggerReplace }) => {
     const { inputStore, viewStore } = this;
 
     const layerID = constants.viewData.layer.getInputMenu;
+
+    if (viewStore.getViewLayerData(layerID).isEnabled) return false;
 
     runInAction(() => {
       viewStore.setViewLayerData({
@@ -343,11 +706,20 @@ class Storage {
     const input = await inputStore.getInput();
     if (input) {
       runInAction(() => {
-        inputStore.addControlSchemeBind({
-          id: controlScheme.id,
-          action,
-          triggers: [constants.controls.getInputEvent(input)],
-        });
+        if (triggerReplace) {
+          inputStore.replaceControlSchemeBind({
+            id: controlScheme.id,
+            action,
+            triggerOld: triggerReplace,
+            triggerNew: constants.controls.getInputEvent(input),
+          });
+        } else {
+          inputStore.addControlSchemeBind({
+            id: controlScheme.id,
+            action,
+            triggers: [constants.controls.getInputEvent(input)],
+          });
+        }
 
         // viewStore.setViewLayerData({
         //   layerID,
@@ -365,6 +737,8 @@ class Storage {
     viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
     inputStore.getInputDisable();
     this.checkControlsOverlap({ silentIfOk: true });
+
+    return input;
   };
 
   checkControlsOverlap = ({ silentIfOk = false } = {}) => {
@@ -390,9 +764,9 @@ class Storage {
   helpMenuToggle = () => {
     const { viewStore } = this;
 
-    const isEnabled = viewStore.getViewLayerData(constants.viewData.layer.helpMenu)?.isEnabled;
-    const isPauseMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.pauseMenu)?.isEnabled;
-    const isGameOverMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.gameOverMenu)?.isEnabled;
+    const isEnabled = viewStore.getViewLayerData(constants.viewData.layer.helpMenu).isEnabled;
+    const isPauseMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.pauseMenu).isEnabled;
+    const isGameOverMenuEnabled = viewStore.getViewLayerData(constants.viewData.layer.gameOverMenu).isEnabled;
     if (!isEnabled) {
       if (!isPauseMenuEnabled && !isGameOverMenuEnabled) this.setPause({ state: true });
       viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });

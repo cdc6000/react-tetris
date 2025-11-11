@@ -93,19 +93,20 @@ class Storage {
 
   getNavElemData = (elem) => {
     if (!elem || !elem.dataset) return {};
-    const { navAble, navHor, navElemId, navGroupId, navLayerId } = elem.dataset;
+    const { navAble, navHor, navElemId, navGroupId, navGroupSave, navLayerId } = elem.dataset;
     return {
       isNavAble: Boolean(+navAble),
       isHorizontal: Boolean(+navHor),
       elemID: navElemId,
       groupID: navGroupId,
+      needGroupSave: Boolean(+navGroupSave),
       layerID: navLayerId,
     };
   };
 
   setCurrentNavElemData = (elem, prevElem) => {
     const { navCurrentElemData, navGroupLastSelectedElemID, navLayerLastSelectedElemID } = this.observables;
-    const { elemID, layerID, groupID } = this.getNavElemData(elem);
+    const { elemID, layerID, groupID, needGroupSave } = this.getNavElemData(elem);
     if (!elemID || !layerID) return;
 
     navCurrentElemData.elemID = elemID;
@@ -119,7 +120,7 @@ class Storage {
     }
 
     navLayerLastSelectedElemID[layerID] = elemID;
-    if (groupID) {
+    if (groupID && needGroupSave) {
       navGroupLastSelectedElemID[groupID] = elemID;
     }
 
@@ -136,6 +137,12 @@ class Storage {
         const lastSelectedElem = this.getGroupNavAbleElemByID(groupID, navGroupLastSelectedElem);
         if (lastSelectedElem) {
           this.setCurrentNavElemData(lastSelectedElem, prevElem);
+          return;
+        }
+      } else {
+        const groupNavAbleElems = this.getGroupNavAbleElems(groupID);
+        if (groupNavAbleElems.length) {
+          this.setCurrentNavElemData(groupNavAbleElems[0], prevElem);
           return;
         }
       }
@@ -301,13 +308,17 @@ class Storage {
   };
 
   menuNavVertical = (step) => {
+    if (!step) return;
+
     const currentData = this.getCurrentNavElemIndexData();
     if (!currentData) return;
-    const { navAbleElems, elem, index } = currentData;
 
+    const { navAbleElems, elem, index } = currentData;
     const currentElemData = this.getNavElemData(elem);
+
     if (currentElemData.isHorizontal) {
-      for (let eIndex = index + step; step > 0 ? eIndex < navAbleElems.length : eIndex >= 0; eIndex += step) {
+      const _step = Math.sign(step);
+      for (let eIndex = index + _step; _step > 0 ? eIndex < navAbleElems.length : eIndex >= 0; eIndex += _step) {
         const nextElem = navAbleElems[eIndex];
         const nextElemData = this.getNavElemData(nextElem);
 
@@ -355,6 +366,7 @@ class Storage {
       navIsHorizontal,
       navGroupID,
       navAutoFocus = false,
+      navGroupSave = true,
     } = props;
 
     const isNavSelected =
@@ -373,6 +385,7 @@ class Storage {
         "data-nav-elem-id": navElemID,
         "data-nav-hor": navIsHorizontal ? 1 : undefined,
         "data-nav-group-id": [navGroupID && navLayerID, navGroupID].filter(Boolean).join("-") || undefined,
+        "data-nav-group-save": navGroupSave ? 1 : undefined,
         "data-nav-autofocus": navAutoFocus ? 1 : undefined,
       },
     };

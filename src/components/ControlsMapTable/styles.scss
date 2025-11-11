@@ -12,8 +12,22 @@
           height: 40px;
           border-color: var(--lightgray);
           border-style: solid;
-          border-width: 1px 0 0 1px;
+          border-width: 1px 0 0 0;
           box-sizing: border-box;
+
+          &:first-child {
+            border-width: 1px 0 0 1px;
+            padding: 5px 10px;
+          }
+
+          &:nth-child(2) {
+            width: 200px;
+            padding: 5px;
+          }
+
+          &:last-child {
+            border-width: 1px 1px 0 0;
+          }
 
           .cell-content {
             display: flex;
@@ -28,36 +42,33 @@
             .key-bind {
               display: flex;
               align-items: center;
+              justify-content: flex-end;
+              width: 100%;
               gap: 5px;
 
+              .bind-btn {
+                min-width: 24px;
+                height: 24px;
+                padding: 0;
+                font-size: 14px;
+                font-weight: bold;
+
+                .input-tip {
+                  .symbol {
+                    border: none;
+                    background-color: transparent;
+                  }
+                }
+              }
+
               .remove-btn {
+                flex-shrink: 0;
                 width: 24px;
                 height: 24px;
                 padding: 0;
                 font-size: 15px;
               }
             }
-
-            .btn-wrapper {
-              .add-btn {
-                height: 24px;
-                padding: 0 10px;
-                font-size: 14px;
-              }
-            }
-          }
-
-          &:first-child {
-            padding: 5px 10px;
-          }
-
-          &:nth-child(2) {
-            width: 200px;
-            padding: 5px 0;
-          }
-
-          &:last-child {
-            border-width: 1px 1px 0 1px;
           }
         }
 

@@ -15,51 +15,16 @@ export default observer(
     //
 
     render() {
-      const {
-        children,
-        gameStore,
-        className,
-        namePath,
-        canInteract = true,
-        disabled = false,
-        value,
-        onChange,
-      } = this.props;
-      const { navigationStore } = gameStore;
-      const { lang } = gameStore.observables;
-      const { getLangStringConverted } = constants.lang;
-
-      const navigationData = navigationStore.getNavComponentData(this.props);
-      const { isNavSelected } = navigationData.props;
-
-      let content = children;
-      if (namePath) {
-        content = getLangStringConverted({ lang, pathArray: namePath });
-      }
+      const { className, value, onChange } = this.props;
 
       return (
-        <a
-          href={"#"}
-          className={`checkbox${value ? " checked" : ""}${className ? " " + className : ""}${isNavSelected ? " nav-selected" : ""}`}
-          disabled={disabled}
-          draggable={false}
-          onClick={(ev) => {
-            ev.preventDefault();
-            if (!canInteract || disabled) return;
-            onChange?.(!value, ev);
+        <Button
+          {...this.props}
+          className={`checkbox${value ? " pressed" : ""}${className ? " " + className : ""}`}
+          onClick={() => {
+            onChange?.(!value);
           }}
-          {...navigationData.renderProps}
-        >
-          {/* <input
-            type="checkbox"
-            checked={value}
-            readOnly={true}
-          /> */}
-          <div
-            className={`button${value ? " pressed" : ""}${isNavSelected ? " nav-selected" : ""}`}
-          >&#x2714;</div>
-          <div className="content">{content}</div>
-        </a>
+        />
       );
     }
   }

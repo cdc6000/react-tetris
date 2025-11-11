@@ -30,7 +30,7 @@ export default observer(
       const { gameStore } = this.props;
       const { eventBus, viewStore } = gameStore;
       const { viewData } = viewStore.observables;
-      const { title = "", options = [], value } = viewStore.getViewLayerData(layerID).data || {};
+      const { title = "", options = [], value } = viewStore.getViewLayerData(layerID).data;
       const { lang } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;
 

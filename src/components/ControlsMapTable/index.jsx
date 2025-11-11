@@ -84,8 +84,13 @@ export default observer(
             <tbody>
               {controlEventGroupsList.map((group, gIndex) => {
                 let hasGroupTriggers = false;
+
                 const actionsRender = group.actions.map((action, aIndex) => {
                   let hasActionTriggers = false;
+
+                  const actionBinds = controlScheme?.binds.filter((_) => _.action == action);
+                  const _bind = actionBinds?.[0];
+                  const _trigger = _bind?.triggers[0];
                   const actionRender = (
                     <tr key={aIndex}>
                       <td>
@@ -103,9 +108,8 @@ export default observer(
                         <div className="cell-content">
                           {Boolean(controlScheme) && (
                             <Fragment>
-                              {controlScheme.binds
-                                .filter((_) => _.action == action)
-                                .map((bind) => {
+                              {!inputMapAllowed &&
+                                actionBinds.map((bind) => {
                                   return bind.triggers.map((trigger) => {
                                     hasGroupTriggers = true;
                                     hasActionTriggers = true;
@@ -118,42 +122,53 @@ export default observer(
                                           gameStore={gameStore}
                                           inputEvent={trigger}
                                         />
-                                        {Boolean(inputMapAllowed) && (
-                                          <Button
-                                            gameStore={gameStore}
-                                            className="remove-btn"
-                                            navLayerID={layerID}
-                                            navElemID={`${viewID}-removeBtn-${gIndex}-${aIndex}-${trigger}`}
-                                            canInteract={hasFocus}
-                                            onClick={() => {
-                                              inputStore.removeControlSchemeBind({
-                                                id: controlScheme.id,
-                                                action,
-                                                triggers: [trigger],
-                                              });
-                                            }}
-                                          >
-                                            <span>&#x1F7AA;</span>
-                                          </Button>
-                                        )}
                                       </div>
                                     );
                                   });
                                 })}
-                              {Boolean(controlScheme) && Boolean(inputMapAllowed) && (
-                                <div className="btn-wrapper">
+                              {Boolean(inputMapAllowed) && (
+                                <div className="key-bind">
                                   <Button
                                     gameStore={gameStore}
-                                    className="add-btn"
+                                    className="bind-btn"
                                     navLayerID={layerID}
-                                    navElemID={`${viewID}-addBtn-${gIndex}-${aIndex}`}
-                                    namePath={["optionsMenu", "controlsTab", "controlScheme", "mapInputBtnTitle"]}
+                                    navElemID={`${viewID}-bindBtn-${gIndex}-${aIndex}-trigger-0`}
+                                    navIsHorizontal={true}
+                                    navGroupID={`${gIndex}-${aIndex}-trigger-0`}
+                                    navGroupSave={false}
                                     canInteract={hasFocus}
-                                    onClick={(ev) => {
-                                      ev.target.blur();
-                                      gameStore.bindInput({ controlScheme, action });
+                                    onClick={() => {
+                                      gameStore.bindInput({ controlScheme, action, triggerReplace: _trigger });
                                     }}
-                                  />
+                                  >
+                                    {Boolean(_trigger) ?
+                                      <InputTip
+                                        gameStore={gameStore}
+                                        inputEvent={_trigger}
+                                      />
+                                    : <span>&#x002B;</span>}
+                                  </Button>
+                                  {Boolean(_trigger) && (
+                                    <Button
+                                      gameStore={gameStore}
+                                      className="remove-btn"
+                                      navLayerID={layerID}
+                                      navElemID={`${viewID}-removeBtn-${gIndex}-${aIndex}-trigger-0`}
+                                      navIsHorizontal={true}
+                                      navGroupID={`${gIndex}-${aIndex}-trigger-0`}
+                                      navGroupSave={false}
+                                      canInteract={hasFocus}
+                                      onClick={() => {
+                                        inputStore.removeControlSchemeBind({
+                                          id: controlScheme.id,
+                                          action,
+                                          triggers: [_trigger],
+                                        });
+                                      }}
+                                    >
+                                      <span>&#x1F7AA;</span>
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </Fragment>

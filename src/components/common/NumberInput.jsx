@@ -46,7 +46,7 @@ export default observer(
           className={`number-input${className ? " " + className : ""}`}
           disabled={disabled}
         >
-          <div className="text">{content}</div>
+          {Boolean(content) && <div className="text">{content}</div>}
           <div className="controls">
             <Button
               gameStore={gameStore}
