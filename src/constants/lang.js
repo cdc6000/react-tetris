@@ -101,7 +101,7 @@ export const strings = {
       scoreTitle: "Очки",
       levelTitle: "Уровень",
       holdFigureTitle: "Запасная фигура",
-      nextFigureTitle: "Следующая фигура",
+      nextFigureTitle: "Следующие фигуры",
     },
 
     controlEventName: {

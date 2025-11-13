@@ -39,7 +39,7 @@ export default observer(
       const { gameStore } = this.props;
       const { viewStore, gameModeData, cellsMaxSize } = gameStore;
       const { viewData } = viewStore.observables;
-      const { score, level, cup, nextFigureType, holdFigure } = gameModeData;
+      const { randomFigureTypePool, score, level, cup, holdFigure } = gameModeData;
       const { lang, gameMode } = gameStore.observables;
       const { cellSizePx } = gameStore.nonObservables;
       const { getLangStringConverted } = constants.lang;
@@ -142,7 +142,15 @@ export default observer(
                     </div>
                     <FigureView
                       gameStore={gameStore}
-                      type={nextFigureType}
+                      type={randomFigureTypePool[0]}
+                    />
+                    <FigureView
+                      gameStore={gameStore}
+                      type={randomFigureTypePool[1]}
+                    />
+                    <FigureView
+                      gameStore={gameStore}
+                      type={randomFigureTypePool[2]}
                     />
                   </div>
                 </div>

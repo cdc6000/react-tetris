@@ -86,7 +86,6 @@ class Storage {
           },
           shadowFigureY: 0,
 
-          nextFigureType: constants.figureType.none,
           holdFigure: {
             type: constants.figureType.none,
             blocked: false,
@@ -125,7 +124,6 @@ class Storage {
       dropCurrentFigure: action,
       holdCurrentFigure: action,
       generateCurrentFigure: action,
-      generateNextFigureType: action,
 
       spawnFigure: action,
       generateCupView: action,
@@ -971,8 +969,6 @@ class Storage {
       currentFigure.y = cup.figureStart.y;
       this.calcShadowFigureY();
 
-      this.generateNextFigureType();
-
       this.generateCupView();
     }
 
@@ -1245,7 +1241,7 @@ class Storage {
     const { currentFigure } = gameModeData;
 
     if (type == undefined) {
-      type = this.generateFigureType();
+      type = this.getNextRandomFigureType();
     }
 
     currentFigure.rotation = rotation;
@@ -1264,11 +1260,6 @@ class Storage {
     currentFigure.cells.height = cellsH;
 
     return true;
-  };
-
-  generateNextFigureType = () => {
-    const { gameModeData } = this;
-    gameModeData.nextFigureType = this.generateFigureType();
   };
 
   calcShadowFigureY = () => {
@@ -1328,12 +1319,10 @@ class Storage {
 
     if (currentFigure.type == constants.figureType.none) {
       runInAction(() => {
-        this.generateCurrentFigure({ type: gameModeData.nextFigureType });
+        this.generateCurrentFigure();
         currentFigure.x = cup.figureStart.x;
         currentFigure.y = cup.figureStart.y;
         this.calcShadowFigureY();
-
-        this.generateNextFigureType();
 
         if (this.checkFigureOverlap()) {
           this.generateCupView();
@@ -1375,29 +1364,15 @@ class Storage {
 
   //
 
-  generateFigureType = () => {
-    // return this.generateFigureTypeRandomPure();
-    return this.generateFigureTypeRandomFromPool();
-  };
-
-  generateFigureTypeRandomPure = () => {
+  getNextRandomFigureType = () => {
     const { gameModeData } = this;
-    const index = Math.round(Math.random() * (gameModeData.figureTypesAllowed.length - 1));
-    return gameModeData.figureTypesAllowed[index];
-  };
-
-  generateFigureTypeRandomFromPool = (figureTypeRepeats = 1) => {
-    const { gameModeData } = this;
-    if (!gameModeData.randomFigureTypePool.length) {
-      gameModeData.figureTypesAllowed.forEach((type) => {
-        for (let i = 0; i < figureTypeRepeats; i++) {
-          gameModeData.randomFigureTypePool.push(type);
-        }
-      });
+    if (gameModeData.randomFigureTypePool.length < gameModeData.figureTypesAllowed.length) {
+      const pool = objectHelpers.deepCopy(gameModeData.figureTypesAllowed);
+      for (let i = 0; i < gameModeData.figureTypesAllowed.length; i++) {
+        gameModeData.randomFigureTypePool.push(pool.splice(Math.round(Math.random() * (pool.length - 1)), 1)[0]);
+      }
     }
-    const index = Math.round(Math.random() * (gameModeData.randomFigureTypePool.length - 1));
-    const type = gameModeData.randomFigureTypePool.splice(index, 1)[0];
-    return type;
+    return gameModeData.randomFigureTypePool.shift();
   };
 
   createCell = () => {
