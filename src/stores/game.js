@@ -382,12 +382,12 @@ class Storage {
     addControlSchemeBind({
       id,
       action: controlEvent.speedUpFallingCurrentFigure,
-      triggers: [getInputEvent(input.arrowUp)],
+      triggers: [getInputEvent(input.arrowDown)],
     });
     addControlSchemeBind({
       id,
       action: controlEvent.dropCurrentFigure,
-      triggers: [getInputEvent(input.arrowDown)],
+      triggers: [getInputEvent(input.space)],
     });
 
     addControlSchemeBind({
@@ -495,12 +495,12 @@ class Storage {
     addControlSchemeBind({
       id,
       action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [getInputEvent(input.GPB_RT)],
+      triggers: [getInputEvent(input.GPB_B)],
     });
     addControlSchemeBind({
       id,
       action: controlEvent.rotateCurrentFigureCounterclockwise,
-      triggers: [getInputEvent(input.GPB_LT)],
+      triggers: [getInputEvent(input.GPB_A)],
     });
     addControlSchemeBind({
       id,
@@ -510,7 +510,7 @@ class Storage {
     addControlSchemeBind({
       id,
       action: controlEvent.dropCurrentFigure,
-      triggers: [getInputEvent(input.GPB_A)],
+      triggers: [getInputEvent(input.GPB_DPUp)],
     });
 
     addControlSchemeBind({
@@ -1086,7 +1086,7 @@ class Storage {
   moveCurrentFigureCupPointX = () => {
     const { inputStore } = this;
     const { lastDeviceTypeUsed, inputOptions } = inputStore.observables;
-    
+
     if (lastDeviceTypeUsed != constants.controls.deviceType.mouse) return;
     if (!inputOptions.allowFigureMoveByMouse) return false;
 
@@ -1315,7 +1315,7 @@ class Storage {
 
   generateFigureType = () => {
     // return this.generateFigureTypeRandomPure();
-    return this.generateFigureTypeRandomFromPool(3);
+    return this.generateFigureTypeRandomFromPool();
   };
 
   generateFigureTypeRandomPure = () => {
