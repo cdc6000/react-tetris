@@ -14,6 +14,7 @@ export const controlEvent = {
   rotateCurrentFigureCounterclockwise: "control-rotateCurrentFigureCounterclockwise",
   speedUpFallingCurrentFigure: "control-speedUpFallingCurrentFigure",
   dropCurrentFigure: "control-dropCurrentFigure",
+  holdCurrentFigure: "control-holdCurrentFigure",
 
   gamePause: "control-gamePause",
   gameUnpause: "control-gameUnpause",
@@ -131,6 +132,14 @@ export const controlEventData = {
     },
   },
   [controlEvent.dropCurrentFigure]: {
+    groupID: controlGroup.gameplay,
+    getTriggerData: ({ options }) => {
+      return {
+        onJustPressed: true,
+      };
+    },
+  },
+  [controlEvent.holdCurrentFigure]: {
     groupID: controlGroup.gameplay,
     getTriggerData: ({ options }) => {
       return {

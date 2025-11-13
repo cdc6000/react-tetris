@@ -5,26 +5,29 @@ import { observer } from "mobx-react";
 import * as constants from "@constants/index";
 
 export default observer(
-  class NextFigureView extends Component {
+  class FigureView extends Component {
     constructor(props) {
       super(props);
     }
 
     render() {
-      const { gameStore } = this.props;
-      const { gameModeData } = gameStore;
-      const { nextFigureType } = gameModeData;
+      const { gameStore, type } = this.props;
+      const { cellsMaxSize } = gameStore;
 
       const result = gameStore.generateFigureData({
-        type: nextFigureType,
+        type,
         rotation: 0,
       });
-      if (!result) return null;
-
-      const { cellsData } = result;
+      let cellsData;
+      if (!result) {
+        cellsData = [];
+        gameStore.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
+      } else {
+        cellsData = result.cellsData;
+      }
 
       return (
-        <div className="next-figure">
+        <div className="figure-view">
           {cellsData.map((row, rIndex) => {
             return row.map((cell, cIndex) => {
               return (

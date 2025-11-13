@@ -29,6 +29,9 @@ class Storage {
 
       gameState: constants.gameState.pause,
       gameMode: constants.gameMode.none,
+      gameOptions: {
+        allowHold: true,
+      },
       gameData: {
         [constants.gameMode.classic]: {
           figureTypesAllowed: [
@@ -81,8 +84,13 @@ class Storage {
               data: [],
             },
           },
-          nextFigureType: constants.figureType.none,
           shadowFigureY: 0,
+
+          nextFigureType: constants.figureType.none,
+          holdFigure: {
+            type: constants.figureType.none,
+            blocked: false,
+          },
         },
       },
     };
@@ -115,6 +123,7 @@ class Storage {
       moveCurrentFigureAlongX: action,
       rotateCurrentFigure: action,
       dropCurrentFigure: action,
+      holdCurrentFigure: action,
       generateCurrentFigure: action,
       generateNextFigureType: action,
 
@@ -274,6 +283,10 @@ class Storage {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.dropCurrentFigure();
     });
+    eventBus.addEventListener(evenBusID, controlEvent.holdCurrentFigure, ({ deviceType, deviceTypeChanged }) => {
+      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
+      this.holdCurrentFigure();
+    });
 
     eventBus.addEventListener(evenBusID, controlEvent.gamePause, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
@@ -389,6 +402,11 @@ class Storage {
       action: controlEvent.dropCurrentFigure,
       triggers: [getInputEvent(input.space)],
     });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.holdCurrentFigure,
+      triggers: [getInputEvent(input.kC)],
+    });
 
     addControlSchemeBind({
       id,
@@ -435,6 +453,11 @@ class Storage {
       id,
       action: controlEvent.dropCurrentFigure,
       triggers: [getInputEvent(input.mouseLeftButton)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.holdCurrentFigure,
+      triggers: [getInputEvent(input.mouseMiddleButton)],
     });
 
     setActiveControlScheme({ id, state: true });
@@ -511,6 +534,11 @@ class Storage {
       id,
       action: controlEvent.dropCurrentFigure,
       triggers: [getInputEvent(input.GPB_DPUp)],
+    });
+    addControlSchemeBind({
+      id,
+      action: controlEvent.holdCurrentFigure,
+      triggers: [getInputEvent(input.GPB_RB)],
     });
 
     addControlSchemeBind({
@@ -1182,6 +1210,36 @@ class Storage {
     return true;
   };
 
+  holdCurrentFigure = () => {
+    const { gameOptions } = this.observables;
+    if (!gameOptions.allowHold) return;
+
+    const { gameModeData } = this;
+    const { cup, currentFigure, holdFigure } = gameModeData;
+
+    if (currentFigure.type == constants.figureType.none) return;
+
+    if (holdFigure.blocked) return;
+    holdFigure.blocked = true;
+
+    const holdFigureType = holdFigure.type;
+    this.gameModeData.holdFigure.type = currentFigure.type;
+    if (holdFigureType != constants.figureType.none) {
+      this.generateCurrentFigure({ type: holdFigureType });
+      currentFigure.x = cup.figureStart.x;
+      currentFigure.y = cup.figureStart.y;
+      this.calcShadowFigureY();
+
+      const cupViewGenerated = this.moveCurrentFigureCupPointX();
+      if (!cupViewGenerated) {
+        this.generateCupView();
+      }
+    } else {
+      currentFigure.type = constants.figureType.none;
+      this.callNextGameLoopImmediately();
+    }
+  };
+
   generateCurrentFigure = ({ type, rotation = 0 } = {}) => {
     const { gameModeData } = this;
     const { currentFigure } = gameModeData;
@@ -1262,7 +1320,7 @@ class Storage {
 
   gameLoop = async () => {
     const { gameModeData, cellsMaxSize } = this;
-    const { addScoreTable, cup, currentFigure } = gameModeData;
+    const { addScoreTable, cup, currentFigure, holdFigure } = gameModeData;
     const { gameState } = this.observables;
     // console.log("game loop");
 
@@ -1292,14 +1350,18 @@ class Storage {
     } else {
       const newY = currentFigure.y + 1;
       if (this.checkFigureOverlap({ y: newY })) {
-        this.addScore(addScoreTable.figurePlacement);
+        runInAction(() => {
+          this.addScore(addScoreTable.figurePlacement);
 
-        const { type, x, y, rotation } = currentFigure;
-        currentFigure.type = constants.figureType.none;
-        this.spawnFigure(type, rotation, x, y);
+          const { type, x, y, rotation } = currentFigure;
+          currentFigure.type = constants.figureType.none;
+          this.spawnFigure(type, rotation, x, y);
+        });
+
         await eventHelpers.sleep(300);
-
         await this.clearFullLines();
+
+        holdFigure.blocked = false;
         this.callNextGameLoopImmediately();
       } else {
         runInAction(() => {

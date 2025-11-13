@@ -173,11 +173,12 @@
     
             .score-header,
             .level-header,
+            .hold-figure-header,
             .next-figure-header {
               font-weight: bold;
             }
     
-            .next-figure {
+            .figure-view {
               display: flex;
               flex-wrap: wrap;
               width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));

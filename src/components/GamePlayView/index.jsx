@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
-import NextFigureView from "./NextFigureView";
+import FigureView from "./FigureView";
 
 import * as customHelpers from "@utils/custom-helpers";
 
@@ -39,7 +39,7 @@ export default observer(
       const { gameStore } = this.props;
       const { viewStore, gameModeData, cellsMaxSize } = gameStore;
       const { viewData } = viewStore.observables;
-      const { score, level, cup } = gameModeData;
+      const { score, level, cup, nextFigureType, holdFigure } = gameModeData;
       const { lang, gameMode } = gameStore.observables;
       const { cellSizePx } = gameStore.nonObservables;
       const { getLangStringConverted } = constants.lang;
@@ -129,10 +129,21 @@ export default observer(
                     <div className="level">{level + 1}</div>
                     <br />
 
+                    <div className="hold-figure-header">
+                      {getLangStringConverted({ lang, pathArray: ["gameView", "holdFigureTitle"] })}
+                    </div>
+                    <FigureView
+                      gameStore={gameStore}
+                      type={holdFigure.type}
+                    />
+
                     <div className="next-figure-header">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "nextFigureTitle"] })}
                     </div>
-                    <NextFigureView gameStore={gameStore} />
+                    <FigureView
+                      gameStore={gameStore}
+                      type={nextFigureType}
+                    />
                   </div>
                 </div>
               </div>
