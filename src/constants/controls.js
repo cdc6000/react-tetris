@@ -203,9 +203,14 @@ export const deviceGroupData = {
 export const input = {
   mouse: "mouse",
   mouseLeftButton: "mouseLeftButton",
+  mouseMiddleButton: "mouseMiddleButton",
   mouseRightButton: "mouseRightButton",
+  mouseBackButton: "mouseBackButton",
+  mouseForwardButton: "mouseForwardButton",
   mouseWheelUp: "mouseWheelUp",
   mouseWheelDown: "mouseWheelDown",
+  mouseWheelLeft: "mouseWheelLeft",
+  mouseWheelRight: "mouseWheelRight",
 
   arrowLeft: "ArrowLeft",
   arrowRight: "ArrowRight",
@@ -356,9 +361,23 @@ export const inputData = {
     deviceType: deviceType.mouse,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Left_Key.png`,
   },
+  [input.mouseMiddleButton]: {
+    preventDefault: true,
+    deviceType: deviceType.mouse,
+    icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Middle_Key.png`,
+  },
   [input.mouseRightButton]: {
+    preventDefault: true,
     deviceType: deviceType.mouse,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Right_Key.png`,
+  },
+  [input.mouseBackButton]: {
+    preventDefault: true,
+    deviceType: deviceType.mouse,
+  },
+  [input.mouseForwardButton]: {
+    preventDefault: true,
+    deviceType: deviceType.mouse,
   },
   [input.mouseWheelUp]: {
     deviceType: deviceType.mouse,
@@ -367,6 +386,12 @@ export const inputData = {
   [input.mouseWheelDown]: {
     deviceType: deviceType.mouse,
     icon: (root = "/input_icons", theme = "dark") => `${root}/kb_mouse/${theme}/Mouse_Wheel_Down.png`,
+  },
+  [input.mouseWheelLeft]: {
+    deviceType: deviceType.mouse,
+  },
+  [input.mouseWheelRight]: {
+    deviceType: deviceType.mouse,
   },
 
   [input.arrowLeft]: {

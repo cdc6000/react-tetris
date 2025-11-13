@@ -721,10 +721,31 @@ class Storage {
         isPressed: true,
         deviceType: constants.controls.deviceType.mouse,
       });
+    } else if (ev.button == 1) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseMiddleButton,
+        isPressed: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     } else if (ev.button == 2) {
       this.inputUpdateState({
         ev,
         input: constants.controls.input.mouseRightButton,
+        isPressed: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
+    } else if (ev.button == 3) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseBackButton,
+        isPressed: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
+    } else if (ev.button == 4) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseForwardButton,
         isPressed: true,
         deviceType: constants.controls.deviceType.mouse,
       });
@@ -739,10 +760,31 @@ class Storage {
         isReleased: true,
         deviceType: constants.controls.deviceType.mouse,
       });
+    } else if (ev.button == 1) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseMiddleButton,
+        isReleased: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     } else if (ev.button == 2) {
       this.inputUpdateState({
         ev,
         input: constants.controls.input.mouseRightButton,
+        isReleased: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
+    } else if (ev.button == 3) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseBackButton,
+        isReleased: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
+    } else if (ev.button == 4) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseForwardButton,
         isReleased: true,
         deviceType: constants.controls.deviceType.mouse,
       });
@@ -761,10 +803,26 @@ class Storage {
         isClicked: true,
         deviceType: constants.controls.deviceType.mouse,
       });
-    } else if (ev.deltaY) {
+    } else if (ev.deltaY < 0) {
       this.inputUpdateState({
         ev,
         input: constants.controls.input.mouseWheelUp,
+        isClicked: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
+    }
+
+    if (ev.deltaX > 0) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseWheelLeft,
+        isClicked: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
+    } else if (ev.deltaX < 0) {
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseWheelRight,
         isClicked: true,
         deviceType: constants.controls.deviceType.mouse,
       });
