@@ -655,6 +655,7 @@ class Storage {
 
     window.addEventListener("focus", this.onWindowFocus);
     window.addEventListener("blur", this.onWindowBlur);
+    window.addEventListener("resize", this.onWindowResize);
 
     if (navigator.getGamepads) {
       if (this.nonObservables.gamepadInterval) {
@@ -677,6 +678,7 @@ class Storage {
 
     window.removeEventListener("focus", this.onWindowFocus);
     window.removeEventListener("blur", this.onWindowBlur);
+    window.removeEventListener("resize", this.onWindowResize);
 
     if (this.nonObservables.gamepadInterval) {
       clearInterval(this.nonObservables.gamepadInterval);
@@ -904,6 +906,17 @@ class Storage {
 
   onWindowBlur = (ev) => {
     // console.log("window blur", { target: ev.target });
+  };
+
+  onWindowResize = (ev) => {
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
+
+    const { innerWidth, innerHeight } = window;
+    eventBus.fireEvent(constants.eventsData.eventType.windowResized, {
+      width: innerWidth,
+      height: innerHeight,
+    });
   };
 }
 

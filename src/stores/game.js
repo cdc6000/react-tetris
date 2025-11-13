@@ -302,6 +302,15 @@ class Storage {
     eventBus.addEventListener(evenBusID, controlEvent.helpMenuToggle, ({ deviceType, deviceTypeChanged }) => {
       this.helpMenuToggle();
     });
+
+    //
+
+    eventBus.addEventListener(evenBusID, constants.eventsData.eventType.windowResized, ({ width, height }) => {
+      const { cupElem } = this.nonObservables;
+      if (cupElem) {
+        this.nonObservables.cupElemRect = cupElem.getBoundingClientRect();
+      }
+    });
   };
 
   setupDefaultControlSchemes = () => {
