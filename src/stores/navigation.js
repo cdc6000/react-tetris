@@ -17,7 +17,6 @@ import * as constants from "@constants/index";
 import EventBus from "@utils/event-bus";
 import * as objectHelpers from "@utils/object-helpers";
 import * as eventHelpers from "@utils/event-helpers";
-import { layer } from "@constants/viewData";
 
 class Storage {
   constructor(props) {
@@ -355,7 +354,9 @@ class Storage {
   //
 
   getNavComponentData = (props) => {
-    const { isCursorPointerUsed } = this.props.observables;
+    const { mainStore } = this.props;
+    const { inputStore } = mainStore;
+    const { lastDeviceTypeUsed } = inputStore.observables;
     const { navCurrentElemData } = this.observables;
     const {
       canInteract = true,
@@ -370,7 +371,7 @@ class Storage {
     } = props;
 
     const isNavSelected =
-      !isCursorPointerUsed &&
+      lastDeviceTypeUsed != constants.controls.deviceType.mouse &&
       canInteract &&
       navLayerID == navCurrentElemData.layerID &&
       navElemID == navCurrentElemData.elemID;

@@ -76,13 +76,23 @@ export function actionTriggersAnimatedDrawer({ gameStore, triggers, isSmooth = f
 
 export function insertBtnConversion({ gameStore, actions = [], triggers = [], isCompact = false }) {
   const { inputStore } = gameStore;
+  const { lastDeviceTypeUsed } = inputStore.observables;
+
   const drawFunction = isCompact ? actionTriggersAnimatedDrawer : actionTriggersInlineDrawer;
+  
+  const lastDeviceTypeUsedGroup = constants.controls.groupOfDeivce[lastDeviceTypeUsed];
+  const { deviceTypes = [] } = constants.controls.deviceGroupData[lastDeviceTypeUsedGroup] || {};
+  const _triggers = [...inputStore.getAllActiveTriggersForActions({ actions }), ...triggers].filter((trigger) => {
+    const input = constants.controls.getInput(trigger);
+    const { deviceType } = constants.controls.inputData[input] || {};
+    return Boolean(deviceType) && deviceTypes.indexOf(deviceType) >= 0;
+  });
+
   return {
     type: "function",
     whatIsRegExp: true,
     what: `\\$\\{btns\\|([^\\}]+)\\}`,
     to: (key, matchData) => {
-      const _triggers = [...inputStore.getAllActiveTriggersForActions({ actions }), ...triggers];
       return drawFunction({
         gameStore,
         triggers: _triggers,

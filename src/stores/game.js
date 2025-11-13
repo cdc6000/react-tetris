@@ -85,8 +85,6 @@ class Storage {
           shadowFigureY: 0,
         },
       },
-
-      isCursorPointerUsed: false,
     };
     this.nonObservables = {
       evenBusID: "GameStore",
@@ -130,19 +128,13 @@ class Storage {
 
     this.eventBus = new EventBus();
     this.inputStore = new InputStore({
-      eventBus: this.eventBus,
-      observables: this.observables,
-      nonObservables: this.nonObservables,
+      mainStore: this,
     });
     this.viewStore = new ViewStore({
-      eventBus: this.eventBus,
-      observables: this.observables,
-      nonObservables: this.nonObservables,
+      mainStore: this,
     });
     this.navigationStore = new NavigationStore({
-      eventBus: this.eventBus,
-      observables: this.observables,
-      nonObservables: this.nonObservables,
+      mainStore: this,
     });
 
     this.eventBusBind();
@@ -185,52 +177,38 @@ class Storage {
       await eventHelpers.sleep(1);
       navigationStore.updateMenuNavElem();
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavUp, () => {
-      if (this.observables.isCursorPointerUsed) {
-        this.observables.isCursorPointerUsed = false;
-      } else {
-        navigationStore.menuNavVertical(-1);
-      }
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavUp, ({ deviceType, deviceTypeChanged }) => {
+      if (deviceTypeChanged) return;
+      navigationStore.menuNavVertical(-1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavDown, () => {
-      if (this.observables.isCursorPointerUsed) {
-        this.observables.isCursorPointerUsed = false;
-      } else {
-        navigationStore.menuNavVertical(1);
-      }
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavDown, ({ deviceType, deviceTypeChanged }) => {
+      if (deviceTypeChanged) return;
+      navigationStore.menuNavVertical(1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavLeft, () => {
-      if (this.observables.isCursorPointerUsed) {
-        this.observables.isCursorPointerUsed = false;
-      } else {
-        navigationStore.menuNavHorizontal(-1);
-      }
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavLeft, ({ deviceType, deviceTypeChanged }) => {
+      if (deviceTypeChanged) return;
+      navigationStore.menuNavHorizontal(-1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavRight, () => {
-      if (this.observables.isCursorPointerUsed) {
-        this.observables.isCursorPointerUsed = false;
-      } else {
-        navigationStore.menuNavHorizontal(1);
-      }
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavRight, ({ deviceType, deviceTypeChanged }) => {
+      if (deviceTypeChanged) return;
+      navigationStore.menuNavHorizontal(1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavSelect, () => {
-      if (this.observables.isCursorPointerUsed) {
-        this.observables.isCursorPointerUsed = false;
-      } else {
-        const elem = navigationStore.getCurrentNavElem();
-        if (!elem) return;
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavSelect, ({ deviceType, deviceTypeChanged }) => {
+      const elem = navigationStore.getCurrentNavElem();
+      if (!elem) return;
 
-        navigationStore.unfocusAnyElem();
-        elem.click();
+      if (deviceTypeChanged) return;
 
-        setTimeout(() => {
-          navigationStore.updateMenuNavElem();
-        }, 1);
+      navigationStore.unfocusAnyElem();
+      elem.click();
 
-        return { stopInputListenersProcessing: true };
-      }
+      setTimeout(() => {
+        navigationStore.updateMenuNavElem();
+      }, 1);
+
+      return { stopInputListenersProcessing: true };
     });
-    eventBus.addEventListener(evenBusID, controlEvent.menuNavBack, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.menuNavBack, ({ deviceType, deviceTypeChanged }) => {
       const currentLayerID = viewStore.inputFocusViewLayerID;
       if (!currentLayerID) return;
 
@@ -253,56 +231,65 @@ class Storage {
       return { stopInputListenersProcessing: true };
     });
 
-    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, () => {
-      this.observables.isCursorPointerUsed = false;
+    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x + 1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureLeft, () => {
-      this.observables.isCursorPointerUsed = false;
+    eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureLeft, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.moveCurrentFigureAlongX(this.gameModeData.currentFigure.x - 1);
     });
-    eventBus.addEventListener(evenBusID, controlEvent.moveCursorPointer, ({ x }) => {
+    eventBus.addEventListener(evenBusID, controlEvent.moveCursorPointer, ({ x, deviceType, deviceTypeChanged }) => {
       this.nonObservables.lastCursorPointerX = x;
-      this.observables.isCursorPointerUsed = true;
 
       if (viewStore.inputFocusViewLayerID == gamePlayLayerID) {
         this.moveCurrentFigureCupPointX();
       }
     });
-    eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureClockwise, () => {
-      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
-      this.rotateCurrentFigure(1);
-    });
-    eventBus.addEventListener(evenBusID, controlEvent.rotateCurrentFigureCounterclockwise, () => {
-      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
-      this.rotateCurrentFigure(-1);
-    });
-    eventBus.addEventListener(evenBusID, controlEvent.speedUpFallingCurrentFigure, () => {
-      if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
-      this.speedUpFallingCurrentFigure();
-    });
-    eventBus.addEventListener(evenBusID, controlEvent.dropCurrentFigure, () => {
+    eventBus.addEventListener(
+      evenBusID,
+      controlEvent.rotateCurrentFigureClockwise,
+      ({ deviceType, deviceTypeChanged }) => {
+        if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
+        this.rotateCurrentFigure(1);
+      }
+    );
+    eventBus.addEventListener(
+      evenBusID,
+      controlEvent.rotateCurrentFigureCounterclockwise,
+      ({ deviceType, deviceTypeChanged }) => {
+        if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
+        this.rotateCurrentFigure(-1);
+      }
+    );
+    eventBus.addEventListener(
+      evenBusID,
+      controlEvent.speedUpFallingCurrentFigure,
+      ({ deviceType, deviceTypeChanged }) => {
+        if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
+        this.speedUpFallingCurrentFigure();
+      }
+    );
+    eventBus.addEventListener(evenBusID, controlEvent.dropCurrentFigure, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
       this.dropCurrentFigure();
     });
 
-    eventBus.addEventListener(evenBusID, controlEvent.gamePause, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.gamePause, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != gamePlayLayerID) return;
 
       if (this.setPause({ state: true })) {
         viewStore.viewLayerEnable({ layerID: constants.viewData.layer.pauseMenu, isAdditive: true });
       }
     });
-    eventBus.addEventListener(evenBusID, controlEvent.gameUnpause, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.gameUnpause, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != constants.viewData.layer.pauseMenu) return;
 
       if (this.setPause({ state: false })) {
         viewStore.shiftInputFocusToViewLayerID({ layerID: constants.viewData.layer.pauseMenu, isPrevious: true });
       }
     });
-    eventBus.addEventListener(evenBusID, controlEvent.gamePauseToggle, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.gamePauseToggle, ({ deviceType, deviceTypeChanged }) => {
       if (
         viewStore.inputFocusViewLayerID != gamePlayLayerID &&
         viewStore.inputFocusViewLayerID != constants.viewData.layer.pauseMenu
@@ -321,7 +308,7 @@ class Storage {
       }
     });
 
-    eventBus.addEventListener(evenBusID, controlEvent.helpMenuToggle, () => {
+    eventBus.addEventListener(evenBusID, controlEvent.helpMenuToggle, ({ deviceType, deviceTypeChanged }) => {
       this.helpMenuToggle();
     });
   };
@@ -1097,12 +1084,11 @@ class Storage {
   };
 
   moveCurrentFigureCupPointX = () => {
-    const { isCursorPointerUsed } = this.observables;
-    if (!isCursorPointerUsed) return false;
-
     const { inputStore } = this;
-    const { inputOptions } = inputStore.observables;
-    if (!inputOptions.allowFigureMoveByMouse) return;
+    const { lastDeviceTypeUsed, inputOptions } = inputStore.observables;
+    
+    if (lastDeviceTypeUsed != constants.controls.deviceType.mouse) return;
+    if (!inputOptions.allowFigureMoveByMouse) return false;
 
     const { cupElemRect } = this.nonObservables;
     if (!cupElemRect) return;

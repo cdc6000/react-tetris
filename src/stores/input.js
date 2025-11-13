@@ -24,6 +24,7 @@ class Storage {
 
     this.observables = {
       inputState: {},
+      lastDeviceTypeUsed: constants.controls.deviceType.mouse,
 
       controlSchemes: [],
       controlSchemesMaxCount: 20,
@@ -77,7 +78,8 @@ class Storage {
 
   addControlScheme = ({ id, name, namePath, isActive = true, binds = [], props } = {}) => {
     const { controlSchemes, controlSchemesMaxCount } = this.observables;
-    const { lang } = this.props.observables;
+    const { mainStore } = this.props;
+    const { lang } = mainStore.observables;
     if (controlSchemes.length >= controlSchemesMaxCount) return false;
 
     if (!id || controlSchemes.some((_) => _.id == id)) {
@@ -282,7 +284,8 @@ class Storage {
   };
 
   getInput = () => {
-    const { eventBus } = this.props;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { evenBusID, getInputPromise } = this.nonObservables;
     if (getInputPromise) return getInputPromise;
 
@@ -293,7 +296,7 @@ class Storage {
       });
       const cancelInputEvents = [...triggers, constants.controls.getInputEvent(constants.controls.input.f1)];
 
-      eventBus.addEventListener(evenBusID, constants.eventsData.eventType.bindInput, ({ input, state }) => {
+      eventBus.addEventListener(evenBusID, constants.eventsData.eventType.bindInput, ({ input, state, deviceType }) => {
         const inputEvent = constants.controls.getInputEvent(input);
         if (cancelInputEvents.some((_) => _ == inputEvent)) {
           resolve(false);
@@ -309,7 +312,8 @@ class Storage {
   };
 
   getInputDisable = () => {
-    const { eventBus } = this.props;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { evenBusID, getInputPromiseResolve } = this.nonObservables;
 
     if (!getInputPromiseResolve) return;
@@ -406,7 +410,8 @@ class Storage {
   //
 
   inputEventsBind = ({ ids, action, triggers, ignoreActive = false } = {}) => {
-    const { eventBus } = this.props;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { inputOptions } = this.observables;
     const { evenBusID } = this.nonObservables;
 
@@ -422,7 +427,7 @@ class Storage {
 
         const actionData = constants.controls.controlEventData[bind.action];
         const eventID = `${evenBusID}-${controlScheme.id}-${actionData.groupID}`;
-        const fn = async ({ state, __eventType }) => {
+        const fn = async ({ state, deviceType, deviceTypeChanged, __eventType }) => {
           const triggerData = actionData?.getTriggerData({ options: inputOptions }) || {};
           const { onJustPressed, onJustReleased, onIsPressed } = triggerData;
 
@@ -436,7 +441,7 @@ class Storage {
           }
 
           if (fireEvent) {
-            const results = await eventBus.fireEvent(bind.action);
+            const results = await eventBus.fireEvent(bind.action, { deviceType, deviceTypeChanged });
             if (results.some((_) => _?.stopInputListenersProcessing)) {
               return { stopListenerProcessing: true };
             }
@@ -452,10 +457,25 @@ class Storage {
         });
       });
     });
+
+    const moveCursorPointerControlEvent = constants.controls.controlEvent.moveCursorPointer;
+    const moveCursorPointerActionData = constants.controls.controlEventData[moveCursorPointerControlEvent];
+    const moveCursorPointerEventID = `${evenBusID}-${moveCursorPointerActionData.groupID}`;
+    eventBus.addEventListener(moveCursorPointerEventID, constants.controls.input.mouse, ({ x, deviceType }) => {
+      const { lastDeviceTypeUsed } = this.observables;
+      let deviceTypeChanged = false;
+      if (deviceType != lastDeviceTypeUsed) {
+        this.observables.lastDeviceTypeUsed = deviceType;
+        deviceTypeChanged = true;
+      }
+
+      eventBus.fireEvent(moveCursorPointerControlEvent, { x, deviceType, deviceTypeChanged });
+    });
   };
 
   inputEventsUnbind = ({ ids, action, triggers, ignoreActive = false } = {}) => {
-    const { eventBus } = this.props;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { evenBusID } = this.nonObservables;
 
     let { controlSchemes } = this.observables;
@@ -482,21 +502,13 @@ class Storage {
     });
   };
 
-  inputUpdateState = ({ ev, input, isPressed, isReleased, isClicked }) => {
+  inputUpdateState = ({ ev, input, isPressed, isReleased, isClicked, deviceType }) => {
     const { inputState, inputOptions } = this.observables;
     const { inputRepeatDelay, inputRepeatRate } = inputOptions;
-    // console.log({ input, isPressed, isReleased, isClicked });
+    // console.log({ input, isPressed, isReleased, isClicked, deviceType });
 
     if (!inputState[input]) {
-      inputState[input] = {
-        justPressed: false,
-        _isPressed: false,
-        isPressed: false,
-        justReleased: false,
-        timeout: 0,
-        intervalTimeout: 0,
-        interval: 0,
-      };
+      this.clearInputState(input);
     }
     const state = inputState[input];
 
@@ -537,7 +549,7 @@ class Storage {
         isChanged = true;
       }
       if (isChanged) {
-        this.fireInputEvent({ input });
+        this.fireInputEvent({ input, deviceType });
       }
     }, 1);
 
@@ -557,7 +569,7 @@ class Storage {
 
         state.interval = setInterval(() => {
           if (state.isPressed) {
-            this.fireInputEvent({ input });
+            this.fireInputEvent({ input, deviceType });
           } else {
             clearInterval(state.interval);
             state.interval = undefined;
@@ -566,21 +578,65 @@ class Storage {
       }, inputRepeatDelay);
     }
 
-    return this.fireInputEvent({ ev, input });
+    return this.fireInputEvent({ ev, input, deviceType });
   };
 
-  fireInputEvent = ({ ev, input }) => {
-    const { eventBus } = this.props;
+  clearInputState = (input) => {
     const { inputState } = this.observables;
 
-    const state = objectHelpers.deepCopy(inputState[input]);
-    if (eventBus.getListeners(constants.eventsData.eventType.bindInput)?.length) {
-      if (ev?.cancelable) ev?.preventDefault?.();
-      return eventBus.fireEvent(constants.eventsData.eventType.bindInput, { input, state });
+    if (!inputState[input]) {
+      inputState[input] = {
+        justPressed: false,
+        _isPressed: false,
+        isPressed: false,
+        justReleased: false,
+        timeout: 0,
+        intervalTimeout: 0,
+        interval: 0,
+      };
     } else {
+      const state = inputState[input];
+      state.justPressed = false;
+      state._isPressed = false;
+      state.isPressed = false;
+      state.justReleased = false;
+
+      if (state.timeout) {
+        clearTimeout(state.timeout);
+        state.timeout = 0;
+      }
+      if (state.intervalTimeout) {
+        clearTimeout(state.intervalTimeout);
+        state.intervalTimeout = 0;
+      }
+      if (state.interval) {
+        clearInterval(state.interval);
+        state.interval = 0;
+      }
+    }
+  };
+
+  fireInputEvent = ({ ev, input, deviceType }) => {
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
+    const { inputState, lastDeviceTypeUsed } = this.observables;
+    const { getInputPromise } = this.nonObservables;
+
+    const state = objectHelpers.deepCopy(inputState[input]);
+    // if (eventBus.getListeners(constants.eventsData.eventType.bindInput)?.length) {
+    if (getInputPromise) {
+      if (ev?.cancelable) ev?.preventDefault?.();
+      return eventBus.fireEvent(constants.eventsData.eventType.bindInput, { input, state, deviceType });
+    } else {
+      let deviceTypeChanged = false;
+      if (deviceType != lastDeviceTypeUsed) {
+        this.observables.lastDeviceTypeUsed = deviceType;
+        deviceTypeChanged = true;
+      }
+
       const inputData = constants.controls.inputData[input] || {};
       if (inputData.preventDefault) ev?.preventDefault?.();
-      return eventBus.fireEvent(constants.controls.getInputEvent(input), { state });
+      return eventBus.fireEvent(constants.controls.getInputEvent(input), { state, deviceType, deviceTypeChanged });
     }
   };
 
@@ -632,39 +688,64 @@ class Storage {
     const keyCode = ev.code || ev.key || ev.keyCode;
     // console.log(`keyPressed: '${keyCode}'`);
 
-    this.inputUpdateState({ ev, input: keyCode, isPressed: true });
+    this.inputUpdateState({ ev, input: keyCode, isPressed: true, deviceType: constants.controls.deviceType.keyboard });
   };
 
   onKeyRelease = (ev) => {
     const keyCode = ev.code || ev.key || ev.keyCode;
     //console.log(`keyReleased: '${keyCode}'`);
 
-    this.inputUpdateState({ ev, input: keyCode, isReleased: true });
+    this.inputUpdateState({ ev, input: keyCode, isReleased: true, deviceType: constants.controls.deviceType.keyboard });
   };
 
   onMouseMove = (ev) => {
     const callTime = Date.now();
     if (callTime - this.nonObservables.lastMouseMoveTime < this.nonObservables.mouseMoveTimeoutMs) return;
 
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
+
     this.nonObservables.lastMouseMoveTime = callTime;
-    this.props.eventBus.fireEvent(constants.controls.controlEvent.moveCursorPointer, {
+    // eventBus.fireEvent(constants.controls.controlEvent.moveCursorPointer, {
+    eventBus.fireEvent(constants.controls.input.mouse, {
       x: ev.pageX,
+      deviceType: constants.controls.deviceType.mouse,
     });
   };
 
   onMouseDown = (ev) => {
     if (ev.button == 0) {
-      this.inputUpdateState({ ev, input: constants.controls.input.mouseLeftButton, isPressed: true });
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseLeftButton,
+        isPressed: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     } else if (ev.button == 2) {
-      this.inputUpdateState({ ev, input: constants.controls.input.mouseRightButton, isPressed: true });
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseRightButton,
+        isPressed: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     }
   };
 
   onMouseUp = (ev) => {
     if (ev.button == 0) {
-      this.inputUpdateState({ ev, input: constants.controls.input.mouseLeftButton, isReleased: true });
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseLeftButton,
+        isReleased: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     } else if (ev.button == 2) {
-      this.inputUpdateState({ ev, input: constants.controls.input.mouseRightButton, isReleased: true });
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseRightButton,
+        isReleased: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     }
   };
 
@@ -674,9 +755,19 @@ class Storage {
 
   onWheel = (ev) => {
     if (ev.deltaY > 0) {
-      this.inputUpdateState({ ev, input: constants.controls.input.mouseWheelDown, isClicked: true });
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseWheelDown,
+        isClicked: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     } else if (ev.deltaY) {
-      this.inputUpdateState({ ev, input: constants.controls.input.mouseWheelUp, isClicked: true });
+      this.inputUpdateState({
+        ev,
+        input: constants.controls.input.mouseWheelUp,
+        isClicked: true,
+        deviceType: constants.controls.deviceType.mouse,
+      });
     }
   };
 
@@ -690,27 +781,51 @@ class Storage {
     const { gamepadsState: prevGamepadsState } = this.nonObservables;
     // console.log({ gamepadsState, prevGamepadsState });
 
-    // const gamepadCount = gamepadsState.filter(Boolean).length;
-    let isFirstGamepad = true;
-    gamepadsState.forEach((gamepadState, gpIndex) => {
-      if (!gamepadState) return;
+    const prevGamepadCount = prevGamepadsState.filter(Boolean).length;
+    const gamepadCount = gamepadsState.filter(Boolean).length;
+    if (prevGamepadCount > 0 && !gamepadCount) {
+      gamepadsState.forEach((gamepadState, gpIndex) => {
+        constants.controls.gamepadStandartButtonMapping.forEach((inputName) => {
+          if (!gpIndex) {
+            this.clearInputState(inputName);
+          } else {
+            this.clearInputState(`P${gpIndex}|${inputName}`);
+          }
+        });
+      });
+    } else {
+      let isFirstGamepad = true;
+      gamepadsState.forEach((gamepadState, gpIndex) => {
+        const prevGamepadState = Boolean(prevGamepadsState[gpIndex]);
+        if (prevGamepadState && !gamepadState) {
+          constants.controls.gamepadStandartButtonMapping.forEach((inputName) => {
+            if (isFirstGamepad) {
+              this.clearInputState(inputName);
+            } else {
+              this.clearInputState(`P${gpIndex}|${inputName}`);
+            }
+          });
+        } else if (gamepadState) {
+          gamepadState.buttons.forEach((buttonState, bIndex) => {
+            const inputName =
+              gamepadState.mapping == "standard" ?
+                constants.controls.gamepadStandartButtonMapping[bIndex]
+              : `B${bIndex}`;
+            const input = isFirstGamepad ? inputName : `P${gpIndex}|${inputName}`;
+            const prevButtonState = prevGamepadsState[gpIndex]?.buttons[bIndex];
+            const isPressed = buttonState.value > 0 || buttonState.pressed;
+            const wasPressed = prevButtonState ? prevButtonState.value > 0 || prevButtonState.pressed : false;
+            if (isPressed && !wasPressed) {
+              this.inputUpdateState({ input, isPressed: true, deviceType: constants.controls.deviceType.gamepad });
+            } else if (!isPressed && wasPressed) {
+              this.inputUpdateState({ input, isReleased: true, deviceType: constants.controls.deviceType.gamepad });
+            }
+          });
 
-      gamepadState.buttons.forEach((buttonState, bIndex) => {
-        const inputName =
-          gamepadState.mapping == "standard" ? constants.controls.gamepadStandartButtonMapping[bIndex] : `B${bIndex}`;
-        const input = isFirstGamepad ? inputName : `P${gpIndex}|${inputName}`;
-        const prevButtonState = prevGamepadsState[gpIndex]?.buttons[bIndex];
-        const isPressed = buttonState.value > 0 || buttonState.pressed;
-        const wasPressed = prevButtonState ? prevButtonState.value > 0 || prevButtonState.pressed : false;
-        if (isPressed && !wasPressed) {
-          this.inputUpdateState({ input, isPressed: true });
-        } else if (!isPressed && wasPressed) {
-          this.inputUpdateState({ input, isReleased: true });
+          isFirstGamepad = false;
         }
       });
-
-      isFirstGamepad = false;
-    });
+    }
 
     this.nonObservables.gamepadsState = gamepadsState;
   };

@@ -66,6 +66,9 @@ class Storage {
   setViewLayerData = ({ layerID, data = {}, override = true }) => {
     if (!layerID || layerID == constants.viewData.layer.none) return false;
 
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
+
     const { viewData } = this.observables;
     viewData.viewLayers[layerID] = override ? data : { ...viewData.viewLayers[layerID], ...data };
     if (!viewData.viewLayerList.some((_) => _ == layerID)) {
@@ -73,7 +76,7 @@ class Storage {
     }
 
     const layerDataCopy = objectHelpers.deepCopy(viewData.viewLayers[layerID]);
-    this.props.eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
+    eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
       layerID,
       layerData: layerDataCopy,
     });
@@ -83,6 +86,8 @@ class Storage {
 
   viewLayerEnable = ({ layerID, isAdditive = false, transferFocus = true }) => {
     if (!layerID || layerID == constants.viewData.layer.none) return;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { viewData } = this.observables;
 
     if (!isAdditive) {
@@ -118,14 +123,17 @@ class Storage {
     }
 
     const layerDataCopy = objectHelpers.deepCopy(layerData);
-    this.props.eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
+    eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
       layerID,
       layerData: layerDataCopy,
     });
   };
 
   viewLayerDisable = ({ layerID, fireEvent = true, isSafe = true } = {}) => {
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { viewData } = this.observables;
+
     if (layerID == undefined) {
       if (isSafe && viewData.inputFocusViewLayerIDs.length <= 1) return;
       layerID = viewData.inputFocusViewLayerIDs.pop();
@@ -146,7 +154,7 @@ class Storage {
 
     if (fireEvent) {
       const layerDataCopy = objectHelpers.deepCopy(layerData);
-      this.props.eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
+      eventBus.fireEvent(constants.eventsData.eventType.viewLayerUpdate, {
         layerID,
         layerData: layerDataCopy,
       });
@@ -180,7 +188,8 @@ class Storage {
   //
 
   optionSelectSubscribe = () => {
-    const { eventBus } = this.props;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { evenBusID, optionSelectPromise } = this.nonObservables;
     if (optionSelectPromise) return optionSelectPromise;
 
@@ -196,7 +205,8 @@ class Storage {
   };
 
   optionSelectUnsubscribe = () => {
-    const { eventBus } = this.props;
+    const { mainStore } = this.props;
+    const { eventBus } = mainStore;
     const { evenBusID, optionSelectPromiseResolve } = this.nonObservables;
 
     if (!optionSelectPromiseResolve) return;

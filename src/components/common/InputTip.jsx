@@ -26,6 +26,7 @@ export default observer(
       let iconPath;
       let description;
       let isGamepadButton = false;
+      let isGamepadAxis = false;
       if (_input) {
         // const inputData = constants.controls.inputData[_input];
         // if (inputData) {
@@ -36,14 +37,11 @@ export default observer(
           let nameGetStringResult = getLangString({ lang, pathArray: ["inputName", _input] });
           if (nameGetStringResult.notFound) {
             content = _input;
-            if (content.indexOf("Key") == 0) {
-              content = content.substring(3);
-            } else if (content.indexOf("Digit") == 0) {
-              content = content.substring(5);
-            } else if (content.indexOf("GPB_") == 0) {
-              content = content.substring(4);
-              isGamepadButton = true;
-            }
+            ["Key", "Digit", "GPB_", "GPA_"].forEach((replace) => {
+              if (content.indexOf(replace) == 0) {
+                content = content.substring(replace.length);
+              }
+            });
           } else {
             content = stringConverter(nameGetStringResult.string);
           }
@@ -57,7 +55,7 @@ export default observer(
 
       return (
         <div
-          className={`input-tip${iconPath ? " icon" : ""}${isGamepadButton ? " gamepad-button" : ""}`}
+          className={`input-tip${iconPath ? " icon" : ""}${isGamepadButton ? " gamepad-button" : ""}${isGamepadAxis ? " gamepad-axis" : ""}`}
           style={{ backgroundImage: iconPath ? `url("${iconPath}")` : undefined }}
           title={description || undefined}
         >
