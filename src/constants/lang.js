@@ -146,6 +146,7 @@ export const strings = {
 
     inputDescription: {
       [controls.input.mouseLeftButton]: "Левая кнопка мыши",
+      [controls.input.mouseMiddleButton]: "Средняя кнопка мыши",
       [controls.input.mouseRightButton]: "Правая кнопка мыши",
       [controls.input.mouseWheelUp]: "Прокрутка колеса мыши вверх",
       [controls.input.mouseWheelDown]: "Прокрутка колеса мыши вниз",
