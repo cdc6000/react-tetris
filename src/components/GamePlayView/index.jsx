@@ -13,10 +13,8 @@ export default observer(
     constructor(props) {
       super(props);
 
-      // TODO
-      this.gameMode = constants.gameMode.classic;
-      this.viewID = `${constants.viewData.view.gamePlayView}-${this.gameMode}`;
-      this.layerID = `${constants.viewData.layer.gamePlayView}-${this.gameMode}`;
+      this.viewID = constants.viewData.view.gamePlayView;
+      this.layerID = constants.viewData.layer.gamePlayView;
     }
 
     get canInteract() {
@@ -37,16 +35,14 @@ export default observer(
     render() {
       const { viewID } = this;
       const { gameStore } = this.props;
-      const { viewStore, gameModeData, cellsMaxSize } = gameStore;
+      const { viewStore, cellsMaxSize } = gameStore;
       const { viewData } = viewStore.observables;
-      const { randomFigureTypePool, score, level, cup, holdFigure } = gameModeData;
-      const { lang, gameMode } = gameStore.observables;
+      const { lang, gameData, gameOptions } = gameStore.observables;
+      const { randomFigureTypePool, score, lines, level, cup, holdFigure } = gameData;
       const { cellSizePx } = gameStore.nonObservables;
       const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
-
-      if (gameMode != this.gameMode) return null;
 
       return (
         <div
@@ -120,7 +116,7 @@ export default observer(
                     <div className="score-header">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "scoreTitle"] })}
                     </div>
-                    <div className="score">{score}</div>
+                    <div className="score">{`${lines} | ${score}`}</div>
                     <br />
 
                     <div className="level-header">
@@ -129,13 +125,17 @@ export default observer(
                     <div className="level">{level + 1}</div>
                     <br />
 
-                    <div className="hold-figure-header">
-                      {getLangStringConverted({ lang, pathArray: ["gameView", "holdFigureTitle"] })}
-                    </div>
-                    <FigureView
-                      gameStore={gameStore}
-                      type={holdFigure.type}
-                    />
+                    {gameOptions.enableHold && (
+                      <Fragment>
+                        <div className="hold-figure-header">
+                          {getLangStringConverted({ lang, pathArray: ["gameView", "holdFigureTitle"] })}
+                        </div>
+                        <FigureView
+                          gameStore={gameStore}
+                          type={holdFigure.type}
+                        />
+                      </Fragment>
+                    )}
 
                     <div className="next-figure-header">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "nextFigureTitle"] })}

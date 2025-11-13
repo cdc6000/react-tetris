@@ -98,7 +98,7 @@ export const strings = {
       tipHelp: "Помощь&nbsp;${btns|или}",
       tipPause: "Пауза&nbsp;${btns|или}",
 
-      scoreTitle: "Очки",
+      scoreTitle: "Линии | Очки",
       levelTitle: "Уровень",
       holdFigureTitle: "Запасная фигура",
       nextFigureTitle: "Следующие фигуры",

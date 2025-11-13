@@ -7,7 +7,7 @@ import * as viewData from "./viewData";
 import gameState from "./game-state";
 import gameMode from "./game-mode";
 
-import figureType from "./figure-type";
+import * as gameplay from "./gameplay";
 import cellTypes from "./cell-types";
 
-export { lang, controls, eventsData, viewData, gameState, gameMode, figureType, cellTypes };
+export { lang, controls, eventsData, viewData, gameState, gameMode, gameplay, cellTypes };

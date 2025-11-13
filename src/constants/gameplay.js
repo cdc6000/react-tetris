@@ -1,4 +1,4 @@
-const figureType = {
+export const figureType = {
   none: 0,
   "I-shape": 1,
   "J-shape": 2,
@@ -9,7 +9,7 @@ const figureType = {
   "Z-shape": 7,
 };
 
-const figureTypeData = {
+export const figureTypeData = {
   [figureType["I-shape"]]: {
     //prettier-ignore
     rotations: [
@@ -278,4 +278,8 @@ const figureTypeData = {
   },
 };
 
-export default Object.assign(figureType, { figureTypeData });
+export const actionType = {
+  clearLines: "clearLines",
+  softDrop: "softDrop",
+  hardDrop: "hardDrop",
+};
