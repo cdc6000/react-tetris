@@ -28,7 +28,7 @@ class Storage {
       lang: Object.keys(constants.lang.strings)[0],
 
       gameState: constants.gameplay.gameState.pause,
-      gameMode: constants.gameplay.gameMode.none,
+      gameMode: constants.gameplay.gameMode.classic,
       gameOptions: {
         enableHold: true,
         enableLevels: true,
@@ -106,7 +106,7 @@ class Storage {
       setupDefaultControlSchemes: action,
       viewStateInit: action,
 
-      gameStartClassic: action,
+      gameModeUpdate: action,
       gameStart: action,
       gameEnd: action,
       gameOver: action,
@@ -354,10 +354,7 @@ class Storage {
     //
 
     eventBus.addEventListener(evenBusID, constants.eventsData.eventType.windowResized, ({ width, height }) => {
-      const { cupElem } = this.nonObservables;
-      if (cupElem) {
-        this.nonObservables.cupElemRect = cupElem.getBoundingClientRect();
-      }
+      this.cupRectUpdate();
     });
   };
 
@@ -978,6 +975,13 @@ class Storage {
     viewStore.optionSelectUnsubscribe();
   };
 
+  cupRectUpdate = () => {
+    const { cupElem } = this.nonObservables;
+    if (cupElem) {
+      this.nonObservables.cupElemRect = cupElem.getBoundingClientRect();
+    }
+  };
+
   //
 
   get cellsMaxSize() {
@@ -1002,20 +1006,12 @@ class Storage {
 
   //
 
-  gameStartClassic = () => {
-    this.observables.gameMode = constants.gameplay.gameMode.classic;
-    this.gameStart();
-    this.viewStore.viewLayerEnable({
-      layerID: constants.viewData.layer.gamePlayView,
-    });
-  };
-
-  gameStart = () => {
-    const { cellsMaxSize } = this;
+  gameModeUpdate = () => {
     const { gameMode, gameOptions, gameData } = this.observables;
+    const { gameData: gameDataDefaults } = this.defaults.observables;
 
     if (gameMode == constants.gameplay.gameMode.classic) {
-      const { cup, currentFigure } = gameData;
+      gameData.figureTypesAllowed = objectHelpers.deepCopy(gameDataDefaults.figureTypesAllowed);
       gameData.figureTypesAllowed.push(
         constants.gameplay.figureType.I,
         constants.gameplay.figureType.J,
@@ -1026,6 +1022,7 @@ class Storage {
         constants.gameplay.figureType.O
       );
 
+      gameData.levelData = objectHelpers.deepCopy(gameDataDefaults.levelData);
       if (gameOptions.enableLevels) {
         // const levels = 15;
         const levels = 10;
@@ -1042,6 +1039,15 @@ class Storage {
           });
         }
       }
+    }
+  };
+
+  gameStart = () => {
+    const { cellsMaxSize } = this;
+    const { gameMode, gameOptions, gameData } = this.observables;
+
+    if (gameMode == constants.gameplay.gameMode.classic) {
+      const { cup, currentFigure } = gameData;
 
       this.createGrid(cup.data, cup.width, cup.height);
 
@@ -1054,6 +1060,10 @@ class Storage {
       this.generateCupView();
     }
 
+    this.viewStore.viewLayerEnable({
+      layerID: constants.viewData.layer.gamePlayView,
+    });
+
     this.observables.gameState = constants.gameplay.gameState.play;
     this.startGameLoop();
   };
@@ -1063,7 +1073,7 @@ class Storage {
 
     const { gameMode, gameData } = this.observables;
     const { cup, currentFigure } = gameData;
-    const gameDataDefaults = this.defaults.observables.gameData;
+    const { gameData: gameDataDefaults } = this.defaults.observables;
 
     if (gameMode == constants.gameplay.gameMode.classic) {
       gameData.score = gameDataDefaults.score;

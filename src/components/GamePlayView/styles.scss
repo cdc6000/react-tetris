@@ -117,7 +117,7 @@
         .right-col-wrapper {
           width: 50%;
     
-          .content {
+          > .content {
             height: var(--cup-height);
           }
         }
@@ -170,24 +170,26 @@
             gap: 10px;
             padding: 10px;
             box-sizing: border-box;
-    
-            .score-header,
-            .level-header,
-            .hold-figure-header,
-            .next-figure-header {
-              font-weight: bold;
-            }
-    
+
             .figure-view {
               display: flex;
               flex-wrap: wrap;
-              width: calc(var(--next-figure-cell-size) * var(--next-figure-cells-hor));
-              height: calc(var(--next-figure-cell-size) * var(--next-figure-cells-ver));
+              width: calc(var(--next-figure-cell-size) * var(--cells-x));
+              height: calc(var(--next-figure-cell-size) * var(--cells-y));
     
               .figure-cell {
                 width: var(--next-figure-cell-size);
                 height: var(--next-figure-cell-size);
               }
+            }
+    
+            > .header {
+              font-weight: bold;
+            }
+    
+            > .content {
+              display: flex;
+              gap: 10px;
             }
           }
         }

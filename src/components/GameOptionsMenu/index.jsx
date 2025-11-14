@@ -43,6 +43,63 @@ export default observer(
                 };
               },
             },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "cupWidth"],
+              component: NumberInput,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { cellsMaxSize } = gameStore;
+                const { gameData } = gameStore.observables;
+                const { gameData: defaultGameData } = gameStore.defaults.observables;
+
+                return {
+                  className: "cup-width-input",
+                  navElemID: `${viewID}-cupWidthInput`,
+                  navGroupID: `cupWidthInput`,
+                  value: gameData.cup.width,
+                  valueDefault: defaultGameData.cup.width,
+                  valueMin: cellsMaxSize.width + 1,
+                  valueMax: 20,
+                  step: 1,
+                  onChange: (value) => {
+                    gameData.cup.width = value;
+                    const freeCells = value - cellsMaxSize.width;
+                    let startX = 0;
+                    if (freeCells > 0) {
+                      startX = Math.ceil(freeCells / 2) + (freeCells % 2 > 0 ? 0 : 1);
+                    }
+                    gameData.cup.figureStart.x = startX;
+                    gameStore.cupRectUpdate();
+                  },
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "cupHeight"],
+              component: NumberInput,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameData } = gameStore.observables;
+                const { gameData: defaultGameData } = gameStore.defaults.observables;
+
+                return {
+                  className: "cup-height-input",
+                  navElemID: `${viewID}-cupHeightInput`,
+                  navGroupID: `cupHeightInput`,
+                  value: gameData.cup.height,
+                  valueDefault: defaultGameData.cup.height,
+                  valueMin: 10,
+                  valueMax: 30,
+                  step: 1,
+                  onChange: (value) => {
+                    gameData.cup.height = value;
+                    gameStore.cupRectUpdate();
+                  },
+                };
+              },
+            },
           ],
         },
         {
@@ -281,7 +338,7 @@ export default observer(
                   navIsHorizontal={true}
                   navGroupID={`${viewID}-controlBtns`}
                   onClick={() => {
-                    gameStore.gameStartClassic();
+                    gameStore.gameStart();
                   }}
                 />
               </div>

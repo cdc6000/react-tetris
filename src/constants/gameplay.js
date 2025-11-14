@@ -351,7 +351,6 @@ export const actionType = {
 };
 
 export const gameMode = {
-  none: 0,
   classic: "classic",
 };
 

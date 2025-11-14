@@ -54,6 +54,7 @@ export default observer(
                     namePath={["mainMenu", "playBtnTitle"]}
                     canInteract={canInteract}
                     onClick={() => {
+                      gameStore.gameModeUpdate();
                       viewStore.viewLayerEnable({
                         layerID: constants.viewData.layer.gameOptionsMenu,
                         isAdditive: true,

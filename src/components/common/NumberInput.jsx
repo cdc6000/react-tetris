@@ -41,6 +41,10 @@ export default observer(
         content = getLangStringConverted({ lang, pathArray: namePath });
       }
 
+      const isValueDefault = value == valueDefault;
+      const isValueMax = value + step > valueMax;
+      const isValueMin = value - step < valueMin;
+
       return (
         <div
           className={`number-input${className ? " " + className : ""}`}
@@ -54,11 +58,10 @@ export default observer(
               navLayerID={navLayerID}
               navElemID={`${navElemID}-numberSubtractBtn`}
               canInteract={canInteract}
-              disabled={disabled}
+              disabled={disabled || isValueMin}
               onClick={() => {
-                const newVal = value - step;
-                if (newVal < valueMin) return;
-                onChange?.(newVal);
+                if (isValueMin) return;
+                onChange?.(value - step);
               }}
               navIsHorizontal={true}
               navGroupID={navGroupID}
@@ -72,11 +75,10 @@ export default observer(
               navLayerID={navLayerID}
               navElemID={`${navElemID}-numberAddBtn`}
               canInteract={canInteract}
-              disabled={disabled}
+              disabled={disabled || isValueMax}
               onClick={() => {
-                const newVal = value + step;
-                if (newVal > valueMax) return;
-                onChange?.(newVal);
+                if (isValueMax) return;
+                onChange?.(value + step);
               }}
               navIsHorizontal={true}
               navGroupID={navGroupID}
@@ -89,7 +91,7 @@ export default observer(
               navLayerID={navLayerID}
               navElemID={`${navElemID}-numberResetBtn`}
               canInteract={canInteract}
-              disabled={disabled || value == valueDefault}
+              disabled={disabled || isValueDefault}
               onClick={() => {
                 onChange?.(valueDefault);
               }}

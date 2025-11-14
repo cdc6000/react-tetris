@@ -51,8 +51,6 @@ export default observer(
             "--cell-size": `${cellSizePx}px`,
             "--cup-cells-hor": `${cup.width}`,
             "--cup-cells-ver": `${cup.height}`,
-            "--next-figure-cells-hor": `${cellsMaxSize.width}`,
-            "--next-figure-cells-ver": `${cellsMaxSize.height}`,
           }}
         >
           <div className="single-cup-view">
@@ -114,45 +112,49 @@ export default observer(
               <div className="right-col-wrapper">
                 <div className="content">
                   <div className="game-state-wrapper">
-                    <div className="score-header">
+                    <div className="header score">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "scoreTitle"] })}
                     </div>
-                    <div className="score">{`${lines} | ${score}`}</div>
+                    <div className="content score">{`${lines} | ${score}`}</div>
                     <br />
 
-                    <div className="level-header">
+                    <div className="header level">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "levelTitle"] })}
                     </div>
-                    <div className="level">{level + 1}</div>
+                    <div className="content level">{level + 1}</div>
                     <br />
 
                     {gameOptions.enableHold && (
                       <Fragment>
-                        <div className="hold-figure-header">
+                        <div className="header hold-figure">
                           {getLangStringConverted({ lang, pathArray: ["gameView", "holdFigureTitle"] })}
                         </div>
-                        <FigureView
-                          gameStore={gameStore}
-                          type={holdFigure.type}
-                        />
+                        <div className="content hold-figure">
+                          <FigureView
+                            gameStore={gameStore}
+                            type={holdFigure.type}
+                          />
+                        </div>
                       </Fragment>
                     )}
 
-                    <div className="next-figure-header">
+                    <div className="header next-figure">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "nextFigureTitle"] })}
                     </div>
-                    <FigureView
-                      gameStore={gameStore}
-                      type={randomFigureTypePool[0]}
-                    />
-                    <FigureView
-                      gameStore={gameStore}
-                      type={randomFigureTypePool[1]}
-                    />
-                    <FigureView
-                      gameStore={gameStore}
-                      type={randomFigureTypePool[2]}
-                    />
+                    <div className="content next-figure">
+                      <FigureView
+                        gameStore={gameStore}
+                        type={randomFigureTypePool[0]}
+                      />
+                      <FigureView
+                        gameStore={gameStore}
+                        type={randomFigureTypePool[1]}
+                      />
+                      <FigureView
+                        gameStore={gameStore}
+                        type={randomFigureTypePool[2]}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

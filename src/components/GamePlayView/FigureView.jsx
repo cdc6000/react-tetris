@@ -18,16 +18,37 @@ export default observer(
         type,
         rotation: 0,
       });
+
       let cellsData;
+      let cellsX;
+      let cellsY = cellsMaxSize.height;
       if (!result) {
         cellsData = [];
         gameStore.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
+        cellsX = cellsMaxSize.width;
+        // cellsY = cellsMaxSize.height;
       } else {
-        cellsData = result.cellsData;
+        const { pXMin, pXMax, pYMin, pYMax, cellsW, cellsH } = result;
+        cellsData = result.cellsData
+          .map((row, rIndex) => {
+            // if (rIndex < pYMin || rIndex > pYMax) return null;
+            return row
+              .map((cell, cIndex) => {
+                if (cIndex < pXMin || cIndex > pXMax) return null;
+                return cell;
+              })
+              .filter(Boolean);
+          })
+          .filter(Boolean);
+        cellsX = cellsW;
+        // cellsY = cellsH;
       }
 
       return (
-        <div className="figure-view">
+        <div
+          className="figure-view"
+          style={{ "--cells-x": cellsX, "--cells-y": cellsY }}
+        >
           {cellsData.map((row, rIndex) => {
             return row.map((cell, cIndex) => {
               const cellTypeData = constants.gameplay.cellTypeData[cell.type] || {};

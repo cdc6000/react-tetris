@@ -104,6 +104,8 @@ export const strings = {
         sectionTitle: "Режим игры",
 
         enableHold: "Разрешить запас фигур",
+        cupWidth: "Ширина игрового поля",
+        cupHeight: "Высота игрового поля",
       },
 
       gamePlay: {
