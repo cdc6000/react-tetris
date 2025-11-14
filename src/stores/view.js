@@ -50,14 +50,16 @@ class Storage {
       // computed
       inputFocusViewLayerID: computed,
     });
+  }
 
+  setDefaults = () => {
     this.defaults = {
       observables: objectHelpers.deepCopy(this.observables),
       nonObservables: objectHelpers.deepCopy(this.nonObservables),
     };
-  }
+  };
 
-  
+  //
 
   getViewLayerData = (layerID) => {
     return this.observables.viewData.viewLayers[layerID];

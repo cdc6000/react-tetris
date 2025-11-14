@@ -51,12 +51,14 @@ class Storage {
 
       // computed
     });
+  }
 
+  setDefaults = () => {
     this.defaults = {
       observables: objectHelpers.deepCopy(this.observables),
       nonObservables: objectHelpers.deepCopy(this.nonObservables),
     };
-  }
+  };
 
   //
 

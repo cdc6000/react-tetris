@@ -51,6 +51,8 @@ export const strings = {
           groupFigureControlTitle: "Управление фигурой",
           groupGameplayTitle: "Игровой процесс",
           groupMiscTitle: "Общее",
+
+          resetBtnTitle: "Сбросить схему по-умолчанию",
         },
       },
     },

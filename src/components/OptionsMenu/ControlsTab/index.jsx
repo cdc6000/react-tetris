@@ -196,6 +196,20 @@ export default observer(
                 layerID={layerID}
                 viewID={`${viewID}-${tabID}`}
               />
+
+              <div className="btn-wrapper">
+                <Button
+                  gameStore={gameStore}
+                  className={`control-scheme-reset`}
+                  namePath={["optionsMenu", "controlsTab", "controlScheme", "resetBtnTitle"]}
+                  navLayerID={layerID}
+                  navElemID={`${viewID}-${tabID}-controlSchemeReset`}
+                  canInteract={canInteract}
+                  onClick={() => {
+                    inputStore.resetControlScheme({ id: selectedControlSchemeID });
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

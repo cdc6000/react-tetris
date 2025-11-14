@@ -67,12 +67,14 @@ class Storage {
     });
 
     this.inputsBind();
+  }
 
+  setDefaults = () => {
     this.defaults = {
       observables: objectHelpers.deepCopy(this.observables),
       nonObservables: objectHelpers.deepCopy(this.nonObservables),
     };
-  }
+  };
 
   //
 
@@ -134,11 +136,9 @@ class Storage {
 
     const controlScheme = controlSchemes.find((_) => _.id == id);
     if (!controlScheme) return false;
-    if (!controlScheme.isDefault) return false;
 
     const defaultControlScheme = this.defaults.observables.controlSchemes.find((_) => _.id == id);
     if (!defaultControlScheme) return false;
-    if (!defaultControlScheme.isDefault) return false;
 
     if (controlScheme.isActive) {
       this.inputEventsUnbind({ ids: [controlScheme.id], ignoreActive: true });

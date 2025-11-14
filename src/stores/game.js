@@ -134,6 +134,9 @@ class Storage {
       observables: objectHelpers.deepCopy(this.observables),
       nonObservables: objectHelpers.deepCopy(this.nonObservables),
     };
+    this.inputStore.setDefaults();
+    this.viewStore.setDefaults();
+    this.navigationStore.setDefaults();
 
     this.init();
   }
