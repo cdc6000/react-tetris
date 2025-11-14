@@ -90,7 +90,9 @@ class Storage {
       cupElem: undefined,
       cupElemRect: undefined,
 
-      gameLoopTimeout: 0,
+      gameLoopData: {
+        timeout: 0,
+      },
       currentFigureLockTimeout: 0,
       lastDropTimestamp: 0,
     };
@@ -238,7 +240,7 @@ class Storage {
       if (this.moveCurrentFigureAlongX(gameData.currentFigure.x + 1)) {
         if (gameOptions.enableInfiniteMove) {
           if (this.clearCurrentFigureLockTimeout()) {
-            this.callNextGameLoopImmediately();
+            this.callGameLoop();
           }
         }
       }
@@ -248,7 +250,7 @@ class Storage {
       if (this.moveCurrentFigureAlongX(gameData.currentFigure.x - 1)) {
         if (gameOptions.enableInfiniteMove) {
           if (this.clearCurrentFigureLockTimeout()) {
-            this.callNextGameLoopImmediately();
+            this.callGameLoop();
           }
         }
       }
@@ -260,7 +262,7 @@ class Storage {
         if (this.moveCurrentFigureCupPointX()) {
           if (gameOptions.enableInfiniteMove) {
             if (this.clearCurrentFigureLockTimeout()) {
-              this.callNextGameLoopImmediately();
+              this.callGameLoop();
             }
           }
         }
@@ -274,7 +276,7 @@ class Storage {
         if (this.rotateCurrentFigure(1)) {
           if (gameOptions.enableInfiniteRotation) {
             if (this.clearCurrentFigureLockTimeout()) {
-              this.callNextGameLoopImmediately();
+              this.callGameLoop();
             }
           }
         }
@@ -288,7 +290,7 @@ class Storage {
         if (this.rotateCurrentFigure(-1)) {
           if (gameOptions.enableInfiniteRotation) {
             if (this.clearCurrentFigureLockTimeout()) {
-              this.callNextGameLoopImmediately();
+              this.callGameLoop();
             }
           }
         }
@@ -1029,7 +1031,7 @@ class Storage {
     }
 
     this.observables.gameState = constants.gameplay.gameState.play;
-    this.setGameLoopTimeout();
+    this.startGameLoop();
   };
 
   gameEnd = () => {
@@ -1057,7 +1059,7 @@ class Storage {
       currentFigure.cells.data = objectHelpers.deepCopy(gameDataDefaults.currentFigure.cells.data);
     }
 
-    this.clearGameLoopTimeout();
+    this.stopGameLoop();
   };
 
   gameRestart = () => {
@@ -1066,7 +1068,7 @@ class Storage {
   };
 
   gameOver = () => {
-    this.clearGameLoopTimeout();
+    this.stopGameLoop();
     this.observables.gameState = constants.gameplay.gameState.pause;
     this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.gameOverMenu, isAdditive: true });
   };
@@ -1112,9 +1114,9 @@ class Storage {
 
       if (stateChanged) {
         if (this.observables.gameState == play) {
-          this.setGameLoopTimeout();
+          this.startGameLoop();
         } else {
-          this.clearGameLoopTimeout();
+          this.stopGameLoop();
         }
         return true;
       }
@@ -1303,11 +1305,11 @@ class Storage {
     currentFigure.y = y;
     this.generateCupView();
 
-    this.clearGameLoopTimeout();
+    this.stopGameLoop();
     if (gameOptions.enableNonBlockingHardDrop) {
       this.setCurrentFigureLockTimeout();
     } else {
-      this.tryCurrentFigureLock();
+      this.lockCurrentFigure();
     }
 
     return true;
@@ -1320,17 +1322,15 @@ class Storage {
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
 
-    this.clearGameLoopTimeout();
-    if (gameOptions.enableNonBlockingSoftDrop) {
-      if (this.moveCurrentFigureDown()) {
-        this.addScore({ action: constants.gameplay.actionType.softDrop });
-        this.setGameLoopTimeout();
-      } else {
-        this.setCurrentFigureLockTimeout();
-      }
+    if (this.moveCurrentFigureDown()) {
+      this.resetGameLoop();
+      this.addScore({ action: constants.gameplay.actionType.softDrop });
     } else {
-      if (!this.tryCurrentFigureLock()) {
-        this.addScore({ action: constants.gameplay.actionType.softDrop });
+      this.stopGameLoop();
+      if (gameOptions.enableNonBlockingSoftDrop) {
+        this.setCurrentFigureLockTimeout();
+      } else {
+        this.lockCurrentFigure();
       }
     }
 
@@ -1391,7 +1391,11 @@ class Storage {
     if (!this.nonObservables.currentFigureLockTimeout) {
       this.nonObservables.currentFigureLockTimeout = setTimeout(() => {
         this.nonObservables.currentFigureLockTimeout = 0;
-        this.tryCurrentFigureLock();
+        if (this.moveCurrentFigureDown()) {
+          this.startGameLoop();
+        } else {
+          this.lockCurrentFigure();
+        }
       }, 500);
     }
   };
@@ -1405,7 +1409,7 @@ class Storage {
     return false;
   };
 
-  tryCurrentFigureLock = async () => {
+  lockCurrentFigure = async () => {
     const { gameData } = this.observables;
     const { currentFigure, holdFigure } = gameData;
     const { gameState } = this.observables;
@@ -1413,28 +1417,23 @@ class Storage {
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
 
-    if (this.moveCurrentFigureDown()) {
-      this.setGameLoopTimeout();
-      return false;
-    } else {
-      runInAction(() => {
-        const { type, x, y, rotation } = currentFigure;
-        currentFigure.type = constants.gameplay.figureType.none;
-        this.spawnFigure(type, rotation, x, y);
-      });
+    runInAction(() => {
+      const { type, x, y, rotation } = currentFigure;
+      currentFigure.type = constants.gameplay.figureType.none;
+      this.spawnFigure(type, rotation, x, y);
+    });
 
-      if (await this.clearFullLines()) {
-        await eventHelpers.sleep(300);
-      }
-
-      runInAction(() => {
-        this.spawnNewCurrentFigure();
-        holdFigure.blocked = false;
-        this.callNextGameLoopImmediately();
-      });
-
-      return true;
+    if (await this.clearFullLines()) {
+      await eventHelpers.sleep(300);
     }
+
+    runInAction(() => {
+      this.spawnNewCurrentFigure();
+      holdFigure.blocked = false;
+      this.callGameLoop();
+    });
+
+    return true;
   };
 
   moveCurrentFigureDown = () => {
@@ -1455,32 +1454,48 @@ class Storage {
 
   //
 
-  setGameLoopTimeout = () => {
+  startGameLoop = () => {
     const { gameData } = this.observables;
+    const { gameLoopData } = this.nonObservables;
     const { gameLoopTimeoutMs } = gameData;
 
-    // console.log(`${gameLoopTimeoutMs}ms - next game loop`);
-    if (!this.nonObservables.gameLoopTimeout) {
-      this.nonObservables.gameLoopTimeout = setTimeout(() => {
-        this.nonObservables.gameLoopTimeout = 0;
-        this.gameLoop();
-      }, gameLoopTimeoutMs);
-    }
+    if (gameLoopData.timeout) return false;
+
+    const { callNextIn } = eventHelpers.setIntervalAdjusting({
+      onStep: this.gameLoop,
+      time: gameLoopTimeoutMs,
+      timeoutCallback: (timeout) => {
+        gameLoopData.timeout = timeout;
+      },
+    });
+    gameLoopData.callNextIn = callNextIn;
+
+    return true;
   };
 
-  clearGameLoopTimeout = () => {
-    if (this.nonObservables.gameLoopTimeout) {
-      clearTimeout(this.nonObservables.gameLoopTimeout);
-      this.nonObservables.gameLoopTimeout = 0;
-    }
+  stopGameLoop = () => {
+    const { gameLoopData } = this.nonObservables;
+    if (!gameLoopData.timeout) return false;
+
+    clearTimeout(gameLoopData.timeout);
+    gameLoopData.timeout = 0;
+    gameLoopData.callNextIn = undefined;
+
+    return true;
   };
 
-  callNextGameLoopImmediately = () => {
-    this.clearGameLoopTimeout();
-    this.nonObservables.gameLoopTimeout = setTimeout(() => {
-      this.nonObservables.gameLoopTimeout = 0;
-      this.gameLoop();
-    }, 1);
+  callGameLoop = () => {
+    const { gameLoopData } = this.nonObservables;
+    this.startGameLoop();
+    gameLoopData.callNextIn(1);
+  };
+
+  resetGameLoop = () => {
+    const { gameData } = this.observables;
+    const { gameLoopData } = this.nonObservables;
+    const { gameLoopTimeoutMs } = gameData;
+    this.startGameLoop();
+    gameLoopData.callNextIn(gameLoopTimeoutMs);
   };
 
   gameLoop = () => {
@@ -1492,15 +1507,22 @@ class Storage {
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
 
-    if (gameOptions.enableNonBlockingMoveDown) {
-      if (this.moveCurrentFigureDown()) {
-        this.setGameLoopTimeout();
-      } else {
-        this.setCurrentFigureLockTimeout();
-      }
+    let continueLoop = false;
+    if (this.moveCurrentFigureDown()) {
+      continueLoop = true;
     } else {
-      this.tryCurrentFigureLock();
+      if (gameOptions.enableNonBlockingMoveDown) {
+        this.setCurrentFigureLockTimeout();
+      } else {
+        this.lockCurrentFigure();
+      }
     }
+
+    if (!continueLoop) {
+      this.stopGameLoop();
+    }
+
+    return continueLoop;
   };
 
   //

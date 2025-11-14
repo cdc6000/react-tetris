@@ -512,6 +512,8 @@ class Storage {
     }
     const state = inputState[input];
 
+    if (isPressed && state._isPressed) return false;
+
     if (isPressed && !state._isPressed) {
       state.justPressed = true;
       state.justReleased = false;
@@ -558,7 +560,7 @@ class Storage {
         clearTimeout(state.intervalTimeout);
       }
       if (state.interval) {
-        clearInterval(state.interval);
+        clearTimeout(state.interval);
         state.interval = 0;
       }
       state.intervalTimeout = setTimeout(() => {
@@ -567,14 +569,21 @@ class Storage {
           state.isPressed = true;
         }
 
-        state.interval = setInterval(() => {
-          if (state.isPressed) {
-            this.fireInputEvent({ input, deviceType });
-          } else {
-            clearInterval(state.interval);
+        eventHelpers.setIntervalAdjusting({
+          onStep: () => {
+            if (state.isPressed) {
+              this.fireInputEvent({ input, deviceType });
+              return true;
+            }
+
             state.interval = undefined;
-          }
-        }, inputRepeatRate);
+            return false;
+          },
+          time: inputRepeatRate,
+          timeoutCallback: (timeout) => {
+            state.interval = timeout;
+          },
+        });
       }, inputRepeatDelay);
     }
 
@@ -610,7 +619,7 @@ class Storage {
         state.intervalTimeout = 0;
       }
       if (state.interval) {
-        clearInterval(state.interval);
+        clearTimeout(state.interval);
         state.interval = 0;
       }
     }
