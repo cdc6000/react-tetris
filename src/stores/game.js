@@ -372,7 +372,7 @@ class Storage {
     addControlSchemeBind({
       id,
       action: controlEvent.rotateCurrentFigureClockwise,
-      triggers: [getInputEvent(input.kX)],
+      triggers: [getInputEvent(input.kX), getInputEvent(input.arrowUp)],
     });
     addControlSchemeBind({
       id,
@@ -525,7 +525,7 @@ class Storage {
     addControlSchemeBind({
       id,
       action: controlEvent.holdCurrentFigure,
-      triggers: [getInputEvent(input.GPB_RB)],
+      triggers: [getInputEvent(input.GPB_LB), getInputEvent(input.GPB_RB)],
     });
 
     addControlSchemeBind({

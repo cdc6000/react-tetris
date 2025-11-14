@@ -39,6 +39,7 @@ export default observer(
             controlEvent.rotateCurrentFigureCounterclockwise,
             controlEvent.speedUpFallingCurrentFigure,
             controlEvent.dropCurrentFigure,
+            controlEvent.holdCurrentFigure,
           ],
         },
         {
@@ -90,7 +91,8 @@ export default observer(
 
                   const actionBinds = controlScheme?.binds.filter((_) => _.action == action);
                   const _bind = actionBinds?.[0];
-                  const _trigger = _bind?.triggers[0];
+                  const _trigger1 = _bind?.triggers[0];
+                  const _trigger2 = _bind?.triggers[1];
                   const actionRender = (
                     <tr key={aIndex}>
                       <td>
@@ -132,43 +134,62 @@ export default observer(
                                     gameStore={gameStore}
                                     className="bind-btn"
                                     navLayerID={layerID}
-                                    navElemID={`${viewID}-bindBtn-${gIndex}-${aIndex}-trigger-0`}
+                                    navElemID={`${viewID}-bindTrigger1Btn-${gIndex}-${aIndex}`}
                                     navIsHorizontal={true}
-                                    navGroupID={`${gIndex}-${aIndex}-trigger-0`}
+                                    navGroupID={`${gIndex}-${aIndex}-triggers`}
                                     navGroupSave={false}
                                     canInteract={hasFocus}
                                     onClick={() => {
-                                      gameStore.bindInput({ controlScheme, action, triggerReplace: _trigger });
+                                      gameStore.bindInput({ controlScheme, action, triggerReplace: _trigger1 });
                                     }}
                                   >
-                                    {Boolean(_trigger) ?
+                                    {Boolean(_trigger1) && (
                                       <InputTip
                                         gameStore={gameStore}
-                                        inputEvent={_trigger}
+                                        inputEvent={_trigger1}
                                       />
-                                    : <span>&#x002B;</span>}
+                                    )}
                                   </Button>
-                                  {Boolean(_trigger) && (
-                                    <Button
-                                      gameStore={gameStore}
-                                      className="remove-btn"
-                                      navLayerID={layerID}
-                                      navElemID={`${viewID}-removeBtn-${gIndex}-${aIndex}-trigger-0`}
-                                      navIsHorizontal={true}
-                                      navGroupID={`${gIndex}-${aIndex}-trigger-0`}
-                                      navGroupSave={false}
-                                      canInteract={hasFocus}
-                                      onClick={() => {
-                                        inputStore.removeControlSchemeBind({
-                                          id: controlScheme.id,
-                                          action,
-                                          triggers: [_trigger],
-                                        });
-                                      }}
-                                    >
-                                      <span>&#x1F7AA;</span>
-                                    </Button>
-                                  )}
+                                  <Button
+                                    gameStore={gameStore}
+                                    className="bind-btn"
+                                    navLayerID={layerID}
+                                    navElemID={`${viewID}-bindTrigger2Btn-${gIndex}-${aIndex}`}
+                                    navIsHorizontal={true}
+                                    navGroupID={`${gIndex}-${aIndex}-triggers`}
+                                    navGroupSave={false}
+                                    canInteract={hasFocus}
+                                    onClick={() => {
+                                      gameStore.bindInput({ controlScheme, action, triggerReplace: _trigger2 });
+                                    }}
+                                  >
+                                    {Boolean(_trigger2) && (
+                                      <InputTip
+                                        gameStore={gameStore}
+                                        inputEvent={_trigger2}
+                                      />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    gameStore={gameStore}
+                                    className="remove-btn"
+                                    navLayerID={layerID}
+                                    navElemID={`${viewID}-removeBtn-${gIndex}-${aIndex}`}
+                                    navIsHorizontal={true}
+                                    navGroupID={`${gIndex}-${aIndex}-triggers`}
+                                    navGroupSave={false}
+                                    canInteract={hasFocus}
+                                    disabled={!(_trigger1 || _trigger2)}
+                                    onClick={() => {
+                                      inputStore.removeControlSchemeBind({
+                                        id: controlScheme.id,
+                                        action,
+                                        triggers: [_trigger1, _trigger2].filter(Boolean),
+                                      });
+                                    }}
+                                  >
+                                    <span>&#x1F7AA;</span>
+                                  </Button>
                                 </div>
                               )}
                             </Fragment>

@@ -118,6 +118,7 @@ export const strings = {
       [controls.controlEvent.rotateCurrentFigureCounterclockwise]: "Повернуть против часовой стрелки",
       [controls.controlEvent.speedUpFallingCurrentFigure]: "Ускорить падение",
       [controls.controlEvent.dropCurrentFigure]: "Опустить до конца",
+      [controls.controlEvent.holdCurrentFigure]: "В запас",
 
       [controls.controlEvent.gamePause]: "Поставить на паузу",
       [controls.controlEvent.gameUnpause]: "Снять с паузы",
