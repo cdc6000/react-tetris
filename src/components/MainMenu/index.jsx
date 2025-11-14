@@ -54,7 +54,10 @@ export default observer(
                     namePath={["mainMenu", "playBtnTitle"]}
                     canInteract={canInteract}
                     onClick={() => {
-                      gameStore.gameStartClassic();
+                      viewStore.viewLayerEnable({
+                        layerID: constants.viewData.layer.gameOptionsMenu,
+                        isAdditive: true,
+                      });
                     }}
                   />
                   <Button

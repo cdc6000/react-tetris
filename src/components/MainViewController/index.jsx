@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 
 import MainMenu from "@components/MainMenu";
 import OptionsMenu from "@components/OptionsMenu";
+import GameOptionsMenu from "@components/GameOptionsMenu";
 import GamePlayView from "@components/GamePlayView";
 import PauseMenu from "@components/PauseMenu";
 import GameOverMenu from "@components/GameOverMenu";
@@ -42,6 +43,7 @@ export default observer(
           <MainMenu gameStore={gameStore} />
           <PauseMenu gameStore={gameStore} />
           <GameOverMenu gameStore={gameStore} />
+          <GameOptionsMenu gameStore={gameStore} />
           <OptionsMenu gameStore={gameStore} />
           <HelpMenu gameStore={gameStore} />
           <GetInputMenu gameStore={gameStore} />

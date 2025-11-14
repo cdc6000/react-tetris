@@ -3,6 +3,7 @@
 @use "../MainMenu/styles.scss" as MainMenu;
 @use "../PauseMenu/styles.scss" as PauseMenu;
 @use "../GameOverMenu/styles.scss" as GameOverMenu;
+@use "../GameOptionsMenu/styles.scss" as GameOptionsMenu;
 @use "../OptionsMenu/styles.scss" as OptionsMenu;
 @use "../HelpMenu/styles.scss" as HelpMenu;
 @use "../GetInputMenu/styles.scss" as GetInputMenu;
@@ -290,6 +291,7 @@ body {
     @include MainMenu.main;
     @include PauseMenu.main;
     @include GameOverMenu.main;
+    @include GameOptionsMenu.main;
     @include OptionsMenu.main;
     @include HelpMenu.main;
     @include GetInputMenu.main;

@@ -32,8 +32,9 @@ export const strings = {
           sectionTitle: "Основные",
 
           allowFigureMoveByMouse: "Перемещать фигуру с помощью мыши",
-          inputRepeatDelayInputTitle: "Задерка повтороения ввода",
-          inputRepeatRateInputTitle: "Частота повторения ввода",
+          inputRepeatDelay: "Задерка повтороения ввода, мсек",
+          inputRepeatRate: "Частота повторения ввода, мсек",
+          hardDropDelay: "Задерка резкого опускания, мсек",
         },
 
         controlScheme: {
@@ -96,6 +97,30 @@ export const strings = {
       backBtnTitle: "Закрыть&nbsp;${btns|или}",
     },
 
+    gameOptionsMenu: {
+      menuTitle: "Настройки игровой сессии",
+
+      gameMode: {
+        sectionTitle: "Режим игры",
+
+        enableHold: "Разрешить запас фигур",
+      },
+
+      gamePlay: {
+        sectionTitle: "Игровой процесс",
+
+        enableNonBlockingMoveDown: "Неблокирующее падение фигуры",
+        enableNonBlockingSoftDrop: "Неблокирующее плавное опускание фигуры",
+        enableNonBlockingHardDrop: "Неблокирующее резкое опускание фигуры",
+        figureLockDelay: "Время таймера фиксации фигуры, мсек",
+        enableInfiniteRotation: "Сбрасывать таймер фиксации при вращении фигуры",
+        enableInfiniteMove: "Сбрасывать таймер фиксации при перемещении фигуры",
+      },
+
+      backBtnTitle: "Назад&nbsp;${btns|или}",
+      startGameBtnTitle: "Начать игру",
+    },
+
     gameView: {
       tipHelp: "Помощь&nbsp;${btns|или}",
       tipPause: "Пауза&nbsp;${btns|или}",
@@ -118,8 +143,8 @@ export const strings = {
       [controls.controlEvent.moveCurrentFigureLeft]: "Переместить влево",
       [controls.controlEvent.rotateCurrentFigureClockwise]: "Повернуть по часовой стрелке",
       [controls.controlEvent.rotateCurrentFigureCounterclockwise]: "Повернуть против часовой стрелки",
-      [controls.controlEvent.speedUpFallingCurrentFigure]: "Ускорить падение",
-      [controls.controlEvent.dropCurrentFigure]: "Опустить до конца",
+      [controls.controlEvent.speedUpFallingCurrentFigure]: "Опускать плавно",
+      [controls.controlEvent.dropCurrentFigure]: "Опустить резко",
       [controls.controlEvent.holdCurrentFigure]: "В запас",
 
       [controls.controlEvent.gamePause]: "Поставить на паузу",

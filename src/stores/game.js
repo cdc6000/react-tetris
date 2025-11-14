@@ -38,6 +38,7 @@ class Storage {
         enableInfiniteRotation: false,
         enableInfiniteMove: false,
         hardDropDelay: 300,
+        figureLockDelay: 500,
       },
       gameData: {
         figureTypesAllowed: [],
@@ -617,6 +618,10 @@ class Storage {
       canBeShown: true,
       show: false,
     };
+    viewData.viewState[constants.viewData.view.gameOptionsMenu] = {
+      canBeShown: true,
+      show: false,
+    };
     viewData.viewState[constants.viewData.view.gamePlayView] = {
       canBeShown: true,
       show: false,
@@ -673,6 +678,24 @@ class Storage {
         views: [
           {
             id: constants.viewData.view.optionsMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.gameOptionsMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.gameOptionsMenu,
             enableProps: {
               show: true,
             },
@@ -1388,6 +1411,8 @@ class Storage {
   //
 
   setCurrentFigureLockTimeout = () => {
+    const { gameOptions } = this.observables;
+
     if (!this.nonObservables.currentFigureLockTimeout) {
       this.nonObservables.currentFigureLockTimeout = setTimeout(() => {
         this.nonObservables.currentFigureLockTimeout = 0;
@@ -1396,7 +1421,7 @@ class Storage {
         } else {
           this.lockCurrentFigure();
         }
-      }, 500);
+      }, gameOptions.figureLockDelay);
     }
   };
 

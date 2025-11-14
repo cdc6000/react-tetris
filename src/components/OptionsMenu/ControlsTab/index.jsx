@@ -3,7 +3,6 @@ import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
 import Button from "@components/common/Button";
-import Select from "@components/common/Select";
 import Checkbox from "@components/common/Checkbox";
 import NumberInput from "@components/common/NumberInput";
 import ControlsMapTable from "@components/ControlsMapTable";
@@ -42,7 +41,8 @@ export default observer(
       const { inputStore } = gameStore;
       const { inputOptions, controlSchemes } = inputStore.observables;
       const { inputOptions: defaultInputOptions } = inputStore.defaults.observables;
-      const { lang } = gameStore.observables;
+      const { lang, gameOptions } = gameStore.observables;
+      const { gameOptions: defaultGameOptions } = gameStore.defaults.observables;
       const { getLangStringConverted } = constants.lang;
 
       const selectedControlScheme =
@@ -94,7 +94,7 @@ export default observer(
                       <div className="setting-name">
                         {getLangStringConverted({
                           lang,
-                          pathArray: ["optionsMenu", "controlsTab", "main", "inputRepeatDelayInputTitle"],
+                          pathArray: ["optionsMenu", "controlsTab", "main", "inputRepeatDelay"],
                         })}
                       </div>
                     </td>
@@ -124,7 +124,7 @@ export default observer(
                       <div className="setting-name">
                         {getLangStringConverted({
                           lang,
-                          pathArray: ["optionsMenu", "controlsTab", "main", "inputRepeatRateInputTitle"],
+                          pathArray: ["optionsMenu", "controlsTab", "main", "inputRepeatRate"],
                         })}
                       </div>
                     </td>
@@ -144,6 +144,36 @@ export default observer(
                           step={10}
                           onChange={(value) => {
                             inputOptions.inputRepeatRate = value;
+                          }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div className="setting-name">
+                        {getLangStringConverted({
+                          lang,
+                          pathArray: ["optionsMenu", "controlsTab", "main", "hardDropDelay"],
+                        })}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="setting-controls">
+                        <NumberInput
+                          gameStore={gameStore}
+                          className="input-hard-drop-delay"
+                          navLayerID={layerID}
+                          navElemID={`${viewID}-${tabID}-hardDropDelayInput`}
+                          navGroupID={`hardDropDelayInput`}
+                          canInteract={canInteract}
+                          value={gameOptions.hardDropDelay}
+                          valueDefault={defaultGameOptions.hardDropDelay}
+                          valueMin={0}
+                          valueMax={1000}
+                          step={10}
+                          onChange={(value) => {
+                            gameOptions.hardDropDelay = value;
                           }}
                         />
                       </div>
