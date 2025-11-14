@@ -32,6 +32,12 @@ class Storage {
       gameOptions: {
         enableHold: true,
         enableLevels: true,
+        enableNonBlockingMoveDown: true,
+        enableNonBlockingSoftDrop: true,
+        enableNonBlockingHardDrop: false,
+        enableInfiniteRotation: false,
+        enableInfiniteMove: false,
+        hardDropDelay: 300,
       },
       gameData: {
         figureTypesAllowed: [],
@@ -84,7 +90,9 @@ class Storage {
       cupElem: undefined,
       cupElemRect: undefined,
 
-      gameLoopTimeout: undefined,
+      gameLoopTimeout: 0,
+      currentFigureLockTimeout: 0,
+      lastDropTimestamp: 0,
     };
 
     makeObservable(this, {
@@ -102,11 +110,15 @@ class Storage {
       addScore: action,
       setPause: action,
 
+      spawnNewCurrentFigure: action,
+      generateCurrentFigure: action,
       moveCurrentFigureAlongX: action,
       rotateCurrentFigure: action,
       dropCurrentFigure: action,
       holdCurrentFigure: action,
-      generateCurrentFigure: action,
+
+      moveCurrentFigureDown: action,
+      gameLoop: action,
 
       spawnFigure: action,
       generateCupView: action,
@@ -155,7 +167,7 @@ class Storage {
 
   eventBusBind = () => {
     const { eventBus, viewStore, inputStore, navigationStore } = this;
-    const { gameData } = this.observables;
+    const { gameOptions, gameData } = this.observables;
     const { evenBusID } = this.nonObservables;
     const { controlEvent } = constants.controls;
     const { eventType } = constants.eventsData;
@@ -223,17 +235,35 @@ class Storage {
 
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureRight, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != constants.viewData.layer.gamePlayView) return;
-      this.moveCurrentFigureAlongX(gameData.currentFigure.x + 1);
+      if (this.moveCurrentFigureAlongX(gameData.currentFigure.x + 1)) {
+        if (gameOptions.enableInfiniteMove) {
+          if (this.clearCurrentFigureLockTimeout()) {
+            this.callNextGameLoopImmediately();
+          }
+        }
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.moveCurrentFigureLeft, ({ deviceType, deviceTypeChanged }) => {
       if (viewStore.inputFocusViewLayerID != constants.viewData.layer.gamePlayView) return;
-      this.moveCurrentFigureAlongX(gameData.currentFigure.x - 1);
+      if (this.moveCurrentFigureAlongX(gameData.currentFigure.x - 1)) {
+        if (gameOptions.enableInfiniteMove) {
+          if (this.clearCurrentFigureLockTimeout()) {
+            this.callNextGameLoopImmediately();
+          }
+        }
+      }
     });
     eventBus.addEventListener(evenBusID, controlEvent.moveCursorPointer, ({ x, deviceType, deviceTypeChanged }) => {
       this.nonObservables.lastCursorPointerX = x;
 
       if (viewStore.inputFocusViewLayerID == constants.viewData.layer.gamePlayView) {
-        this.moveCurrentFigureCupPointX();
+        if (this.moveCurrentFigureCupPointX()) {
+          if (gameOptions.enableInfiniteMove) {
+            if (this.clearCurrentFigureLockTimeout()) {
+              this.callNextGameLoopImmediately();
+            }
+          }
+        }
       }
     });
     eventBus.addEventListener(
@@ -241,7 +271,13 @@ class Storage {
       controlEvent.rotateCurrentFigureClockwise,
       ({ deviceType, deviceTypeChanged }) => {
         if (viewStore.inputFocusViewLayerID != constants.viewData.layer.gamePlayView) return;
-        this.rotateCurrentFigure(1);
+        if (this.rotateCurrentFigure(1)) {
+          if (gameOptions.enableInfiniteRotation) {
+            if (this.clearCurrentFigureLockTimeout()) {
+              this.callNextGameLoopImmediately();
+            }
+          }
+        }
       }
     );
     eventBus.addEventListener(
@@ -249,7 +285,13 @@ class Storage {
       controlEvent.rotateCurrentFigureCounterclockwise,
       ({ deviceType, deviceTypeChanged }) => {
         if (viewStore.inputFocusViewLayerID != constants.viewData.layer.gamePlayView) return;
-        this.rotateCurrentFigure(-1);
+        if (this.rotateCurrentFigure(-1)) {
+          if (gameOptions.enableInfiniteRotation) {
+            if (this.clearCurrentFigureLockTimeout()) {
+              this.callNextGameLoopImmediately();
+            }
+          }
+        }
       }
     );
     eventBus.addEventListener(
@@ -1083,6 +1125,53 @@ class Storage {
 
   //
 
+  spawnNewCurrentFigure = () => {
+    const { gameData } = this.observables;
+    const { cup, currentFigure } = gameData;
+
+    this.generateCurrentFigure();
+    currentFigure.x = cup.figureStart.x;
+    currentFigure.y = cup.figureStart.y;
+    this.calcShadowFigureY();
+
+    if (this.checkFigureOverlap()) {
+      this.generateCupView();
+      this.gameOver();
+      return;
+    }
+
+    const cupViewGenerated = this.moveCurrentFigureCupPointX();
+    if (!cupViewGenerated) {
+      this.generateCupView();
+    }
+  };
+
+  generateCurrentFigure = ({ type, rotation = 0 } = {}) => {
+    const { gameData } = this.observables;
+    const { currentFigure } = gameData;
+
+    if (type == undefined) {
+      type = this.getNextRandomFigureType();
+    }
+
+    currentFigure.rotation = rotation;
+    const result = this.generateFigureData({
+      type,
+      rotation: currentFigure.rotation,
+    });
+    if (!result) return false;
+
+    const { cellsData, pXMin, pYMin, cellsW, cellsH } = result;
+    currentFigure.type = type;
+    currentFigure.cells.data = cellsData;
+    currentFigure.cells.x = pXMin;
+    currentFigure.cells.y = pYMin;
+    currentFigure.cells.width = cellsW;
+    currentFigure.cells.height = cellsH;
+
+    return true;
+  };
+
   moveCurrentFigureAlongX = (targetX) => {
     const { cellsMaxSize } = this;
     const { gameState, gameData } = this.observables;
@@ -1118,6 +1207,8 @@ class Storage {
       }
     }
 
+    if (currentFigure.x == _x) return false;
+
     currentFigure.x = _x;
     this.calcShadowFigureY();
     this.generateCupView();
@@ -1132,7 +1223,7 @@ class Storage {
     if (!inputOptions.allowFigureMoveByMouse) return false;
 
     const { cupElemRect } = this.nonObservables;
-    if (!cupElemRect) return;
+    if (!cupElemRect) return false;
 
     const { gameData } = this.observables;
     const { currentFigure } = gameData;
@@ -1187,11 +1278,15 @@ class Storage {
   };
 
   dropCurrentFigure = () => {
-    const { gameState, gameData } = this.observables;
+    const { gameState, gameOptions, gameData } = this.observables;
     const { currentFigure, cup } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
+
+    const timestamp = Date.now();
+    if (timestamp - this.nonObservables.lastDropTimestamp < gameOptions.hardDropDelay) return false;
+    this.nonObservables.lastDropTimestamp = timestamp;
 
     let y = currentFigure.y;
     const maxY = cup.height - 1;
@@ -1201,36 +1296,57 @@ class Storage {
     y--;
 
     const delta = y - currentFigure.y;
+    if (delta <= 0) return false;
+
     this.addScore({ action: constants.gameplay.actionType.hardDrop, scoreMult: delta });
 
     currentFigure.y = y;
     this.generateCupView();
-    this.callNextGameLoopImmediately();
+
+    this.clearGameLoopTimeout();
+    if (gameOptions.enableNonBlockingHardDrop) {
+      this.setCurrentFigureLockTimeout();
+    } else {
+      this.tryCurrentFigureLock();
+    }
+
     return true;
   };
 
   speedUpFallingCurrentFigure = () => {
-    const { gameState, gameData } = this.observables;
+    const { gameState, gameOptions, gameData } = this.observables;
     const { currentFigure } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
 
-    this.addScore({ action: constants.gameplay.actionType.softDrop });
+    this.clearGameLoopTimeout();
+    if (gameOptions.enableNonBlockingSoftDrop) {
+      if (this.moveCurrentFigureDown()) {
+        this.addScore({ action: constants.gameplay.actionType.softDrop });
+        this.setGameLoopTimeout();
+      } else {
+        this.setCurrentFigureLockTimeout();
+      }
+    } else {
+      if (!this.tryCurrentFigureLock()) {
+        this.addScore({ action: constants.gameplay.actionType.softDrop });
+      }
+    }
 
-    this.callNextGameLoopImmediately();
     return true;
   };
 
   holdCurrentFigure = () => {
-    const { gameOptions, gameData } = this.observables;
-    if (!gameOptions.enableHold) return;
+    const { gameOptions, gameState, gameData } = this.observables;
+    if (!gameOptions.enableHold) return false;
 
     const { cup, currentFigure, holdFigure } = gameData;
 
-    if (currentFigure.type == constants.gameplay.figureType.none) return;
+    if (currentFigure.type == constants.gameplay.figureType.none) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
 
-    if (holdFigure.blocked) return;
+    if (holdFigure.blocked) return false;
     holdFigure.blocked = true;
 
     const holdFigureType = holdFigure.type;
@@ -1246,33 +1362,8 @@ class Storage {
         this.generateCupView();
       }
     } else {
-      currentFigure.type = constants.gameplay.figureType.none;
-      this.callNextGameLoopImmediately();
+      this.spawnNewCurrentFigure();
     }
-  };
-
-  generateCurrentFigure = ({ type, rotation = 0 } = {}) => {
-    const { gameData } = this.observables;
-    const { currentFigure } = gameData;
-
-    if (type == undefined) {
-      type = this.getNextRandomFigureType();
-    }
-
-    currentFigure.rotation = rotation;
-    const result = this.generateFigureData({
-      type,
-      rotation: currentFigure.rotation,
-    });
-    if (!result) return false;
-
-    const { cellsData, pXMin, pYMin, cellsW, cellsH } = result;
-    currentFigure.type = type;
-    currentFigure.cells.data = cellsData;
-    currentFigure.cells.x = pXMin;
-    currentFigure.cells.y = pYMin;
-    currentFigure.cells.width = cellsW;
-    currentFigure.cells.height = cellsH;
 
     return true;
   };
@@ -1296,6 +1387,74 @@ class Storage {
 
   //
 
+  setCurrentFigureLockTimeout = () => {
+    if (!this.nonObservables.currentFigureLockTimeout) {
+      this.nonObservables.currentFigureLockTimeout = setTimeout(() => {
+        this.nonObservables.currentFigureLockTimeout = 0;
+        this.tryCurrentFigureLock();
+      }, 500);
+    }
+  };
+
+  clearCurrentFigureLockTimeout = () => {
+    if (this.nonObservables.currentFigureLockTimeout) {
+      clearTimeout(this.nonObservables.currentFigureLockTimeout);
+      this.nonObservables.currentFigureLockTimeout = 0;
+      return true;
+    }
+    return false;
+  };
+
+  tryCurrentFigureLock = async () => {
+    const { gameData } = this.observables;
+    const { currentFigure, holdFigure } = gameData;
+    const { gameState } = this.observables;
+
+    if (currentFigure.type == constants.gameplay.figureType.none) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
+
+    if (this.moveCurrentFigureDown()) {
+      this.setGameLoopTimeout();
+      return false;
+    } else {
+      runInAction(() => {
+        const { type, x, y, rotation } = currentFigure;
+        currentFigure.type = constants.gameplay.figureType.none;
+        this.spawnFigure(type, rotation, x, y);
+      });
+
+      if (await this.clearFullLines()) {
+        await eventHelpers.sleep(300);
+      }
+
+      runInAction(() => {
+        this.spawnNewCurrentFigure();
+        holdFigure.blocked = false;
+        this.callNextGameLoopImmediately();
+      });
+
+      return true;
+    }
+  };
+
+  moveCurrentFigureDown = () => {
+    const { gameData } = this.observables;
+    const { currentFigure } = gameData;
+    const { gameState } = this.observables;
+
+    if (currentFigure.type == constants.gameplay.figureType.none) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
+
+    const newY = currentFigure.y + 1;
+    if (this.checkFigureOverlap({ y: newY })) return false;
+
+    currentFigure.y = newY;
+    this.generateCupView();
+    return true;
+  };
+
+  //
+
   setGameLoopTimeout = () => {
     const { gameData } = this.observables;
     const { gameLoopTimeoutMs } = gameData;
@@ -1303,7 +1462,7 @@ class Storage {
     // console.log(`${gameLoopTimeoutMs}ms - next game loop`);
     if (!this.nonObservables.gameLoopTimeout) {
       this.nonObservables.gameLoopTimeout = setTimeout(() => {
-        this.nonObservables.gameLoopTimeout = undefined;
+        this.nonObservables.gameLoopTimeout = 0;
         this.gameLoop();
       }, gameLoopTimeoutMs);
     }
@@ -1312,66 +1471,35 @@ class Storage {
   clearGameLoopTimeout = () => {
     if (this.nonObservables.gameLoopTimeout) {
       clearTimeout(this.nonObservables.gameLoopTimeout);
-      this.nonObservables.gameLoopTimeout = undefined;
+      this.nonObservables.gameLoopTimeout = 0;
     }
   };
 
   callNextGameLoopImmediately = () => {
     this.clearGameLoopTimeout();
     this.nonObservables.gameLoopTimeout = setTimeout(() => {
-      this.nonObservables.gameLoopTimeout = undefined;
+      this.nonObservables.gameLoopTimeout = 0;
       this.gameLoop();
     }, 1);
   };
 
-  gameLoop = async () => {
-    const { gameData } = this.observables;
-    const { cup, currentFigure, holdFigure } = gameData;
+  gameLoop = () => {
+    const { gameOptions, gameData } = this.observables;
+    const { currentFigure } = gameData;
     const { gameState } = this.observables;
     // console.log("game loop");
 
-    if (gameState == constants.gameplay.gameState.pause) return;
+    if (currentFigure.type == constants.gameplay.figureType.none) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
 
-    if (currentFigure.type == constants.gameplay.figureType.none) {
-      runInAction(() => {
-        this.generateCurrentFigure();
-        currentFigure.x = cup.figureStart.x;
-        currentFigure.y = cup.figureStart.y;
-        this.calcShadowFigureY();
-
-        if (this.checkFigureOverlap()) {
-          this.generateCupView();
-          this.gameOver();
-          return;
-        } else {
-          const cupViewGenerated = this.moveCurrentFigureCupPointX();
-          if (!cupViewGenerated) {
-            this.generateCupView();
-          }
-          this.setGameLoopTimeout();
-        }
-      });
-    } else {
-      const newY = currentFigure.y + 1;
-      if (this.checkFigureOverlap({ y: newY })) {
-        runInAction(() => {
-          const { type, x, y, rotation } = currentFigure;
-          currentFigure.type = constants.gameplay.figureType.none;
-          this.spawnFigure(type, rotation, x, y);
-        });
-
-        await eventHelpers.sleep(300);
-        await this.clearFullLines();
-
-        holdFigure.blocked = false;
-        this.callNextGameLoopImmediately();
-      } else {
-        runInAction(() => {
-          currentFigure.y = newY;
-          this.generateCupView();
-        });
+    if (gameOptions.enableNonBlockingMoveDown) {
+      if (this.moveCurrentFigureDown()) {
         this.setGameLoopTimeout();
+      } else {
+        this.setCurrentFigureLockTimeout();
       }
+    } else {
+      this.tryCurrentFigureLock();
     }
   };
 
@@ -1444,31 +1572,30 @@ class Storage {
         fullLinesY.push(_y);
       }
     }
+    if (!fullLinesY.length) return false;
 
-    if (fullLinesY.length) {
-      // console.log({ fullLinesY });
-      runInAction(() => {
-        gameData.lines += fullLinesY.length;
-        this.addScore({ action: constants.gameplay.actionType.clearLines, scoreMult: fullLinesY.length });
+    // console.log({ fullLinesY });
+    runInAction(() => {
+      gameData.lines += fullLinesY.length;
+      this.addScore({ action: constants.gameplay.actionType.clearLines, scoreMult: fullLinesY.length });
 
-        fullLinesY.forEach((_y) => {
-          cup.data.splice(_y, 1, this.createRow(cup.width));
-        });
-        this.generateCupView();
+      fullLinesY.forEach((_y) => {
+        cup.data.splice(_y, 1, this.createRow(cup.width));
       });
+      this.generateCupView();
+    });
 
-      await eventHelpers.sleep(300);
+    await eventHelpers.sleep(300);
 
-      runInAction(() => {
-        fullLinesY.forEach((_y, yIndex) => {
-          cup.data.splice(_y + yIndex, 1);
-          cup.data.unshift(this.createRow(cup.width));
-        });
-        this.generateCupView();
+    runInAction(() => {
+      fullLinesY.forEach((_y, yIndex) => {
+        cup.data.splice(_y + yIndex, 1);
+        cup.data.unshift(this.createRow(cup.width));
       });
+      this.generateCupView();
+    });
 
-      await eventHelpers.sleep(300);
-    }
+    return true;
   };
 
   generateCupView = () => {
