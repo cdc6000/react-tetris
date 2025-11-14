@@ -27,8 +27,8 @@ class Storage {
     this.observables = {
       lang: Object.keys(constants.lang.strings)[0],
 
-      gameState: constants.gameState.pause,
-      gameMode: constants.gameMode.none,
+      gameState: constants.gameplay.gameState.pause,
+      gameMode: constants.gameplay.gameMode.none,
       gameOptions: {
         enableHold: true,
         enableLevels: true,
@@ -288,7 +288,7 @@ class Storage {
         return;
 
       if (this.setPause({ toggle: true })) {
-        if (this.observables.gameState == constants.gameState.play) {
+        if (this.observables.gameState == constants.gameplay.gameState.play) {
           viewStore.shiftInputFocusToViewLayerID({
             layerID: constants.viewData.layer.pauseMenu,
             isPrevious: true,
@@ -932,7 +932,7 @@ class Storage {
   //
 
   gameStartClassic = () => {
-    this.observables.gameMode = constants.gameMode.classic;
+    this.observables.gameMode = constants.gameplay.gameMode.classic;
     this.gameStart();
     this.viewStore.viewLayerEnable({
       layerID: constants.viewData.layer.gamePlayView,
@@ -943,7 +943,7 @@ class Storage {
     const { cellsMaxSize } = this;
     const { gameMode, gameOptions, gameData } = this.observables;
 
-    if (gameMode == constants.gameMode.classic) {
+    if (gameMode == constants.gameplay.gameMode.classic) {
       const { cup, currentFigure } = gameData;
       gameData.figureTypesAllowed.push(
         constants.gameplay.figureType["I-shape"],
@@ -983,18 +983,18 @@ class Storage {
       this.generateCupView();
     }
 
-    this.observables.gameState = constants.gameState.play;
+    this.observables.gameState = constants.gameplay.gameState.play;
     this.setGameLoopTimeout();
   };
 
   gameEnd = () => {
-    this.observables.gameState = constants.gameState.pause;
+    this.observables.gameState = constants.gameplay.gameState.pause;
 
     const { gameMode, gameData } = this.observables;
     const { cup, currentFigure } = gameData;
     const gameDataDefaults = this.defaults.observables.gameData;
 
-    if (gameMode == constants.gameMode.classic) {
+    if (gameMode == constants.gameplay.gameMode.classic) {
       gameData.score = gameDataDefaults.score;
       gameData.lines = gameDataDefaults.lines;
       gameData.level = gameDataDefaults.level;
@@ -1022,7 +1022,7 @@ class Storage {
 
   gameOver = () => {
     this.clearGameLoopTimeout();
-    this.observables.gameState = constants.gameState.pause;
+    this.observables.gameState = constants.gameplay.gameState.pause;
     this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.gameOverMenu, isAdditive: true });
   };
 
@@ -1047,19 +1047,19 @@ class Storage {
   };
 
   setPause = ({ toggle, state }) => {
-    const { gameMode } = this.observables;
-    const { play, pause } = constants.gameState;
+    const { gameMode, gameState } = this.observables;
+    const { play, pause } = constants.gameplay.gameState;
 
-    if (gameMode == constants.gameMode.none) return false;
+    if (gameMode == constants.gameplay.gameMode.none) return false;
 
-    if (this.observables.gameState == play || this.observables.gameState == pause) {
+    if (gameState == play || gameState == pause) {
       let stateChanged = false;
       if (toggle) {
-        this.observables.gameState = this.observables.gameState == play ? pause : play;
+        this.observables.gameState = gameState == play ? pause : play;
         stateChanged = true;
       } else {
         const newState = state ? pause : play;
-        if (this.observables.gameState != newState) {
+        if (gameState != newState) {
           this.observables.gameState = newState;
           stateChanged = true;
         }
@@ -1086,7 +1086,7 @@ class Storage {
     const { cup, currentFigure } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
-    if (gameState == constants.gameState.pause) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
 
     const xMin = -1 * (cellsMaxSize.width - 1);
     const xMax = cup.width - 1;
@@ -1144,7 +1144,7 @@ class Storage {
     const { currentFigure } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
-    if (gameState == constants.gameState.pause) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
 
     const figureTypeData = constants.gameplay.figureTypeData[currentFigure.type];
     if (figureTypeData.rotations.length <= 1) return false;
@@ -1188,7 +1188,7 @@ class Storage {
     const { currentFigure, cup } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
-    if (gameState == constants.gameState.pause) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
 
     let y = currentFigure.y;
     const maxY = cup.height - 1;
@@ -1211,7 +1211,7 @@ class Storage {
     const { currentFigure } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
-    if (gameState == constants.gameState.pause) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
 
     this.addScore({ action: constants.gameplay.actionType.softDrop });
 
@@ -1327,7 +1327,7 @@ class Storage {
     const { gameState } = this.observables;
     // console.log("game loop");
 
-    if (gameState == constants.gameState.pause) return;
+    if (gameState == constants.gameplay.gameState.pause) return;
 
     if (currentFigure.type == constants.gameplay.figureType.none) {
       runInAction(() => {

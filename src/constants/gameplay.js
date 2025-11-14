@@ -283,3 +283,13 @@ export const actionType = {
   softDrop: "softDrop",
   hardDrop: "hardDrop",
 };
+
+export const gameMode = {
+  none: 0,
+  classic: "classic",
+};
+
+export const gameState = {
+  pause: 1,
+  play: 2,
+};
