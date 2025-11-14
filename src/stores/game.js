@@ -946,13 +946,13 @@ class Storage {
     if (gameMode == constants.gameplay.gameMode.classic) {
       const { cup, currentFigure } = gameData;
       gameData.figureTypesAllowed.push(
-        constants.gameplay.figureType["I-shape"],
-        constants.gameplay.figureType["J-shape"],
-        constants.gameplay.figureType["L-shape"],
-        constants.gameplay.figureType["S-shape"],
-        constants.gameplay.figureType["Z-shape"],
-        constants.gameplay.figureType["T-shape"],
-        constants.gameplay.figureType["square-2x2"]
+        constants.gameplay.figureType.I,
+        constants.gameplay.figureType.J,
+        constants.gameplay.figureType.L,
+        constants.gameplay.figureType.S,
+        constants.gameplay.figureType.Z,
+        constants.gameplay.figureType.T,
+        constants.gameplay.figureType.O
       );
 
       if (gameOptions.enableLevels) {
@@ -1389,7 +1389,7 @@ class Storage {
 
   createCell = () => {
     return {
-      type: 0,
+      type: constants.gameplay.cellType.empty,
     };
   };
 
@@ -1437,7 +1437,7 @@ class Storage {
 
     const fullLinesY = [];
     for (let _y = cup.height - 1; _y >= 0; _y--) {
-      if (cup.data[_y].every((cell) => cell.type > 0)) {
+      if (cup.data[_y].every((cell) => cell.type && cell.type != constants.gameplay.cellType.empty)) {
         fullLinesY.push(_y);
       }
     }
@@ -1449,9 +1449,7 @@ class Storage {
         this.addScore({ action: constants.gameplay.actionType.clearLines, scoreMult: fullLinesY.length });
 
         fullLinesY.forEach((_y) => {
-          cup.data[_y].forEach((cell) => {
-            cell.type = 0;
-          });
+          cup.data.splice(_y, 1, this.createRow(cup.width));
         });
         this.generateCupView();
       });
@@ -1478,15 +1476,15 @@ class Storage {
     for (let _y = 0; _y < cup.height; _y++) {
       const cupRow = [];
       for (let _x = 0; _x < cup.width; _x++) {
-        const cellDataToAdd = {};
+        const cellData = {};
         if (
           _x >= currentFigure.x + currentFigure.cells.x &&
           _x <= currentFigure.x + currentFigure.cells.x + currentFigure.cells.width - 1
         ) {
-          cellDataToAdd.isCurrentFigureColumn = true;
+          cellData.isCurrentFigureColumn = true;
         }
 
-        cupRow.push({ ...cup.data[_y][_x], ...cellDataToAdd });
+        cupRow.push({ ...cellData, ...cup.data[_y][_x] });
       }
       cup.view.push(cupRow);
     }
@@ -1542,7 +1540,11 @@ class Storage {
       const pX = _x + _pX;
       const pY = _y + _pY;
       return (
-        pX < 0 || pX >= cup.width || pY < 0 || pY >= cup.height || (cup.data[pY]?.[pX] && cup.data[pY][pX].type > 0)
+        pX < 0 ||
+        pX >= cup.width ||
+        pY < 0 ||
+        pY >= cup.height ||
+        (cup.data[pY]?.[pX] && cup.data[pY][pX].type && cup.data[pY][pX].type != constants.gameplay.cellType.empty)
       );
     });
     // console.log({hasOverlap});

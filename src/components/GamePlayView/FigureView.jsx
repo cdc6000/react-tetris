@@ -30,10 +30,11 @@ export default observer(
         <div className="figure-view">
           {cellsData.map((row, rIndex) => {
             return row.map((cell, cIndex) => {
+              const cellTypeData = constants.gameplay.cellTypeData[cell.type] || {};
               return (
                 <div
                   key={rIndex + "-" + cIndex}
-                  className={`figure-cell ${constants.cellTypes[cell.type].class}`}
+                  className={`figure-cell${cellTypeData.class ? " " + cellTypeData.class : ""}`}
                 />
               );
             });

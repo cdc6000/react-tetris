@@ -97,13 +97,14 @@ export default observer(
                   {cup.view.map((cupRow, rIndex) => {
                     return cupRow.map((cupCell, cIndex) => {
                       const { type, isCurrentFigure, isCurrentFigureColumn, isShadowFigure } = cupCell;
-                      const cellTypeClass = constants.cellTypes[type].class;
+                      const cellTypeData = constants.gameplay.cellTypeData[type] || {};
                       return (
                         <div
                           key={rIndex + "-" + cIndex}
-                          className={`figure-cell ${cellTypeClass}${isCurrentFigure ? " current-figure" : ""}${
-                            isCurrentFigureColumn ? " current-figure-column" : ""
-                          }${isShadowFigure ? " shadow-figure" : ""}`}
+                          className={`figure-cell${cellTypeData.class ? " " + cellTypeData.class : ""}
+                          ${isCurrentFigure ? " current-figure" : ""}
+                          ${isCurrentFigureColumn ? " current-figure-column" : ""}
+                          ${isShadowFigure ? " shadow-figure" : ""}`}
                         />
                       );
                     });

@@ -1,16 +1,55 @@
 export const figureType = {
-  none: 0,
-  "I-shape": 1,
-  "J-shape": 2,
-  "L-shape": 3,
-  "square-2x2": 4,
-  "S-shape": 5,
-  "T-shape": 6,
-  "Z-shape": 7,
+  none: "none",
+  I: "I",
+  J: "J",
+  L: "L",
+  O: "O",
+  S: "S",
+  T: "T",
+  Z: "Z",
 };
 
+export const cellType = {
+  empty: "empty",
+  cyan: "cyan",
+  blue: "blue",
+  orange: "orange",
+  yellow: "yellow",
+  green: "green",
+  purple: "purple",
+  red: "red",
+};
+
+export const cellTypeData = {
+  [cellType.empty]: {
+    class: "empty",
+  },
+  [cellType.cyan]: {
+    class: "cyan",
+  },
+  [cellType.blue]: {
+    class: "blue",
+  },
+  [cellType.orange]: {
+    class: "orange",
+  },
+  [cellType.yellow]: {
+    class: "yellow",
+  },
+  [cellType.green]: {
+    class: "green",
+  },
+  [cellType.purple]: {
+    class: "purple",
+  },
+  [cellType.red]: {
+    class: "red",
+  },
+};
+
+
 export const figureTypeData = {
-  [figureType["I-shape"]]: {
+  [figureType.I]: {
     //prettier-ignore
     rotations: [
       [
@@ -38,23 +77,23 @@ export const figureTypeData = {
     //prettier-ignore
     rotationData: [
       {
-        offsets: [[ 0, 0], [-1, 0], [ 2, 0], [-1, 1], [ 2, 1]]
+        offsets: [[ 0, 0], [-1, 0], [ 2, 0], [-1, 1], [ 2, 1]],
       },
       {
-        offsets: [[ 0, 0], [ 1, 0], [ 1, 0], [ 1, 2], [ 1,-1]]
+        offsets: [[ 0, 0], [ 1, 0], [ 1, 0], [ 1, 2], [ 1,-1]],
       },
       {
-        offsets: [[ 0, 0], [ 2, 0], [-1, 0], [ 2, 0], [-1, 0]]
+        offsets: [[ 0, 0], [ 2, 0], [-1, 0], [ 2, 0], [-1, 0]],
       },
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0,-1], [ 0, 2]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0,-1], [ 0, 2]],
       },
     ],
     cellData: {
-      type: 1,
+      type: cellType.cyan,
     },
   },
-  [figureType["J-shape"]]: {
+  [figureType.J]: {
     //prettier-ignore
     rotations: [
       [
@@ -80,23 +119,23 @@ export const figureTypeData = {
     //prettier-ignore
     rotationData: [
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]]
+        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]],
       },
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]]
+        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]],
       },
     ],
     cellData: {
-      type: 2,
+      type: cellType.blue,
     },
   },
-  [figureType["L-shape"]]: {
+  [figureType.L]: {
     //prettier-ignore
     rotations: [
       [
@@ -122,35 +161,62 @@ export const figureTypeData = {
     //prettier-ignore
     rotationData: [
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]]
+        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]],
       },
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]]
+        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]],
       },
     ],
     cellData: {
-      type: 3,
+      type: cellType.orange,
     },
   },
-  [figureType["square-2x2"]]: {
+  [figureType.O]: {
     //prettier-ignore
     rotations: [
       [
         [0, 0], [1, 0],
         [0, 1], [1, 1],
       ],
+      [
+        [0, 0], [1, 0],
+        [0, 1], [1, 1],
+      ],
+      [
+        [0, 0], [1, 0],
+        [0, 1], [1, 1],
+      ],
+      [
+        [0, 0], [1, 0],
+        [0, 1], [1, 1],
+      ],
+    ],
+    //prettier-ignore
+    rotationData: [
+      {
+        offsets: [[ 0, 0]],
+      },
+      {
+        offsets: [[ 0, 0]],
+      },
+      {
+        offsets: [[ 0, 0]],
+      },
+      {
+        offsets: [[ 0, 0]],
+      },
     ],
     cellData: {
-      type: 4,
+      type: cellType.yellow,
     },
   },
-  [figureType["S-shape"]]: {
+  [figureType.S]: {
     //prettier-ignore
     rotations: [
       [
@@ -176,23 +242,23 @@ export const figureTypeData = {
     //prettier-ignore
     rotationData: [
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]]
+        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]],
       },
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]]
+        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]],
       },
     ],
     cellData: {
-      type: 5,
+      type: cellType.green,
     },
   },
-  [figureType["T-shape"]]: {
+  [figureType.T]: {
     //prettier-ignore
     rotations: [
       [
@@ -218,23 +284,23 @@ export const figureTypeData = {
     //prettier-ignore
     rotationData: [
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]]
+        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]],
       },
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]]
+        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]],
       },
     ],
     cellData: {
-      type: 6,
+      type: cellType.purple,
     },
   },
-  [figureType["Z-shape"]]: {
+  [figureType.Z]: {
     //prettier-ignore
     rotations: [
       [
@@ -260,20 +326,20 @@ export const figureTypeData = {
     //prettier-ignore
     rotationData: [
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]]
+        offsets: [[ 0, 0], [ 1, 0], [ 1,-1], [ 0, 2], [ 1, 2]],
       },
       {
-        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]]
+        offsets: [[ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0], [ 0, 0]],
       },
       {
-        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]]
+        offsets: [[ 0, 0], [-1, 0], [-1,-1], [ 0, 2], [-1, 2]],
       },
     ],
     cellData: {
-      type: 7,
+      type: cellType.red,
     },
   },
 };
