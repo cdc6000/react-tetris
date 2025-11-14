@@ -119,7 +119,7 @@ export default observer(
                   navElemID: `${viewID}-figureLockDelayInput`,
                   navGroupID: `figureLockDelayInput`,
                   value: gameOptions.figureLockDelay,
-                  valueDefault: defaultGameOptions.hardDropDelay,
+                  valueDefault: defaultGameOptions.figureLockDelay,
                   valueMin: 10,
                   valueMax: 1000,
                   step: 10,
@@ -252,6 +252,8 @@ export default observer(
                   navLayerID={layerID}
                   navElemID={`${viewID}-backBtn`}
                   canInteract={canInteract}
+                  navIsHorizontal={true}
+                  navGroupID={`${viewID}-controlBtns`}
                   onClick={() => {
                     viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
                   }}
@@ -276,6 +278,8 @@ export default observer(
                   navLayerID={layerID}
                   navElemID={`${viewID}-startGameBtn`}
                   canInteract={canInteract}
+                  navIsHorizontal={true}
+                  navGroupID={`${viewID}-controlBtns`}
                   onClick={() => {
                     gameStore.gameStartClassic();
                   }}

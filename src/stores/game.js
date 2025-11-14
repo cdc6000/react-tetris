@@ -693,6 +693,7 @@ class Storage {
       layerID: constants.viewData.layer.gameOptionsMenu,
       data: {
         isEnabled: false,
+        isBackAllowed: true,
         views: [
           {
             id: constants.viewData.view.gameOptionsMenu,
