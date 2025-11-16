@@ -55,37 +55,46 @@ export default observer(
         >
           <div className="single-cup-view">
             <div className="top-container">
-              <div className="tip">
-                {getLangStringConverted({
-                  lang,
-                  pathArray: ["gameView", "tipHelp"],
-                  conversionList: [
-                    customHelpers.insertBtnConversion({
-                      gameStore,
-                      actions: [constants.controls.controlEvent.helpMenuToggle],
-                    }),
-                  ],
-                })}
-              </div>
-              <div className="tip">
-                {getLangStringConverted({
-                  lang,
-                  pathArray: ["gameView", "tipPause"],
-                  conversionList: [
-                    customHelpers.insertBtnConversion({
-                      gameStore,
-                      actions: [
-                        constants.controls.controlEvent.gamePause,
-                        constants.controls.controlEvent.gamePauseToggle,
-                      ],
-                    }),
-                  ],
-                })}
+              <div className="row">
+                <div className="block">
+                  <div className="header">
+                    {getLangStringConverted({ lang, pathArray: ["gameView", "linesTitle"] })}
+                  </div>
+                  <div className="content left">{lines}</div>
+                </div>
+
+                <div className="block">
+                  <div className="header">
+                    {getLangStringConverted({ lang, pathArray: ["gameView", "scoreTitle"] })}
+                  </div>
+                  <div className="content center">{score}</div>
+                </div>
+
+                <div className="block">
+                  <div className="header">
+                    {getLangStringConverted({ lang, pathArray: ["gameView", "levelTitle"] })}
+                  </div>
+                  <div className="content right">{level + 1}</div>
+                </div>
               </div>
             </div>
             <div className="center-container">
               <div className="left-col-wrapper">
-                <div className="content"></div>
+                <div className="content">
+                  {gameOptions.enableHold && (
+                    <div className="block">
+                      <div className="header right">
+                        {getLangStringConverted({ lang, pathArray: ["gameView", "holdFigureTitle"] })}
+                      </div>
+                      <div className="content right">
+                        <FigureView
+                          gameStore={gameStore}
+                          type={holdFigure.type}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="cup-wrapper">
                 <div
@@ -111,55 +120,58 @@ export default observer(
               </div>
               <div className="right-col-wrapper">
                 <div className="content">
-                  <div className="game-state-wrapper">
-                    <div className="header score">
-                      {getLangStringConverted({ lang, pathArray: ["gameView", "scoreTitle"] })}
-                    </div>
-                    <div className="content score">{`${lines} | ${score}`}</div>
-                    <br />
-
-                    <div className="header level">
-                      {getLangStringConverted({ lang, pathArray: ["gameView", "levelTitle"] })}
-                    </div>
-                    <div className="content level">{level + 1}</div>
-                    <br />
-
-                    {gameOptions.enableHold && (
-                      <Fragment>
-                        <div className="header hold-figure">
-                          {getLangStringConverted({ lang, pathArray: ["gameView", "holdFigureTitle"] })}
-                        </div>
-                        <div className="content hold-figure">
-                          <FigureView
-                            gameStore={gameStore}
-                            type={holdFigure.type}
-                          />
-                        </div>
-                      </Fragment>
-                    )}
-
-                    <div className="header next-figure">
+                  <div className="block">
+                    <div className="header left">
                       {getLangStringConverted({ lang, pathArray: ["gameView", "nextFigureTitle"] })}
                     </div>
-                    <div className="content next-figure">
-                      <FigureView
-                        gameStore={gameStore}
-                        type={randomFigureTypePool[0]}
-                      />
-                      <FigureView
-                        gameStore={gameStore}
-                        type={randomFigureTypePool[1]}
-                      />
-                      <FigureView
-                        gameStore={gameStore}
-                        type={randomFigureTypePool[2]}
-                      />
+                    <div className="content column left">
+                      {Array(7)
+                        .fill(0)
+                        .map((_, fIndex) => {
+                          return (
+                            <FigureView
+                              gameStore={gameStore}
+                              key={`${fIndex}-${randomFigureTypePool[fIndex]}`}
+                              type={randomFigureTypePool[fIndex]}
+                            />
+                          );
+                        })}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="bottom-container"></div>
+            <div className="bottom-container">
+              <div className="row">
+                <div className="tip">
+                  {getLangStringConverted({
+                    lang,
+                    pathArray: ["gameView", "tipHelp"],
+                    conversionList: [
+                      customHelpers.insertBtnConversion({
+                        gameStore,
+                        actions: [constants.controls.controlEvent.helpMenuToggle],
+                      }),
+                    ],
+                  })}
+                </div>
+                <div className="tip">
+                  {getLangStringConverted({
+                    lang,
+                    pathArray: ["gameView", "tipPause"],
+                    conversionList: [
+                      customHelpers.insertBtnConversion({
+                        gameStore,
+                        actions: [
+                          constants.controls.controlEvent.gamePause,
+                          constants.controls.controlEvent.gamePauseToggle,
+                        ],
+                      }),
+                    ],
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       );

@@ -124,13 +124,14 @@ export const strings = {
     },
 
     gameView: {
-      tipHelp: "Помощь&nbsp;${btns|или}",
+      tipHelp: "${btns|или}&nbsp;Помощь",
       tipPause: "Пауза&nbsp;${btns|или}",
 
-      scoreTitle: "Линии | Очки",
+      scoreTitle: "Очки",
+      linesTitle: "Линии",
       levelTitle: "Уровень",
-      holdFigureTitle: "Запасная фигура",
-      nextFigureTitle: "Следующие фигуры",
+      holdFigureTitle: "Запас",
+      nextFigureTitle: "Далее",
     },
 
     controlEventName: {

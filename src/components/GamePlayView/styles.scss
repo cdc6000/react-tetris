@@ -6,6 +6,7 @@
     --next-figure-cell-size: 20px;
     --cup-width: calc(var(--cell-size) * var(--cup-cells-hor));
     --cup-height: calc(var(--cell-size) * var(--cup-cells-ver));
+    --cup-padding: 10px;
     z-index: var(--main-view-layer);
 
     .figure-cell {
@@ -82,23 +83,92 @@
       width: 100%;
       height: 100%;
 
+      .block {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        > .header {
+          font-weight: bold;
+
+          &.left {
+            text-align: left;
+          }
+
+          &.center {
+            text-align: center;
+          }
+
+          &.right {
+            text-align: right;
+          }
+        }
+
+        > .content {
+          display: flex;
+          gap: 10px;
+
+          &.column {
+            flex-direction: column;
+
+            &.left {
+              align-items: flex-start;
+            }
+
+            &.center {
+              align-items: center;
+            }
+
+            &.right {
+              align-items: flex-end;
+            }
+          }
+
+          &:not(.column) {
+            &.left {
+              justify-content: flex-start;
+            }
+
+            &.center {
+              justify-content: center;
+            }
+
+            &.right {
+              justify-content: flex-end;
+            }
+          }
+        }
+      }
+
+      .tip {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+      }
+
       .top-container,
       .bottom-container {
-        height: 50%,
+        height: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .row {
+          display: flex;
+          justify-content: space-between;
+          width: var(--cup-width);
+        }
       }
 
       .top-container {
-        display: flex;
-        flex-direction: column;
         justify-content: flex-end;
-        gap: 10px;
+        padding-bottom: var(--cup-padding);
+      }
 
-        .tip {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          font-size: 14px;
-        }
+      .bottom-container {
+        justify-content: flex-start;
+        padding-top: var(--cup-padding);
       }
 
       .center-container {
@@ -106,90 +176,70 @@
         display: flex;
 
         .left-col-wrapper,
-        .cup-wrapper,
         .right-col-wrapper {
           display: flex;
           flex-direction: column;
           justify-content: center;
-        }
-    
-        .left-col-wrapper,
-        .right-col-wrapper {
           width: 50%;
-    
+
           > .content {
             height: var(--cup-height);
           }
+
+          .figure-view {
+            display: flex;
+            flex-wrap: wrap;
+            width: calc(var(--next-figure-cell-size) * var(--cells-x));
+            height: calc(var(--next-figure-cell-size) * var(--cells-y));
+
+            .figure-cell {
+              width: var(--next-figure-cell-size);
+              height: var(--next-figure-cell-size);
+            }
+          }
         }
-    
+
+        .left-col-wrapper {
+          align-items: flex-end;
+          padding-right: var(--cup-padding);
+        }
+
+        .right-col-wrapper {
+          align-items: flex-start;
+          padding-left: var(--cup-padding);
+        }
+
         .cup-wrapper {
           flex-shrink: 0;
-          border-width: 10px 0;
-          border-style: solid;
-          border-color: transparent;
-          box-sizing: border-box;
-    
+
           .cup {
             display: flex;
             flex-wrap: wrap;
             width: var(--cup-width);
             height: var(--cup-height);
             border: 1px solid #000;
-    
+
             .figure-cell {
               &.empty {
                 background-color: #bbb;
-    
+
                 &::after {
                   border: none;
                   border-right: 1px solid #999;
                 }
-    
+
                 &.current-figure-column {
                   background-color: #aaa;
                 }
               }
-    
+
               &.shadow-figure:not(.current-figure) {
                 background-color: #bbb;
-    
+
                 &::after {
                   opacity: 0.3;
                 }
               }
-              
-            }
-          }
-        }
-    
-        .right-col-wrapper {
-          .game-state-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px;
-            box-sizing: border-box;
-
-            .figure-view {
-              display: flex;
-              flex-wrap: wrap;
-              width: calc(var(--next-figure-cell-size) * var(--cells-x));
-              height: calc(var(--next-figure-cell-size) * var(--cells-y));
-    
-              .figure-cell {
-                width: var(--next-figure-cell-size);
-                height: var(--next-figure-cell-size);
-              }
-            }
-    
-            > .header {
-              font-weight: bold;
-            }
-    
-            > .content {
-              display: flex;
-              gap: 10px;
             }
           }
         }
