@@ -57,7 +57,7 @@
 
     > .title {
       text-align: center;
-      font-size: 30px;
+      font-size: calc(30px * var(--interface-scale));
       font-weight: bold;
     }
 
@@ -65,7 +65,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 14px;
+      font-size: calc(14px * var(--interface-scale));
     }
 
     >.content {
@@ -91,9 +91,9 @@
           gap: var(--gap-size);
 
           .button {
-            height: 40px;
+            height: calc(40px * var(--interface-scale));
             padding: 0 20px;
-            font-size: 20px;
+            font-size: calc(20px * var(--interface-scale));
           }
         }
       }

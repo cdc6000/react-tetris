@@ -7,6 +7,8 @@ import Checkbox from "@components/common/Checkbox";
 import NumberInput from "@components/common/NumberInput";
 import ControlsMapTable from "@components/ControlsMapTable";
 
+import * as customHelpers from "@utils/custom-helpers";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -24,6 +26,84 @@ export default observer(
 
       this.viewID = constants.viewData.view.optionsMenu;
       this.layerID = constants.viewData.layer.optionsMenu;
+
+      this.sections = [
+        {
+          namePath: ["optionsMenu", "controlsTab", "main", "sectionTitle"],
+          settings: [
+            {
+              namePath: ["optionsMenu", "controlsTab", "main", "allowFigureMoveByMouse"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore, tabID } = this.props;
+                const { inputStore } = gameStore;
+                const { inputOptions } = inputStore.observables;
+
+                return {
+                  className: "allow-figure-move-by-mouse-checkbox",
+                  navElemID: `${viewID}-${tabID}-allowFigureMoveByMouseCheckbox`,
+                  value: inputOptions.allowFigureMoveByMouse,
+                  onChange: (value) => {
+                    inputOptions.allowFigureMoveByMouse = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["optionsMenu", "controlsTab", "main", "inputRepeatDelay"],
+              component: NumberInput,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore, tabID } = this.props;
+                const { inputStore } = gameStore;
+                const { inputOptions } = inputStore.observables;
+                const { inputOptions: defaultInputOptions } = inputStore.defaults.observables;
+
+                return {
+                  className: "input-repeat-delay",
+                  navElemID: `${viewID}-${tabID}-inputRepeatDelayInput`,
+                  navGroupID: `inputRepeatDelayInput`,
+                  value: inputOptions.inputRepeatDelay,
+                  valueDefault: defaultInputOptions.inputRepeatDelay,
+                  valueMin: 0,
+                  valueMax: 1000,
+                  step: 10,
+                  onChange: (value) => {
+                    inputOptions.inputRepeatDelay = value;
+                  },
+                };
+              },
+            },
+            {
+              namePath: ["optionsMenu", "controlsTab", "main", "inputRepeatRate"],
+              component: NumberInput,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore, tabID } = this.props;
+                const { inputStore } = gameStore;
+                const { inputOptions } = inputStore.observables;
+                const { inputOptions: defaultInputOptions } = inputStore.defaults.observables;
+
+                return {
+                  className: "input-repeat-rate",
+                  navElemID: `${viewID}-${tabID}-inputRepeatRateInput`,
+                  navGroupID: `inputRepeatRateInput`,
+                  value: inputOptions.inputRepeatRate,
+                  valueDefault: defaultInputOptions.inputRepeatRate,
+                  valueMin: 10,
+                  valueMax: 1000,
+                  step: 10,
+                  onChange: (value) => {
+                    inputOptions.inputRepeatRate = value;
+                  },
+                };
+              },
+            },
+          ],
+        },
+      ];
     }
 
     get canInteract() {
@@ -35,7 +115,7 @@ export default observer(
     //
 
     render() {
-      const { viewID, layerID, canInteract } = this;
+      const { viewID, layerID, canInteract, sections } = this;
       const { selectedControlSchemeID } = this.state;
       const { gameStore, tabID, isTabActive, tabData } = this.props;
       const { inputStore } = gameStore;
@@ -50,139 +130,14 @@ export default observer(
 
       return (
         <div className={`options-list controls-tab${!isTabActive ? " h" : ""}`}>
-          <div className="section">
-            <div className="header">
-              <div className="text">
-                {getLangStringConverted({
-                  lang,
-                  pathArray: ["optionsMenu", "controlsTab", "main", "sectionTitle"],
-                })}
-              </div>
-            </div>
-            <div className="content">
-              <table className="settings-table">
-                <tbody>
-                  <tr>
-                    <td>
-                      <div className="setting-name">
-                        {getLangStringConverted({
-                          lang,
-                          pathArray: ["optionsMenu", "controlsTab", "main", "allowFigureMoveByMouse"],
-                        })}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="setting-controls">
-                        <Checkbox
-                          gameStore={gameStore}
-                          className="allow-figure-move-by-mouse-checkbox"
-                          navLayerID={layerID}
-                          navElemID={`${viewID}-${tabID}-allowFigureMoveByMouseCheckbox`}
-                          canInteract={canInteract}
-                          value={inputOptions.allowFigureMoveByMouse}
-                          onChange={(value) => {
-                            inputOptions.allowFigureMoveByMouse = value;
-                          }}
-                        >
-                          &#x2714;
-                        </Checkbox>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="setting-name">
-                        {getLangStringConverted({
-                          lang,
-                          pathArray: ["optionsMenu", "controlsTab", "main", "inputRepeatDelay"],
-                        })}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="setting-controls">
-                        <NumberInput
-                          gameStore={gameStore}
-                          className="input-repeat-delay"
-                          navLayerID={layerID}
-                          navElemID={`${viewID}-${tabID}-inputRepeatDelayInput`}
-                          navGroupID={`inputRepeatDelayInput`}
-                          canInteract={canInteract}
-                          value={inputOptions.inputRepeatDelay}
-                          valueDefault={defaultInputOptions.inputRepeatDelay}
-                          valueMin={0}
-                          valueMax={1000}
-                          step={10}
-                          onChange={(value) => {
-                            inputOptions.inputRepeatDelay = value;
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="setting-name">
-                        {getLangStringConverted({
-                          lang,
-                          pathArray: ["optionsMenu", "controlsTab", "main", "inputRepeatRate"],
-                        })}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="setting-controls">
-                        <NumberInput
-                          gameStore={gameStore}
-                          className="input-repeat-rate"
-                          navLayerID={layerID}
-                          navElemID={`${viewID}-${tabID}-inputRepeatRateInput`}
-                          navGroupID={`inputRepeatRateInput`}
-                          canInteract={canInteract}
-                          value={inputOptions.inputRepeatRate}
-                          valueDefault={defaultInputOptions.inputRepeatRate}
-                          valueMin={10}
-                          valueMax={1000}
-                          step={10}
-                          onChange={(value) => {
-                            inputOptions.inputRepeatRate = value;
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="setting-name">
-                        {getLangStringConverted({
-                          lang,
-                          pathArray: ["optionsMenu", "controlsTab", "main", "hardDropDelay"],
-                        })}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="setting-controls">
-                        <NumberInput
-                          gameStore={gameStore}
-                          className="input-hard-drop-delay"
-                          navLayerID={layerID}
-                          navElemID={`${viewID}-${tabID}-hardDropDelayInput`}
-                          navGroupID={`hardDropDelayInput`}
-                          canInteract={canInteract}
-                          value={gameOptions.hardDropDelay}
-                          valueDefault={defaultGameOptions.hardDropDelay}
-                          valueMin={0}
-                          valueMax={1000}
-                          step={10}
-                          onChange={(value) => {
-                            gameOptions.hardDropDelay = value;
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {customHelpers.settingsSectionsDrawer({
+            sections,
+            gameStore,
+            componentProps: {
+              navLayerID: layerID,
+              canInteract,
+            },
+          })}
 
           <div className="section">
             <div className="header">

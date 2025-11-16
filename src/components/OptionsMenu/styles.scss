@@ -1,5 +1,6 @@
 @use "@assets/styles/common.scss" as common;
-@use "./TestTab/styles.scss" as TestTab;
+@use "./GraphicsTab/styles.scss" as GraphicsTab;
+@use "./GameplayTab/styles.scss" as GameplayTab;
 @use "./ControlsTab/styles.scss" as ControlsTab;
 
 @mixin main {
@@ -18,11 +19,15 @@
         .tab-btns-container {
           display: flex;
           gap: 10px;
+
+          .button {
+            flex-grow: 1;
+          }
         }
 
         .options-list-container {
           position: relative;
-          width: 500px;
+          width: calc(500px * var(--interface-scale));
           height: 400px;
           overflow: hidden;
           border: 1px solid var(--lightgray);
@@ -42,53 +47,8 @@
             overflow-x: hidden;
             overflow-y: auto;
 
-            .section {
-              display: flex;
-              flex-direction: column;
-              gap: var(--gap-size);
-
-              &:first-child {
-                padding-top: var(--gap-size);
-              }
-
-              &:last-child {
-                padding-bottom: var(--gap-size);
-              }
-
-              > .header {
-                position: relative;
-                display: flex;
-                justify-content: center;
-                border-width: 0 var(--gap-size);
-                border-style: solid;
-                border-color: transparent;
-
-                .text {
-                  background-color: var(--menu-background-color);
-                  padding: 0 5px;
-                }
-
-                &::before {
-                  content: "";
-                  position: absolute;
-                  left: 0;
-                  top: 50%;
-                  width: 100%;
-                  height: 2px;
-                  background-color: gray;
-                  z-index: -1;
-                }
-              }
-
-              > .content {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                padding: 0 var(--gap-size);
-              }
-            }
-
-            @include TestTab.main;
+            @include GraphicsTab.main;
+            @include GameplayTab.main;
             @include ControlsTab.main;
 
             &.h {

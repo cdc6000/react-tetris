@@ -27,6 +27,7 @@ export default observer(
         valueMin,
         valueMax,
         step,
+        valuePrecision = 2,
         onChange,
 
         navLayerID,
@@ -42,8 +43,10 @@ export default observer(
       }
 
       const isValueDefault = value == valueDefault;
-      const isValueMax = value + step > valueMax;
-      const isValueMin = value - step < valueMin;
+      const prevVal = parseFloat((value - step).toFixed(valuePrecision));
+      const nextVal = parseFloat((value + step).toFixed(valuePrecision));
+      const isValueMin = prevVal < valueMin;
+      const isValueMax = nextVal > valueMax;
 
       return (
         <div
@@ -61,7 +64,7 @@ export default observer(
               disabled={disabled || isValueMin}
               onClick={() => {
                 if (isValueMin) return;
-                onChange?.(value - step);
+                onChange?.(prevVal);
               }}
               navIsHorizontal={true}
               navGroupID={navGroupID}
@@ -78,7 +81,7 @@ export default observer(
               disabled={disabled || isValueMax}
               onClick={() => {
                 if (isValueMax) return;
-                onChange?.(value + step);
+                onChange?.(nextVal);
               }}
               navIsHorizontal={true}
               navGroupID={navGroupID}

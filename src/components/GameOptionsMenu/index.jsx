@@ -64,8 +64,7 @@ export default observer(
                   step: 1,
                   onChange: (value) => {
                     gameData.cup.width = value;
-                    gameStore.figureCupStartXUpdate();
-                    gameStore.cupRectUpdate();
+                    gameStore.gameViewDataUpdate();
                   },
                 };
               },
@@ -90,7 +89,7 @@ export default observer(
                   step: 1,
                   onChange: (value) => {
                     gameData.cup.height = value;
-                    gameStore.cupRectUpdate();
+                    gameStore.gameViewDataUpdate();
                   },
                 };
               },
@@ -240,8 +239,7 @@ export default observer(
       const { gameStore } = this.props;
       const { viewStore } = gameStore;
       const { viewData } = viewStore.observables;
-      const { lang, gameOptions } = gameStore.observables;
-      const { gameOptions: defaultGameOptions } = gameStore.defaults.observables;
+      const { lang } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
@@ -252,48 +250,13 @@ export default observer(
             <div className="title">{getLangStringConverted({ lang, pathArray: ["gameOptionsMenu", "menuTitle"] })}</div>
             <div className="content">
               <div className="settings-container-wrapper">
-                {sections.map((section, scIndex) => {
-                  return (
-                    <div
-                      key={scIndex}
-                      className="section"
-                    >
-                      <div className="header">
-                        <div className="text">{getLangStringConverted({ lang, pathArray: section.namePath })}</div>
-                      </div>
-                      <div className="content">
-                        <table className="settings-table">
-                          <tbody>
-                            {section.settings.map((setting, stIndex) => {
-                              const Component = setting.component;
-                              return (
-                                <tr key={stIndex}>
-                                  <td>
-                                    <div className="setting-name">
-                                      {getLangStringConverted({
-                                        lang,
-                                        pathArray: setting.namePath,
-                                      })}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <div className="setting-controls">
-                                      <Component
-                                        gameStore={gameStore}
-                                        navLayerID={layerID}
-                                        canInteract={canInteract}
-                                        {...setting.getProps()}
-                                      />
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  );
+                {customHelpers.settingsSectionsDrawer({
+                  sections,
+                  gameStore,
+                  componentProps: {
+                    navLayerID: layerID,
+                    canInteract,
+                  },
                 })}
               </div>
 

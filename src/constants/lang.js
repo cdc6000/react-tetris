@@ -20,9 +20,25 @@ export const strings = {
       menuTitle: "Настройки",
       backBtnTitle: "Назад&nbsp;${btns|или}",
 
-      testTab: {
-        tabBtnTitle: "Тестовая вкладка",
-        testSettingTitle: "Тестовая галочка",
+      graphicsTab: {
+        tabBtnTitle: "Отображение",
+
+        intraface: {
+          sectionTitle: "Интерфейс",
+
+          interfaceScale: "Множитель размера интерфейса",
+          maxCellSize: "Максимальный размер ячейки игрового поля",
+        },
+      },
+
+      gameplayTab: {
+        tabBtnTitle: "Игра",
+
+        main: {
+          sectionTitle: "Основные",
+
+          hardDropDelay: "Задерка резкого опускания, мсек",
+        },
       },
 
       controlsTab: {
@@ -34,7 +50,6 @@ export const strings = {
           allowFigureMoveByMouse: "Перемещать фигуру с помощью мыши",
           inputRepeatDelay: "Задерка повтороения ввода, мсек",
           inputRepeatRate: "Частота повторения ввода, мсек",
-          hardDropDelay: "Задерка резкого опускания, мсек",
         },
 
         controlScheme: {

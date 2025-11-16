@@ -35,11 +35,10 @@ export default observer(
     render() {
       const { viewID } = this;
       const { gameStore } = this.props;
-      const { viewStore, cellsMaxSize } = gameStore;
+      const { viewStore } = gameStore;
       const { viewData } = viewStore.observables;
       const { lang, gameData, gameOptions } = gameStore.observables;
       const { randomFigureTypePool, score, lines, level, cup, holdFigure } = gameData;
-      const { cellSizePx } = gameStore.nonObservables;
       const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
@@ -48,7 +47,7 @@ export default observer(
         <div
           className={`game-play-view${!show ? " h" : ""}`}
           style={{
-            "--cell-size": `${cellSizePx}px`,
+            "--cell-size": `${cup.cellSizePx}px`,
             "--cup-cells-hor": `${cup.width}`,
             "--cup-cells-ver": `${cup.height}`,
           }}
@@ -108,10 +107,13 @@ export default observer(
                       return (
                         <div
                           key={rIndex + "-" + cIndex}
-                          className={`figure-cell${cellTypeData.class ? " " + cellTypeData.class : ""}
-                          ${isCurrentFigure ? " current-figure" : ""}
-                          ${isCurrentFigureColumn ? " current-figure-column" : ""}
-                          ${isShadowFigure ? " shadow-figure" : ""}`}
+                          // prettier-ignore
+                          className={`figure-cell${
+                            cellTypeData.class ? " " + cellTypeData.class : ""}${
+                            isCurrentFigure ? " current-figure" : ""}${
+                            isCurrentFigureColumn ? " current-figure-column" : ""}${
+                            isShadowFigure ? " shadow-figure" : ""
+                          }`}
                         />
                       );
                     });

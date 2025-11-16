@@ -3,7 +3,7 @@
 @mixin main {
   .game-play-view {
     @include common.view-preset;
-    --next-figure-cell-size: 20px;
+    --figure-cell-size: var(--cell-size);
     --cup-width: calc(var(--cell-size) * var(--cup-cells-hor));
     --cup-height: calc(var(--cell-size) * var(--cup-cells-ver));
     --cup-padding: 10px;
@@ -13,8 +13,8 @@
       position: relative;
       display: inline-block;
       vertical-align: top;
-      width: var(--cell-size);
-      height: var(--cell-size);
+      width: var(--figure-cell-size);
+      height: var(--figure-cell-size);
 
       &::after {
         content: "";
@@ -23,7 +23,7 @@
         top: 0;
         width: 100%;
         height: 100%;
-        border: 5px solid transparent;
+        border: calc(var(--figure-cell-size) / 4) solid transparent;
         box-sizing: border-box;
       }
 
@@ -144,7 +144,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 14px;
       }
 
       .top-container,
@@ -158,6 +157,7 @@
           display: flex;
           justify-content: space-between;
           width: var(--cup-width);
+          min-width: 200px;
         }
       }
 
@@ -184,18 +184,15 @@
 
           > .content {
             height: var(--cup-height);
+            overflow: hidden;
           }
 
           .figure-view {
             display: flex;
             flex-wrap: wrap;
-            width: calc(var(--next-figure-cell-size) * var(--cells-x));
-            height: calc(var(--next-figure-cell-size) * var(--cells-y));
-
-            .figure-cell {
-              width: var(--next-figure-cell-size);
-              height: var(--next-figure-cell-size);
-            }
+            --figure-cell-size: calc(var(--cell-size) / 3 * 2);
+            width: calc(var(--figure-cell-size) * var(--cells-x));
+            height: calc(var(--figure-cell-size) * var(--cells-y));
           }
         }
 

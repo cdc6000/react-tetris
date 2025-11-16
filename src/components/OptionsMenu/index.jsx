@@ -4,7 +4,8 @@ import { observer } from "mobx-react";
 
 import Button from "@components/common/Button";
 
-import TestTab from "./TestTab";
+import GraphicsTab from "./GraphicsTab";
+import GameplayTab from "./GameplayTab";
 import ControlsTab from "./ControlsTab";
 
 import * as reactHelpers from "@utils/react-helpers";
@@ -22,15 +23,21 @@ export default observer(
       this.layerID = constants.viewData.layer.optionsMenu;
 
       this.mainTabID = {
+        graphics: "tab-graphics",
+        gameplay: "tab-gameplay",
         controls: "tab-controls",
-        test: "tab-test",
       };
-      this.mainTabIDList = [this.mainTabID.test, this.mainTabID.controls];
+      this.mainTabIDList = [this.mainTabID.graphics, this.mainTabID.gameplay, this.mainTabID.controls];
       this.mainTabData = {
-        [this.mainTabID.test]: {
-          tabNavElemID: `${this.viewID}-tabBtn_${this.mainTabID.test}`,
-          namePath: ["optionsMenu", "testTab", "tabBtnTitle"],
-          Component: TestTab,
+        [this.mainTabID.graphics]: {
+          tabNavElemID: `${this.viewID}-tabBtn_${this.mainTabID.graphics}`,
+          namePath: ["optionsMenu", "graphicsTab", "tabBtnTitle"],
+          Component: GraphicsTab,
+        },
+        [this.mainTabID.gameplay]: {
+          tabNavElemID: `${this.viewID}-tabBtn_${this.mainTabID.gameplay}`,
+          namePath: ["optionsMenu", "gameplayTab", "tabBtnTitle"],
+          Component: GameplayTab,
         },
         [this.mainTabID.controls]: {
           tabNavElemID: `${this.viewID}-tabBtn_${this.mainTabID.controls}`,
@@ -40,7 +47,7 @@ export default observer(
       };
 
       this.state = {
-        selectedMainTabID: this.mainTabID.controls,
+        selectedMainTabID: this.mainTabIDList[0],
       };
 
       this.forceUpdateAsync = reactHelpers.forceUpdateAsync.bind(this);

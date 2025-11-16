@@ -34,11 +34,15 @@ export default observer(
 
     render() {
       const { gameStore } = this.props;
+      const { graphicsOptions } = gameStore.observables;
 
       //console.log("Main state", this.state)
 
       return (
-        <div className="main-view-controller">
+        <div
+          className="main-view-controller"
+          style={{ "--interface-scale": graphicsOptions.interfaceScale }}
+        >
           <GamePlayView gameStore={gameStore} />
           <MainMenu gameStore={gameStore} />
           <PauseMenu gameStore={gameStore} />

@@ -55,15 +55,17 @@ export function setIntervalAdjusting({ onStep, time, targetTimeElapsedReset = 24
     }
   };
 
-  const updateTime = (newTime) => {
+  const updateTime = (newTime, restart = true) => {
     clearTimeout(timeout);
 
     time = newTime;
-    start = Date.now();
-    targetTimeElapsed = time;
+    if (restart) {
+      start = Date.now();
+      targetTimeElapsed = time;
 
-    timeout = setTimeout(onTimeStep, time);
-    timeoutCallback?.(timeout);
+      timeout = setTimeout(onTimeStep, time);
+      timeoutCallback?.(timeout);
+    }
   };
 
   const callNextIn = (ms) => {

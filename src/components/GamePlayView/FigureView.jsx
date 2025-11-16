@@ -28,7 +28,7 @@ export default observer(
       } else {
         const { pXMin, pXMax, pYMin, pYMax, cellsW, cellsH } = result;
         cellsX = cellsW;
-        // cellsY = cellsH;
+        cellsY = cellsH;
         cellsData = result.cellsData
           .map((row, rIndex) => {
             if (rIndex < pYMin || rIndex > pYMax) return null;

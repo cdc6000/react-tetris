@@ -37,8 +37,14 @@ class Storage {
         enableNonBlockingHardDrop: false,
         enableInfiniteRotation: false,
         enableInfiniteMove: false,
-        hardDropDelay: 300,
         figureLockDelay: 500,
+      },
+      graphicsOptions: {
+        interfaceScale: 1,
+        maxCellSize: 30,
+      },
+      gameplayOptions: {
+        hardDropDelay: 300,
       },
       gameData: {
         figureTypesAllowed: [],
@@ -52,6 +58,7 @@ class Storage {
         cup: {
           width: 10,
           height: 20,
+          cellSizePx: 30,
           figureStart: {
             x: 4,
             y: 0,
@@ -85,11 +92,25 @@ class Storage {
     };
     this.nonObservables = {
       evenBusID: "GameStore",
-
       lastCursorPointerX: 0,
-      cellSizePx: 30,
+
       cupElem: undefined,
       cupElemRect: undefined,
+      windowWidth: 0,
+      windowHeight: 0,
+      layoutData: {
+        gameView: {
+          topContainerMinHeight: 50,
+          bottomContainerMinHeight: 50,
+          leftContainerMinWidth: 100,
+          rightContainerMinWidth: 100,
+
+          cupBorder: 1,
+          cupPadding: 10,
+
+          cellSizeMin: 6,
+        },
+      },
 
       gameLoopData: {
         timeout: 0,
@@ -106,6 +127,7 @@ class Storage {
       setupDefaultControlSchemes: action,
       viewStateInit: action,
       figureCupStartXUpdate: action,
+      cellSizeUpdate: action,
 
       gameModeUpdate: action,
       gameStart: action,
@@ -160,6 +182,8 @@ class Storage {
 
   init = async () => {
     const { inputStore, viewStore } = this;
+
+    this.onWindowSizeUpdate();
     viewStore.viewLayerEnable({ layerID: constants.viewData.layer.mainMenu });
     // viewStore.viewLayerEnable({ layerID: constants.viewData.layer.optionsMenu, isAdditive: true });
     // viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
@@ -355,9 +379,7 @@ class Storage {
 
     //
 
-    eventBus.addEventListener(evenBusID, constants.eventsData.eventType.windowResized, ({ width, height }) => {
-      this.cupRectUpdate();
-    });
+    eventBus.addEventListener(evenBusID, constants.eventsData.eventType.windowResized, this.onWindowSizeUpdate);
   };
 
   setupDefaultControlSchemes = () => {
@@ -977,11 +999,27 @@ class Storage {
     viewStore.optionSelectUnsubscribe();
   };
 
-  cupRectUpdate = () => {
-    const { cupElem } = this.nonObservables;
-    if (cupElem) {
-      this.nonObservables.cupElemRect = cupElem.getBoundingClientRect();
+  onWindowSizeUpdate = ({ width, height } = {}) => {
+    if (!width) {
+      width = window.innerWidth;
     }
+    if (!height) {
+      height = window.innerHeight;
+    }
+
+    this.nonObservables.windowWidth = width;
+    this.nonObservables.windowHeight = height;
+
+    this.gameViewDataUpdate();
+  };
+
+  gameViewDataUpdate = () => {
+    this.figureCupStartXUpdate();
+    this.cellSizeUpdate();
+
+    setTimeout(() => {
+      this.cupRectUpdate();
+    }, 1);
   };
 
   figureCupStartXUpdate = () => {
@@ -996,6 +1034,37 @@ class Storage {
     // }
     const startX = Math.floor(freeCells / 2);
     gameData.cup.figureStart.x = startX;
+  };
+
+  cupRectUpdate = () => {
+    const { cupElem } = this.nonObservables;
+    if (cupElem) {
+      this.nonObservables.cupElemRect = cupElem.getBoundingClientRect();
+    }
+  };
+
+  cellSizeUpdate = () => {
+    const { gameData, graphicsOptions } = this.observables;
+    const { cup } = gameData;
+    const { windowWidth, windowHeight, layoutData } = this.nonObservables;
+    const {
+      topContainerMinHeight: tMinH,
+      bottomContainerMinHeight: bMinH,
+      leftContainerMinWidth: lMinW,
+      rightContainerMinWidth: rMinW,
+      cupBorder,
+      cupPadding,
+      cellSizeMin,
+    } = layoutData.gameView;
+
+    const cupW = windowWidth - lMinW - rMinW - cupBorder - cupPadding;
+    const cupH = windowHeight - tMinH - bMinH - cupBorder - cupPadding;
+
+    const cellSizeW = Math.floor(cupW / cup.width);
+    const cellSizeH = Math.floor(cupH / cup.height);
+    const cellSize = Math.min(Math.max(Math.min(cellSizeW, cellSizeH), cellSizeMin), graphicsOptions.maxCellSize);
+
+    cup.cellSizePx = cellSize;
   };
 
   //
@@ -1087,7 +1156,7 @@ class Storage {
 
       this.createGrid(currentFigure.cells.data, cellsMaxSize.width, cellsMaxSize.height);
       this.generateCurrentFigure();
-      this.figureCupStartXUpdate();
+      this.gameViewDataUpdate();
       currentFigure.x = cup.figureStart.x;
       currentFigure.y = cup.figureStart.y;
       this.calcShadowFigureY();
@@ -1146,6 +1215,7 @@ class Storage {
     if (!action) return;
 
     const { gameData } = this.observables;
+    const { gameLoopData } = this.nonObservables;
     const { levelData, lines } = gameData;
     if (!levelData.length) return;
 
@@ -1160,6 +1230,7 @@ class Storage {
       _levelData = levelData[gameData.level];
     }
     gameData.gameLoopTimeoutMs = _levelData.speed;
+    gameLoopData.updateTime?.(gameData.gameLoopTimeoutMs, false);
   };
 
   setPause = ({ toggle, state }) => {
@@ -1303,10 +1374,10 @@ class Storage {
     if (!cupElemRect) return false;
 
     const { gameData } = this.observables;
-    const { currentFigure } = gameData;
-    const { lastCursorPointerX, cellSizePx } = this.nonObservables;
+    const { currentFigure, cup } = gameData;
+    const { lastCursorPointerX } = this.nonObservables;
 
-    const targetX = Math.floor((lastCursorPointerX - cupElemRect.left) / cellSizePx) - currentFigure.cells.x;
+    const targetX = Math.floor((lastCursorPointerX - cupElemRect.left) / cup.cellSizePx) - currentFigure.cells.x;
     return this.moveCurrentFigureAlongX(targetX);
   };
 
@@ -1355,14 +1426,14 @@ class Storage {
   };
 
   dropCurrentFigure = () => {
-    const { gameState, gameOptions, gameData } = this.observables;
+    const { gameState, gameOptions, gameplayOptions, gameData } = this.observables;
     const { currentFigure, cup } = gameData;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
 
     const timestamp = Date.now();
-    if (timestamp - this.nonObservables.lastDropTimestamp < gameOptions.hardDropDelay) return false;
+    if (timestamp - this.nonObservables.lastDropTimestamp < gameplayOptions.hardDropDelay) return false;
     this.nonObservables.lastDropTimestamp = timestamp;
 
     let y = currentFigure.y;
@@ -1538,7 +1609,7 @@ class Storage {
 
     if (gameLoopData.timeout) return false;
 
-    const { callNextIn } = eventHelpers.setIntervalAdjusting({
+    const { callNextIn, updateTime } = eventHelpers.setIntervalAdjusting({
       onStep: this.gameLoop,
       time: gameLoopTimeoutMs,
       timeoutCallback: (timeout) => {
@@ -1546,6 +1617,7 @@ class Storage {
       },
     });
     gameLoopData.callNextIn = callNextIn;
+    gameLoopData.updateTime = updateTime;
 
     return true;
   };
@@ -1557,6 +1629,7 @@ class Storage {
     clearTimeout(gameLoopData.timeout);
     gameLoopData.timeout = 0;
     gameLoopData.callNextIn = undefined;
+    gameLoopData.updateTime = undefined;
 
     return true;
   };

@@ -79,7 +79,7 @@ export function insertBtnConversion({ gameStore, actions = [], triggers = [], is
   const { lastDeviceTypeUsed } = inputStore.observables;
 
   const drawFunction = isCompact ? actionTriggersAnimatedDrawer : actionTriggersInlineDrawer;
-  
+
   const lastDeviceTypeUsedGroup = constants.controls.groupOfDeivce[lastDeviceTypeUsed];
   const { deviceTypes = [] } = constants.controls.deviceGroupData[lastDeviceTypeUsedGroup] || {};
   const _triggers = [...inputStore.getAllActiveTriggersForActions({ actions }), ...triggers].filter((trigger) => {
@@ -102,4 +102,56 @@ export function insertBtnConversion({ gameStore, actions = [], triggers = [], is
       });
     },
   };
+}
+
+export function settingsSectionsDrawer({ sections = [], gameStore, componentProps = {} } = {}) {
+  const { lang } = gameStore.observables;
+  const { getLangStringConverted } = constants.lang;
+
+  return (
+    <Fragment>
+      {sections.map((section, scIndex) => {
+        return (
+          <div
+            key={scIndex}
+            className="section"
+          >
+            <div className="header">
+              <div className="text">{getLangStringConverted({ lang, pathArray: section.namePath })}</div>
+            </div>
+            <div className="content">
+              <table className="settings-table">
+                <tbody>
+                  {section.settings.map((setting, stIndex) => {
+                    const Component = setting.component;
+                    return (
+                      <tr key={stIndex}>
+                        <td>
+                          <div className="setting-name">
+                            {getLangStringConverted({
+                              lang,
+                              pathArray: setting.namePath,
+                            })}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="setting-controls">
+                            <Component
+                              gameStore={gameStore}
+                              {...componentProps}
+                              {...setting.getProps()}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })}
+    </Fragment>
+  );
 }

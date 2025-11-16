@@ -34,6 +34,8 @@ body {
   .main-view-controller {
     width: 100%;
     height: 100%;
+    --interface-scale: 1;
+    font-size: calc(14px * var(--interface-scale));
     --input-tip-color: var(--black);
 
     .input-tip {
@@ -47,7 +49,7 @@ body {
       color: var(--input-tip-color);
 
       .symbol {
-        --size: 17px;
+        --size: calc(17px * var(--interface-scale));
         position: relative;
         // top: -1px;
         display: flex;
@@ -64,13 +66,13 @@ body {
         // border-width: 2px 4px 6px 4px;
         border-radius: 3px;
         // box-sizing: border-box;
-        font-size: 14px;
+        font-size: calc(14px * var(--interface-scale));
         font-weight: bold;
         background-color: var(--white);
 
         .unicode-symbol {
           margin-top: -2px;
-          font-size: 13px;
+          font-size: calc(13px * var(--interface-scale));;
         }
       }
 
@@ -85,7 +87,7 @@ body {
     }
 
     .input-tips {
-      --input-tip-height: 24px;
+      --input-tip-height: calc(24px * var(--interface-scale));
       --input-tip-elements: 3;
       --input-tip-animation-time: 1s;
       display: inline-flex;
@@ -123,6 +125,11 @@ body {
         }
       }
 
+      .input-tip {
+        flex-shrink: 0;
+        height: calc(24px * var(--interface-scale));
+      }
+
       &.smooth {
         .input-tip {
           animation:
@@ -152,10 +159,10 @@ body {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 40px;
+      height: calc(40px * var(--interface-scale));
       padding: 0 20px;
       box-sizing: border-box;
-      font-size: 20px;
+      font-size: calc(20px * var(--interface-scale));
       text-decoration: none;
       color: var(--black);
       background-color: #eee;
@@ -181,7 +188,7 @@ body {
           // content: "\25BC";
           content: "\2B65";
           padding-left: 5px;
-          font-size: 22px;
+          font-size: calc(22px * var(--interface-scale));
         }
 
         .text {
@@ -262,7 +269,9 @@ body {
         gap: 5px;
 
         .button {
-          width: 22px;
+          width: calc(24px * var(--interface-scale));
+          padding: 0;
+          font-size: calc(14px * var(--interface-scale));
         }
 
         .value {
@@ -276,6 +285,95 @@ body {
       &[disabled] {
         pointer-events: none;
         opacity: 0.4;
+      }
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-size);
+
+      &:first-child {
+        padding-top: var(--gap-size);
+      }
+
+      &:last-child {
+        padding-bottom: var(--gap-size);
+      }
+
+      .button {
+        height: calc(24px * var(--interface-scale));
+        padding: 0 10px;
+        font-size: calc(14px * var(--interface-scale));
+      }
+
+      > .header {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        border-width: 0 var(--gap-size);
+        border-style: solid;
+        border-color: transparent;
+
+        .text {
+          background-color: var(--menu-background-color);
+          padding: 0 5px;
+        }
+
+        &::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: 100%;
+          height: 2px;
+          background-color: gray;
+          z-index: -1;
+        }
+      }
+
+      > .content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 var(--gap-size);
+
+        .settings-table {
+          border-spacing: 0;
+
+          tr {
+            td {
+              &:nth-child(1) {
+
+              }
+
+              &:nth-child(2) {
+                width: 0;
+              }
+            }
+
+            &:not(:first-child) {
+              td {
+                padding-top: 5px;
+              }
+            }
+          }
+
+          .setting-name {
+            padding: 0 5px;
+          }
+
+          .setting-controls {
+            display: flex;
+            flex-direction: column;
+            min-width: 121px;
+
+            .checkbox {
+              width: calc(24px * var(--interface-scale));
+              padding: 0;
+            }
+          }
+        }
       }
     }
 

@@ -5,63 +5,15 @@
   &.controls-tab {
     .section {
       .content {
-        .select,
-        .button {
-          height: 22px;
-          padding: 0 10px;
-          font-size: 14px;
-        }
-
-        .select {
-          &:after {
-            font-size: 21px;
-            top: -1px;
-          }
-        }
-
-        .settings-table {
-          border-spacing: 0;
-
-          tr {
-            td {
-              &:nth-child(1) {
-
-              }
-
-              &:nth-child(2) {
-                width: 0;
-              }
-            }
-
-            &:not(:first-child) {
-              td {
-                padding-top: 5px;
-              }
-            }
-          }
-
-          .setting-name {
-            padding: 0 5px;
-          }
-
-          .setting-controls {
-            display: flex;
-            flex-direction: column;
-            min-width: 121px;
-
-            .checkbox {
-              width: 22px;
-              padding: 0;
-            }
-          }
-        }
-
         .control-scheme-select {
           display: flex;
+          flex-wrap: wrap;
           gap: 5px;
 
           .button {
             flex-grow: 1;
+            height: calc(22px * var(--interface-scale));
+            font-size: calc(14px * var(--interface-scale));
           }
         }
 
@@ -70,6 +22,11 @@
         .btn-wrapper {
           display: flex;
           justify-content: center;
+
+          .button {
+            height: calc(22px * var(--interface-scale));
+            font-size: calc(14px * var(--interface-scale));
+          }
         }
       }
     }
