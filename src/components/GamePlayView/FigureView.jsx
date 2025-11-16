@@ -12,7 +12,7 @@ export default observer(
 
     render() {
       const { gameStore, type } = this.props;
-      const { cellsMaxSize } = gameStore;
+      const { cellsMaxSizeInitRotation } = gameStore;
 
       const result = gameStore.generateFigureData({
         type,
@@ -20,18 +20,18 @@ export default observer(
       });
 
       let cellsData;
-      let cellsX;
-      let cellsY = cellsMaxSize.height;
+      let cellsX = cellsMaxSizeInitRotation.width;
+      let cellsY = cellsMaxSizeInitRotation.height;
       if (!result) {
         cellsData = [];
-        gameStore.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
-        cellsX = cellsMaxSize.width;
-        // cellsY = cellsMaxSize.height;
+        gameStore.createGrid(cellsData, cellsX, cellsY);
       } else {
         const { pXMin, pXMax, pYMin, pYMax, cellsW, cellsH } = result;
+        cellsX = cellsW;
+        // cellsY = cellsH;
         cellsData = result.cellsData
           .map((row, rIndex) => {
-            // if (rIndex < pYMin || rIndex > pYMax) return null;
+            if (rIndex < pYMin || rIndex > pYMax) return null;
             return row
               .map((cell, cIndex) => {
                 if (cIndex < pXMin || cIndex > pXMax) return null;
@@ -40,8 +40,6 @@ export default observer(
               .filter(Boolean);
           })
           .filter(Boolean);
-        cellsX = cellsW;
-        // cellsY = cellsH;
       }
 
       return (

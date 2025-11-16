@@ -64,12 +64,7 @@ export default observer(
                   step: 1,
                   onChange: (value) => {
                     gameData.cup.width = value;
-                    const freeCells = value - cellsMaxSize.width;
-                    let startX = 0;
-                    if (freeCells > 0) {
-                      startX = Math.ceil(freeCells / 2) + (freeCells % 2 > 0 ? 0 : 1);
-                    }
-                    gameData.cup.figureStart.x = startX;
+                    gameStore.figureCupStartXUpdate();
                     gameStore.cupRectUpdate();
                   },
                 };

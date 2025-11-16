@@ -105,6 +105,7 @@ class Storage {
       // action
       setupDefaultControlSchemes: action,
       viewStateInit: action,
+      figureCupStartXUpdate: action,
 
       gameModeUpdate: action,
       gameStart: action,
@@ -128,6 +129,7 @@ class Storage {
 
       // computed
       cellsMaxSize: computed,
+      cellsMaxSizeInitRotation: computed,
     });
 
     this.eventBus = new EventBus();
@@ -982,6 +984,20 @@ class Storage {
     }
   };
 
+  figureCupStartXUpdate = () => {
+    const { cellsMaxSize } = this;
+    const { gameData } = this.observables;
+
+    const cupW = gameData.cup.width;
+    const freeCells = cupW - cellsMaxSize.width;
+    // let startX = 0;
+    // if (freeCells > 0) {
+    //   startX = Math.ceil(freeCells / 2) + (freeCells % 2 > 0 ? 0 : 1);
+    // }
+    const startX = Math.floor(freeCells / 2);
+    gameData.cup.figureStart.x = startX;
+  };
+
   //
 
   get cellsMaxSize() {
@@ -996,6 +1012,24 @@ class Storage {
           if (pX > width) width = pX;
           if (pY > height) height = pY;
         });
+      });
+    });
+    width++;
+    height++;
+
+    return { width, height };
+  }
+
+  get cellsMaxSizeInitRotation() {
+    const { gameData } = this.observables;
+
+    let width = 0;
+    let height = 0;
+    gameData.figureTypesAllowed?.forEach((type) => {
+      const figureTypeData = constants.gameplay.figureTypeData[type];
+      figureTypeData.rotations[0].forEach(([pX, pY]) => {
+        if (pX > width) width = pX;
+        if (pY > height) height = pY;
       });
     });
     width++;
@@ -1053,6 +1087,7 @@ class Storage {
 
       this.createGrid(currentFigure.cells.data, cellsMaxSize.width, cellsMaxSize.height);
       this.generateCurrentFigure();
+      this.figureCupStartXUpdate();
       currentFigure.x = cup.figureStart.x;
       currentFigure.y = cup.figureStart.y;
       this.calcShadowFigureY();
@@ -1162,11 +1197,17 @@ class Storage {
   //
 
   spawnNewCurrentFigure = () => {
+    const { cellsMaxSize } = this;
     const { gameData } = this.observables;
     const { cup, currentFigure } = gameData;
 
     this.generateCurrentFigure();
-    currentFigure.x = cup.figureStart.x;
+
+    const freeCells = cellsMaxSize.width - currentFigure.cells.width;
+    let offsetX = Math.floor(freeCells / 2) - currentFigure.cells.x;
+    if (offsetX < 0) offsetX = 0;
+
+    currentFigure.x = cup.figureStart.x + offsetX;
     currentFigure.y = cup.figureStart.y;
     this.calcShadowFigureY();
 
@@ -1332,12 +1373,12 @@ class Storage {
     y--;
 
     const delta = y - currentFigure.y;
-    if (delta <= 0) return false;
+    if (delta > 0) {
+      this.addScore({ action: constants.gameplay.actionType.hardDrop, scoreMult: delta });
 
-    this.addScore({ action: constants.gameplay.actionType.hardDrop, scoreMult: delta });
-
-    currentFigure.y = y;
-    this.generateCupView();
+      currentFigure.y = y;
+      this.generateCupView();
+    }
 
     this.stopGameLoop();
     if (gameOptions.enableNonBlockingHardDrop) {
