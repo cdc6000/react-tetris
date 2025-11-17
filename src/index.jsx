@@ -11,7 +11,6 @@ if (module.hot) {
 }
 
 mobxInit();
-// test
 
 const rootSelector = "#game";
 const rootContainer = document.querySelector(rootSelector);
