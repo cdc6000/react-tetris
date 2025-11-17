@@ -1,7 +1,7 @@
 {
   "name": "tessemino",
   "version": "1.0.0",
-  "description": "tessemino game",
+  "description": "tessemino",
   "main": "./electron_build/index.js",
   "scripts": {
     "build": "webpack --config ./webpack/prod.js && npm version patch --commit-hooks false --git-tag-version false",
