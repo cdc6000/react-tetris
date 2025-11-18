@@ -38,7 +38,7 @@ export default observer(
                   value: graphicsOptions.interfaceScale,
                   valueDefault: defaultGraphicsOptions.interfaceScale,
                   valueMin: 0.8,
-                  valueMax: 1.5,
+                  valueMax: 2,
                   step: 0.05,
                   onChange: (value) => {
                     graphicsOptions.interfaceScale = parseFloat(value.toFixed(2));

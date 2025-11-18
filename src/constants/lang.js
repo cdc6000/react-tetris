@@ -1,6 +1,7 @@
 import React, { Component, Fragment } from "react";
 
 import * as controls from "./controls";
+import * as gameplay from "./gameplay";
 
 export const strings = {
   ru: {
@@ -107,6 +108,13 @@ export const strings = {
       exitBtnTitle: "Выход",
     },
 
+    gameWinMenu: {
+      menuTitle: "Победа!",
+
+      restartBtnTitle: "Начать заново",
+      exitBtnTitle: "Выход",
+    },
+
     helpMenu: {
       menuTitle: "Помощь",
       backBtnTitle: "Закрыть&nbsp;${btns|или}",
@@ -116,15 +124,26 @@ export const strings = {
       menuTitle: "Настройки игровой сессии",
 
       gameMode: {
-        sectionTitle: "Режим игры",
+        sectionTitle: "Режим",
+
+        maxLevels: "Набор уровней",
+        maxLevelsZero: "Нет",
+        continueAfterMaxLevel: "Продолжать игру после максимального уровня",
+        timeLimit: "Предел времени",
+        linesLimit: "Предел линий",
 
         enableHold: "Разрешить запас фигур",
+      },
+
+      gameView: {
+        sectionTitle: "Поле",
+
         cupWidth: "Ширина игрового поля",
         cupHeight: "Высота игрового поля",
       },
 
       gamePlay: {
-        sectionTitle: "Игровой процесс",
+        sectionTitle: "Процесс",
 
         enableNonBlockingMoveDown: "Неблокирующее падение фигуры",
         enableNonBlockingSoftDrop: "Неблокирующее плавное опускание фигуры",
@@ -149,6 +168,8 @@ export const strings = {
       holdFigureTitle: "Запас",
       nextFigureTitle: "Далее",
     },
+
+    //
 
     controlEventName: {
       [controls.controlEvent.menuNavUp]: "Вверх",

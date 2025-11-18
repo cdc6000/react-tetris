@@ -8,6 +8,7 @@ import GameOptionsMenu from "@components/GameOptionsMenu";
 import GamePlayView from "@components/GamePlayView";
 import PauseMenu from "@components/PauseMenu";
 import GameOverMenu from "@components/GameOverMenu";
+import GameWinMenu from "@components/GameWinMenu";
 import HelpMenu from "@components/HelpMenu";
 import GetInputMenu from "@components/GetInputMenu";
 import ControlsOverlapMenu from "@components/ControlsOverlapMenu";
@@ -47,6 +48,7 @@ export default observer(
           <MainMenu gameStore={gameStore} />
           <PauseMenu gameStore={gameStore} />
           <GameOverMenu gameStore={gameStore} />
+          <GameWinMenu gameStore={gameStore} />
           <GameOptionsMenu gameStore={gameStore} />
           <OptionsMenu gameStore={gameStore} />
           <HelpMenu gameStore={gameStore} />

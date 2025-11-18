@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import Button from "@components/common/Button";
 import Checkbox from "@components/common/Checkbox";
 import NumberInput from "@components/common/NumberInput";
+import Select from "@components/common/Select";
 
 import * as reactHelpers from "@utils/react-helpers";
 import * as timeHelpers from "@utils/time-helpers";
@@ -25,6 +26,113 @@ export default observer(
           namePath: ["gameOptionsMenu", "gameMode", "sectionTitle"],
           settings: [
             {
+              namePath: ["gameOptionsMenu", "gameMode", "maxLevels"],
+              component: Select,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { lang, gameOptions } = gameStore.observables;
+                const { getLangStringConverted } = constants.lang;
+
+                return {
+                  className: "max-level-select",
+                  navElemID: `${viewID}-maxLevelSelect`,
+                  value: gameOptions.maxLevels,
+                  title: getLangStringConverted({ lang, pathArray: ["gameOptionsMenu", "gameMode", "maxLevels"] }),
+                  options: constants.gameplay.maxLevelList.map((maxLevels) => {
+                    let name = maxLevels;
+                    if (!maxLevels) {
+                      name = getLangStringConverted({
+                        lang,
+                        pathArray: ["gameOptionsMenu", "gameMode", "maxLevelsZero"],
+                      });
+                    } else if (maxLevels > 1) {
+                      name = `1-${maxLevels}`;
+                    }
+
+                    return {
+                      id: maxLevels,
+                      name,
+                    };
+                  }),
+                  onChange: (value) => {
+                    gameOptions.maxLevels = value;
+                  },
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "continueAfterMaxLevel"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "continue-after-max-level-checkbox",
+                  navElemID: `${viewID}-continueAfterMaxLevelCheckbox`,
+                  value: gameOptions.continueAfterMaxLevel,
+                  onChange: (value) => {
+                    gameOptions.continueAfterMaxLevel = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "timeLimit"],
+              component: NumberInput,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+                const { gameOptions: defaultGameOptions } = gameStore.defaults.observables;
+
+                return {
+                  className: "time-limit-input",
+                  navElemID: `${viewID}-timeLimitInput`,
+                  navGroupID: `timeLimitInput`,
+                  value: gameOptions.timeLimit,
+                  valueDefault: defaultGameOptions.timeLimit,
+                  valueMin: 0,
+                  valueMax: 10 * 60 * 1000,
+                  step: 60 * 1000,
+                  onChange: (value) => {
+                    gameOptions.timeLimit = value;
+                  },
+                  formatter: (value) => {
+                    const timeData = timeHelpers.parseTime(value);
+                    return `${timeHelpers.pad(timeData.fullMinutes)}:${timeHelpers.pad(timeData.leftoverSeconds)}`;
+                  },
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "linesLimit"],
+              component: NumberInput,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+                const { gameOptions: defaultGameOptions } = gameStore.defaults.observables;
+
+                return {
+                  className: "lines-limit-input",
+                  navElemID: `${viewID}-linesLimitInput`,
+                  navGroupID: `linesLimitInput`,
+                  value: gameOptions.linesLimit,
+                  valueDefault: defaultGameOptions.linesLimit,
+                  valueMin: 0,
+                  valueMax: 100,
+                  step: 10,
+                  onChange: (value) => {
+                    gameOptions.linesLimit = value;
+                  },
+                };
+              },
+            },
+            {
               namePath: ["gameOptionsMenu", "gameMode", "enableHold"],
               component: Checkbox,
               getProps: () => {
@@ -43,8 +151,13 @@ export default observer(
                 };
               },
             },
+          ],
+        },
+        {
+          namePath: ["gameOptionsMenu", "gameView", "sectionTitle"],
+          settings: [
             {
-              namePath: ["gameOptionsMenu", "gameMode", "cupWidth"],
+              namePath: ["gameOptionsMenu", "gameView", "cupWidth"],
               component: NumberInput,
               getProps: () => {
                 const { viewID } = this;
@@ -70,7 +183,7 @@ export default observer(
               },
             },
             {
-              namePath: ["gameOptionsMenu", "gameMode", "cupHeight"],
+              namePath: ["gameOptionsMenu", "gameView", "cupHeight"],
               component: NumberInput,
               getProps: () => {
                 const { viewID } = this;
@@ -239,7 +352,7 @@ export default observer(
       const { gameStore } = this.props;
       const { viewStore } = gameStore;
       const { viewData } = viewStore.observables;
-      const { lang } = gameStore.observables;
+      const { lang, gameOptions } = gameStore.observables;
       const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];

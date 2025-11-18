@@ -29,6 +29,7 @@ export default observer(
         step,
         valuePrecision = 2,
         onChange,
+        formatter,
 
         navLayerID,
         navElemID,
@@ -42,6 +43,10 @@ export default observer(
         content = getLangStringConverted({ lang, pathArray: namePath });
       }
 
+      let _value = value;
+      if (formatter) {
+        _value = formatter(_value);
+      }
       const isValueDefault = value == valueDefault;
       const prevVal = parseFloat((value - step).toFixed(valuePrecision));
       const nextVal = parseFloat((value + step).toFixed(valuePrecision));
@@ -71,7 +76,7 @@ export default observer(
             >
               <span>&#x2212;</span>
             </Button>
-            <div className="value">{value}</div>
+            <div className="value">{_value}</div>
             <Button
               gameStore={gameStore}
               className="number-add-btn"

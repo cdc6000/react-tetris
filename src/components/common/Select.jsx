@@ -31,7 +31,7 @@ export default observer(
       const navigationData = navigationStore.getNavComponentData(this.props);
       const { isNavSelected } = navigationData.props;
 
-      const selectedOption = value ? options.find((_) => _.id == value) : { name: defOptionName || "nothing-selected" };
+      const selectedOption = options.find((_) => _.id == value) || { name: defOptionName || "nothing-selected" };
 
       return (
         <a

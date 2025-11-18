@@ -18,7 +18,7 @@
           display: flex;
           flex-direction: column;
           width: calc(500px * var(--interface-scale));
-          height: 400px;
+          height: calc(400px * var(--interface-scale));
           border: 1px solid var(--lightgray);
           border-radius: 3px;
           box-sizing: border-box;

@@ -47,7 +47,6 @@ export const cellTypeData = {
   },
 };
 
-
 export const figureTypeData = {
   [figureType.I]: {
     //prettier-ignore
@@ -352,6 +351,24 @@ export const actionType = {
 
 export const gameMode = {
   classic: "classic",
+};
+
+export const maxLevelList = [0, 1, 5, 10, 15];
+
+export const maxLevelData = {
+  0: {},
+  1: {
+    speed: [1000],
+  },
+  5: {
+    speed: [1000, 500, 250, 100, 50],
+  },
+  10: {
+    speed: [1000, 800, 600, 500, 400, 300, 200, 150, 100, 50],
+  },
+  15: {
+    speed: [1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 15, 7],
+  },
 };
 
 export const gameState = {

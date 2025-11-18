@@ -158,7 +158,7 @@
           display: flex;
           justify-content: space-between;
           width: var(--cup-width);
-          min-width: 200px;
+          min-width: calc(250px * var(--interface-scale));
         }
       }
 

@@ -28,7 +28,7 @@
         .options-list-container {
           position: relative;
           width: calc(500px * var(--interface-scale));
-          height: 400px;
+          height: calc(400px * var(--interface-scale));
           overflow: hidden;
           border: 1px solid var(--lightgray);
           border-radius: 3px;

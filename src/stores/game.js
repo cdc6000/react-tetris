@@ -30,14 +30,19 @@ class Storage {
       gameState: constants.gameplay.gameState.pause,
       gameMode: constants.gameplay.gameMode.classic,
       gameOptions: {
+        maxLevels: 0,
+        continueAfterMaxLevel: true,
+        timeLimit: 0,
+        linesLimit: 0,
+
         enableHold: true,
-        enableLevels: true,
+
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
         enableNonBlockingHardDrop: false,
+        figureLockDelay: 500,
         enableInfiniteRotation: false,
         enableInfiniteMove: false,
-        figureLockDelay: 500,
       },
       graphicsOptions: {
         interfaceScale: 1,
@@ -135,6 +140,7 @@ class Storage {
       gameStart: action,
       gameEnd: action,
       gameOver: action,
+      gameWin: action,
       addScore: action,
       setPause: action,
 
@@ -657,6 +663,10 @@ class Storage {
       canBeShown: true,
       show: false,
     };
+    viewData.viewState[constants.viewData.view.gameWinMenu] = {
+      canBeShown: true,
+      show: false,
+    };
     viewData.viewState[constants.viewData.view.helpMenu] = {
       canBeShown: true,
       show: false,
@@ -774,6 +784,24 @@ class Storage {
         views: [
           {
             id: constants.viewData.view.gameOverMenu,
+            enableProps: {
+              show: true,
+            },
+            disableProps: {
+              show: false,
+            },
+          },
+        ],
+        data: {},
+      },
+    });
+    setViewLayerData({
+      layerID: constants.viewData.layer.gameWinMenu,
+      data: {
+        isEnabled: false,
+        views: [
+          {
+            id: constants.viewData.view.gameWinMenu,
             enableProps: {
               show: true,
             },
@@ -1126,24 +1154,6 @@ class Storage {
         constants.gameplay.figureType.T,
         constants.gameplay.figureType.O
       );
-
-      gameData.levelData = objectHelpers.deepCopy(gameDataDefaults.levelData);
-      if (gameOptions.enableLevels) {
-        // const levels = 15;
-        const levels = 10;
-        for (let lvl = 0; lvl < levels; lvl++) {
-          gameData.levelData.push({
-            // speed: [1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 15, 7][lvl],
-            speed: [1000, 800, 600, 500, 400, 300, 200, 150, 100, 50][lvl],
-            nextLevelLines: 5 * (lvl + 1),
-            actionScore: {
-              [constants.gameplay.actionType.clearLines]: 100 * (lvl + 1),
-              [constants.gameplay.actionType.softDrop]: 1 * (lvl + 1),
-              [constants.gameplay.actionType.hardDrop]: 2 * (lvl + 1),
-            },
-          });
-        }
-      }
     }
   };
 
@@ -1154,6 +1164,20 @@ class Storage {
 
     if (gameMode == constants.gameplay.gameMode.classic) {
       const { cup, currentFigure } = gameData;
+
+      if (gameOptions.maxLevels > 0) {
+        for (let lvl = 0; lvl < gameOptions.maxLevels; lvl++) {
+          gameData.levelData.push({
+            speed: constants.gameplay.maxLevelData[gameOptions.maxLevels]?.speed?.[lvl] || 1000,
+            nextLevelLines: 5 * (lvl + 1),
+            actionScore: {
+              [constants.gameplay.actionType.clearLines]: 100 * (lvl + 1),
+              [constants.gameplay.actionType.softDrop]: 1 * (lvl + 1),
+              [constants.gameplay.actionType.hardDrop]: 2 * (lvl + 1),
+            },
+          });
+        }
+      }
 
       this.createGrid(cup.data, cup.width, cup.height);
 
@@ -1217,13 +1241,44 @@ class Storage {
     this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.gameOverMenu, isAdditive: true });
   };
 
+  gameWin = () => {
+    this.stopGameLoop();
+    this.observables.gameState = constants.gameplay.gameState.pause;
+    this.viewStore.viewLayerEnable({ layerID: constants.viewData.layer.gameWinMenu, isAdditive: true });
+  };
+
+  checkWinConditions = () => {
+    const { gameOptions, gameData } = this.observables;
+    const { lines, levelData, currentFigure, holdFigure } = gameData;
+
+    if (gameOptions.maxLevels > 1 && !gameOptions.continueAfterMaxLevel && gameData.level == levelData.length - 1) {
+      const _levelData = levelData[gameData.level];
+      if (lines >= _levelData.nextLevelLines) {
+        this.gameWin();
+        return true;
+      }
+    }
+
+    if (gameOptions.timeLimit > 0 && gameData.time >= gameOptions.timeLimit) {
+      this.gameWin();
+      return true;
+    }
+
+    if (gameOptions.linesLimit > 0 && gameData.lines >= gameOptions.linesLimit) {
+      this.gameWin();
+      return true;
+    }
+
+    return false;
+  };
+
   addScore = ({ action, scoreMult = 1 }) => {
-    if (!action) return;
+    if (!action) return false;
 
     const { gameData } = this.observables;
     const { gameLoopData } = this.nonObservables;
     const { levelData, lines } = gameData;
-    if (!levelData.length) return;
+    if (!levelData.length) return false;
 
     if (gameData.level >= levelData.length) gameData.level = levelData.length - 1;
     let _levelData = levelData[gameData.level];
@@ -1476,7 +1531,7 @@ class Storage {
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
 
-    if (this.moveCurrentFigureDown()) {
+    if (this.moveCurrentFigureDown({ mandatoryMove: true })) {
       this.resetGameLoop();
       this.addScore({ action: constants.gameplay.actionType.softDrop });
     } else {
@@ -1583,6 +1638,8 @@ class Storage {
       await timeHelpers.sleep(300);
     }
 
+    if (this.checkWinConditions()) return false;
+
     runInAction(() => {
       this.spawnNewCurrentFigure();
       holdFigure.blocked = false;
@@ -1592,8 +1649,8 @@ class Storage {
     return true;
   };
 
-  moveCurrentFigureDown = () => {
-    const { gameData } = this.observables;
+  moveCurrentFigureDown = ({ mandatoryMove = false } = {}) => {
+    const { gameOptions, gameData } = this.observables;
     const { currentFigure } = gameData;
     const { gameState } = this.observables;
 
@@ -1603,8 +1660,10 @@ class Storage {
     const newY = currentFigure.y + 1;
     if (this.checkFigureOverlap({ y: newY })) return false;
 
-    currentFigure.y = newY;
-    this.generateCupView();
+    if (mandatoryMove || gameOptions.maxLevels > 0) {
+      currentFigure.y = newY;
+      this.generateCupView();
+    }
     return true;
   };
 
@@ -1662,12 +1721,13 @@ class Storage {
     const { gameLoopData } = this.nonObservables;
     // console.log("game loop");
 
+    if (currentFigure.type == constants.gameplay.figureType.none) return false;
+    if (gameState == constants.gameplay.gameState.pause) return false;
+
     const now = Date.now();
     gameData.time += now - gameLoopData.lastTimestamp;
     gameLoopData.lastTimestamp = now;
-
-    if (currentFigure.type == constants.gameplay.figureType.none) return false;
-    if (gameState == constants.gameplay.gameState.pause) return false;
+    if (this.checkWinConditions()) return false;
 
     let continueLoop = false;
     if (this.moveCurrentFigureDown()) {
