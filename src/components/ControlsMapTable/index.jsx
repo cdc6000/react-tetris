@@ -7,7 +7,7 @@ import Button from "@components/common/Button";
 import NavigationPoint from "@components/common/NavigationPoint";
 
 import * as reactHelpers from "@utils/react-helpers";
-import * as eventHelpers from "@utils/event-helpers";
+import * as timeHelpers from "@utils/time-helpers";
 
 import * as constants from "@constants/index";
 

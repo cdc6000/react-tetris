@@ -10,3 +10,10 @@ export function clearOwnProperties(obj) {
     obj[key] = undefined;
   });
 }
+
+export async function forEachSync(array, callback) {
+  for (let i = 0; i < array.length; i++) {
+    const element = array[i];
+    await callback(element, i, array);
+  }
+}

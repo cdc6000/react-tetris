@@ -143,6 +143,7 @@ export const strings = {
       tipPause: "Пауза&nbsp;${btns|или}",
 
       scoreTitle: "Очки",
+      timeTitle: "Время",
       linesTitle: "Линии",
       levelTitle: "Уровень",
       holdFigureTitle: "Запас",
@@ -161,8 +162,8 @@ export const strings = {
       [controls.controlEvent.moveCurrentFigureLeft]: "Переместить влево",
       [controls.controlEvent.rotateCurrentFigureClockwise]: "Повернуть по часовой стрелке",
       [controls.controlEvent.rotateCurrentFigureCounterclockwise]: "Повернуть против часовой стрелки",
-      [controls.controlEvent.speedUpFallingCurrentFigure]: "Опускать плавно",
-      [controls.controlEvent.dropCurrentFigure]: "Опустить резко",
+      [controls.controlEvent.speedUpFallingCurrentFigure]: "Опустить на один блок",
+      [controls.controlEvent.dropCurrentFigure]: "Опустить до препятствия",
       [controls.controlEvent.holdCurrentFigure]: "В запас",
 
       [controls.controlEvent.gamePause]: "Поставить на паузу",

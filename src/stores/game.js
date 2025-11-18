@@ -20,7 +20,7 @@ import * as constants from "@constants/index";
 
 import EventBus from "@utils/event-bus";
 import * as objectHelpers from "@utils/object-helpers";
-import * as eventHelpers from "@utils/event-helpers";
+import * as timeHelpers from "@utils/time-helpers";
 
 class Storage {
   constructor() {
@@ -50,6 +50,7 @@ class Storage {
         figureTypesAllowed: [],
         levelData: [],
         score: 0,
+        time: 0,
         lines: 0,
         level: 0,
         gameLoopTimeoutMs: 1000,
@@ -114,6 +115,7 @@ class Storage {
 
       gameLoopData: {
         timeout: 0,
+        lastTimestamp: 0,
       },
       currentFigureLockTimeout: 0,
       lastDropTimestamp: 0,
@@ -188,7 +190,7 @@ class Storage {
     // viewStore.viewLayerEnable({ layerID: constants.viewData.layer.optionsMenu, isAdditive: true });
     // viewStore.viewLayerEnable({ layerID: constants.viewData.layer.helpMenu, isAdditive: true });
 
-    // await eventHelpers.sleep(1);
+    // await timeHelpers.sleep(1);
     // inputStore.updateMenuNavElem();
   };
 
@@ -205,7 +207,7 @@ class Storage {
       if (layerID == constants.viewData.layer.mainMenu) {
         navigationStore.clearLastSelectedElemData();
       }
-      await eventHelpers.sleep(1);
+      await timeHelpers.sleep(1);
       navigationStore.updateMenuNavElem();
     });
     eventBus.addEventListener(evenBusID, controlEvent.menuNavUp, ({ deviceType, deviceTypeChanged }) => {
@@ -911,7 +913,7 @@ class Storage {
         //   override: false,
         // });
       });
-      // await eventHelpers.sleep(1000);
+      // await timeHelpers.sleep(1000);
     }
 
     viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
@@ -1136,8 +1138,8 @@ class Storage {
             nextLevelLines: 5 * (lvl + 1),
             actionScore: {
               [constants.gameplay.actionType.clearLines]: 100 * (lvl + 1),
-              [constants.gameplay.actionType.softDrop]: 1,
-              [constants.gameplay.actionType.hardDrop]: 2,
+              [constants.gameplay.actionType.softDrop]: 1 * (lvl + 1),
+              [constants.gameplay.actionType.hardDrop]: 2 * (lvl + 1),
             },
           });
         }
@@ -1148,6 +1150,7 @@ class Storage {
   gameStart = () => {
     const { cellsMaxSize } = this;
     const { gameMode, gameOptions, gameData } = this.observables;
+    const { gameLoopData } = this.nonObservables;
 
     if (gameMode == constants.gameplay.gameMode.classic) {
       const { cup, currentFigure } = gameData;
@@ -1170,6 +1173,7 @@ class Storage {
 
     this.observables.gameState = constants.gameplay.gameState.play;
     this.startGameLoop();
+    gameLoopData.lastTimestamp = Date.now();
   };
 
   gameEnd = () => {
@@ -1181,6 +1185,7 @@ class Storage {
 
     if (gameMode == constants.gameplay.gameMode.classic) {
       gameData.score = gameDataDefaults.score;
+      gameData.time = gameDataDefaults.time;
       gameData.lines = gameDataDefaults.lines;
       gameData.level = gameDataDefaults.level;
 
@@ -1202,6 +1207,7 @@ class Storage {
 
   gameRestart = () => {
     this.gameEnd();
+    this.gameModeUpdate();
     this.gameStart();
   };
 
@@ -1236,6 +1242,7 @@ class Storage {
   setPause = ({ toggle, state }) => {
     const { gameMode, gameState } = this.observables;
     const { play, pause } = constants.gameplay.gameState;
+    const { gameLoopData } = this.nonObservables;
 
     if (gameMode == constants.gameplay.gameMode.none) return false;
 
@@ -1255,6 +1262,7 @@ class Storage {
       if (stateChanged) {
         if (this.observables.gameState == play) {
           this.startGameLoop();
+          gameLoopData.lastTimestamp = Date.now();
         } else {
           this.stopGameLoop();
         }
@@ -1572,7 +1580,7 @@ class Storage {
     });
 
     if (await this.clearFullLines()) {
-      await eventHelpers.sleep(300);
+      await timeHelpers.sleep(300);
     }
 
     runInAction(() => {
@@ -1609,7 +1617,7 @@ class Storage {
 
     if (gameLoopData.timeout) return false;
 
-    const { callNextIn, updateTime } = eventHelpers.setIntervalAdjusting({
+    const { callNextIn, updateTime } = timeHelpers.setIntervalAdjusting({
       onStep: this.gameLoop,
       time: gameLoopTimeoutMs,
       timeoutCallback: (timeout) => {
@@ -1649,10 +1657,14 @@ class Storage {
   };
 
   gameLoop = () => {
-    const { gameOptions, gameData } = this.observables;
+    const { gameOptions, gameState, gameData } = this.observables;
     const { currentFigure } = gameData;
-    const { gameState } = this.observables;
+    const { gameLoopData } = this.nonObservables;
     // console.log("game loop");
+
+    const now = Date.now();
+    gameData.time += now - gameLoopData.lastTimestamp;
+    gameLoopData.lastTimestamp = now;
 
     if (currentFigure.type == constants.gameplay.figureType.none) return false;
     if (gameState == constants.gameplay.gameState.pause) return false;
@@ -1757,7 +1769,7 @@ class Storage {
       this.generateCupView();
     });
 
-    await eventHelpers.sleep(300);
+    await timeHelpers.sleep(300);
 
     runInAction(() => {
       fullLinesY.forEach((_y, yIndex) => {

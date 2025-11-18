@@ -7,7 +7,7 @@ import Checkbox from "@components/common/Checkbox";
 import NumberInput from "@components/common/NumberInput";
 
 import * as reactHelpers from "@utils/react-helpers";
-import * as eventHelpers from "@utils/event-helpers";
+import * as timeHelpers from "@utils/time-helpers";
 import * as customHelpers from "@utils/custom-helpers";
 
 import * as constants from "@constants/index";

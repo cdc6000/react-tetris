@@ -16,7 +16,7 @@ import * as constants from "@constants/index";
 
 import EventBus from "@utils/event-bus";
 import * as objectHelpers from "@utils/object-helpers";
-import * as eventHelpers from "@utils/event-helpers";
+import * as timeHelpers from "@utils/time-helpers";
 
 class Storage {
   constructor(props) {

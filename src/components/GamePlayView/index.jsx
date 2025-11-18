@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 
 import FigureView from "./FigureView";
 
+import * as timeHelpers from "@utils/time-helpers";
 import * as customHelpers from "@utils/custom-helpers";
 
 import * as constants from "@constants/index";
@@ -38,10 +39,12 @@ export default observer(
       const { viewStore } = gameStore;
       const { viewData } = viewStore.observables;
       const { lang, gameData, gameOptions } = gameStore.observables;
-      const { randomFigureTypePool, score, lines, level, cup, holdFigure } = gameData;
+      const { randomFigureTypePool, score, time, lines, level, cup, holdFigure } = gameData;
       const { getLangStringConverted } = constants.lang;
 
       const { show } = viewData.viewState[viewID];
+
+      const timeData = timeHelpers.parseTime(time);
 
       return (
         <div
@@ -157,6 +160,12 @@ export default observer(
                     ],
                   })}
                 </div>
+
+                <div className="block">
+                  {/* <div className="header">{getLangStringConverted({ lang, pathArray: ["gameView", "timeTitle"] })}</div> */}
+                  <div className="content center">{`${timeHelpers.pad(timeData.fullMinutes)}:${timeHelpers.pad(timeData.leftoverSeconds)}`}</div>
+                </div>
+
                 <div className="tip">
                   {getLangStringConverted({
                     lang,

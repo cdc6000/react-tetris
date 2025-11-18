@@ -6,13 +6,6 @@ export function sleep(milliseconds) {
   });
 }
 
-export async function forEachSync(array, callback) {
-  for (let i = 0; i < array.length; i++) {
-    const element = array[i];
-    await callback(element, i, array);
-  }
-}
-
 export function setTimeoutAdjusting({ onStep, time, adjTime, timeoutCallback }) {
   if (!time || !adjTime) return false;
 
@@ -85,4 +78,33 @@ export function setIntervalAdjusting({ onStep, time, targetTimeElapsedReset = 24
     updateTime,
     callNextIn,
   };
+}
+
+export function parseTime(milliseconds) {
+  const fullSeconds = Math.floor(milliseconds / 1000);
+  const leftoverMilliseconds = milliseconds - fullSeconds * 1000;
+
+  const fullMinutes = Math.floor(fullSeconds / 60);
+  const leftoverSeconds = fullSeconds - fullMinutes * 60;
+
+  const fullHours = Math.floor(fullMinutes / 60);
+  const leftoverMinutes = fullMinutes - fullHours * 60;
+
+  return {
+    fullSeconds,
+    fullMinutes,
+    fullHours,
+
+    leftoverMilliseconds,
+    leftoverSeconds,
+    leftoverMinutes,
+  };
+}
+
+export function pad(number, symbolCount = 2) {
+  let length = number.toString().length;
+  for (let index = length; index < symbolCount; index++) {
+    number = `0${number}`;
+  }
+  return number;
 }
