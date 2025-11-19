@@ -131,6 +131,9 @@ class Storage {
       observables: observable,
 
       // action
+      init: action,
+      loadSettingsFromStorage: action,
+
       setupDefaultControlSchemes: action,
       viewStateInit: action,
       figureCupStartXUpdate: action,
@@ -185,6 +188,11 @@ class Storage {
     this.viewStore.setDefaults();
     this.navigationStore.setDefaults();
 
+    this.loadSettingsFromStorage();
+    autorun(() => {
+      this.saveSettingsToStorage();
+    });
+
     this.init();
   }
 
@@ -198,6 +206,82 @@ class Storage {
 
     // await timeHelpers.sleep(1);
     // inputStore.updateMenuNavElem();
+  };
+
+  saveSettingsToStorage = () => {
+    const { inputStore } = this;
+
+    const key = "gameSettingsStorage";
+    const data = JSON.stringify({
+      gameStore: {
+        observables: {
+          gameOptions: this.observables.gameOptions,
+          graphicsOptions: this.observables.graphicsOptions,
+          gameplayOptions: this.observables.gameplayOptions,
+        },
+      },
+      inputStore: {
+        observables: {
+          controlSchemes: inputStore.observables.controlSchemes.map((_) => ({ id: _.id, binds: _.binds })),
+          inputOptions: inputStore.observables.inputOptions,
+        },
+      },
+    });
+
+    localStorage.setItem(key, data);
+  };
+
+  loadSettingsFromStorage = () => {
+    const { inputStore } = this;
+
+    const key = "gameSettingsStorage";
+    let data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(key));
+    } catch {}
+    if (data === null) data = {};
+
+    const copyKeyContent = (dataFrom, dataTo, keys) => {
+      keys.forEach((key) => {
+        if (!dataFrom[key]) return;
+        Object.getOwnPropertyNames(dataFrom[key]).forEach((_key) => {
+          dataTo[key][_key] = dataFrom[key][_key];
+        });
+      });
+    };
+
+    if (data.gameStore) {
+      const observables = data.gameStore.observables;
+      if (observables) {
+        copyKeyContent(observables, this.observables, ["gameOptions", "graphicsOptions", "gameplayOptions"]);
+      }
+    }
+
+    if (data.inputStore) {
+      const observables = data.inputStore.observables;
+      if (observables) {
+        copyKeyContent(observables, inputStore.observables, ["inputOptions"]);
+
+        if (observables.controlSchemes) {
+          observables.controlSchemes.forEach((controlScheme) => {
+            const _controlScheme = inputStore.observables.controlSchemes.find((_) => controlScheme.id == _.id);
+            if (!_controlScheme) return;
+
+            controlScheme.binds.forEach((bind) => {
+              const _bind = _controlScheme.binds.find((_) => _.action == bind.action);
+              if (!_bind) return;
+
+              inputStore.removeControlSchemeBind({
+                id: controlScheme.id,
+                action: bind.action,
+                triggers: _bind.triggers,
+              });
+              inputStore.addControlSchemeBind({ id: controlScheme.id, action: bind.action, triggers: bind.triggers });
+            });
+          });
+        }
+      }
+    }
   };
 
   //
