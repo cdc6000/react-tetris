@@ -1,3 +1,8 @@
+export const gameState = {
+  pause: 1,
+  play: 2,
+};
+
 export const figureType = {
   none: "none",
   I: "I",
@@ -371,7 +376,10 @@ export const maxLevelData = {
   },
 };
 
-export const gameState = {
-  pause: 1,
-  play: 2,
+export const cellGroupType = {
+  block: "block",
+  figure: "figure",
+  type: "type",
 };
+
+export const cellGroupTypeList = [cellGroupType.block, cellGroupType.figure, cellGroupType.type];

@@ -27,6 +27,30 @@
         box-sizing: border-box;
       }
 
+      &.connect-up {
+        &::after {
+          border-top-width: 0;
+        }
+      }
+
+      &.connect-down {
+        &::after {
+          border-bottom-width: 0;
+        }
+      }
+
+      &.connect-left {
+        &::after {
+          border-left-width: 0;
+        }
+      }
+
+      &.connect-right {
+        &::after {
+          border-right-width: 0;
+        }
+      }
+
       &.cyan {
         &::after {
           background-color: #00f0f0;

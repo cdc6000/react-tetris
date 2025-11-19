@@ -34,8 +34,9 @@ class Storage {
         continueAfterMaxLevel: true,
         timeLimit: 0,
         linesLimit: 0,
-
         enableHold: true,
+        cellGroupType: constants.gameplay.cellGroupType.block,
+        groupsFallOnClear: false,
 
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
@@ -124,6 +125,7 @@ class Storage {
       },
       currentFigureLockTimeout: 0,
       lastDropTimestamp: 0,
+      spawnFigureIndex: 0,
     };
 
     makeObservable(this, {
@@ -244,9 +246,7 @@ class Storage {
     const copyKeyContent = (dataFrom, dataTo, keys) => {
       keys.forEach((key) => {
         if (!dataFrom[key]) return;
-        Object.getOwnPropertyNames(dataFrom[key]).forEach((_key) => {
-          dataTo[key][_key] = dataFrom[key][_key];
-        });
+        objectHelpers.copyOwnProperties(dataFrom[key], dataTo[key]);
       });
     };
 
@@ -1726,9 +1726,7 @@ class Storage {
       this.spawnFigure(type, rotation, x, y);
     });
 
-    if (await this.clearFullLines()) {
-      await timeHelpers.sleep(300);
-    }
+    await this.clearFullLines();
 
     if (this.checkWinConditions()) return false;
 
@@ -1877,6 +1875,14 @@ class Storage {
 
   //
 
+  getSpawnFigureIndex = () => {
+    this.nonObservables.spawnFigureIndex++;
+    if (this.nonObservables.spawnFigureIndex > 10000) {
+      this.nonObservables.spawnFigureIndex = 1;
+    }
+    return this.nonObservables.spawnFigureIndex;
+  };
+
   spawnFigure = (figureType, rotation, x, y) => {
     const { gameData } = this.observables;
     const { cup } = gameData;
@@ -1884,6 +1890,8 @@ class Storage {
     const figureDataResult = this.generateFigureData({ type: figureType, rotation });
     if (figureDataResult) {
       const { figureData, figureCellData } = figureDataResult;
+      const figureIndex = this.getSpawnFigureIndex();
+
       for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
         let [_pX, _pY] = figureData[pIndex];
         let pX = x + _pX;
@@ -1892,8 +1900,10 @@ class Storage {
         cup.data[pY][pX] = {
           ...cup.data[pY][pX],
           ...figureCellData,
+          figureIndex,
         };
       }
+
       this.generateCupView();
     }
   };
@@ -1903,9 +1913,9 @@ class Storage {
     const { cup } = gameData;
 
     const fullLinesY = [];
-    for (let _y = cup.height - 1; _y >= 0; _y--) {
-      if (cup.data[_y].every((cell) => cell.type && cell.type != constants.gameplay.cellType.empty)) {
-        fullLinesY.push(_y);
+    for (let y = cup.height - 1; y >= 0; y--) {
+      if (cup.data[y].every((cell) => cell.type && cell.type != constants.gameplay.cellType.empty)) {
+        fullLinesY.push(y);
       }
     }
     if (!fullLinesY.length) return false;
@@ -1915,42 +1925,208 @@ class Storage {
       gameData.lines += fullLinesY.length;
       this.addScore({ action: constants.gameplay.actionType.clearLines, scoreMult: fullLinesY.length });
 
-      fullLinesY.forEach((_y) => {
-        cup.data.splice(_y, 1, this.createRow(cup.width));
+      const figureIndexMap = {};
+      fullLinesY.forEach((y) => {
+        cup.data[y].forEach((cellData) => {
+          if (!figureIndexMap[cellData.figureIndex]) {
+            figureIndexMap[cellData.figureIndex] = this.getSpawnFigureIndex();
+          }
+        });
+        cup.data.splice(y, 1, this.createRow(cup.width));
       });
+
+      for (let _y = fullLinesY[fullLinesY.length - 1] + 1; _y < cup.height; _y++) {
+        cup.data[_y].forEach((cellData, x) => {
+          if (cellData.type == constants.gameplay.cellType.empty) return;
+          if (!figureIndexMap[cellData.figureIndex]) return;
+          cellData.figureIndex = figureIndexMap[cellData.figureIndex];
+        });
+      }
+
       this.generateCupView();
     });
 
     await timeHelpers.sleep(300);
 
     runInAction(() => {
-      fullLinesY.forEach((_y, yIndex) => {
-        cup.data.splice(_y + yIndex, 1);
+      fullLinesY.forEach((y, yIndex) => {
+        cup.data.splice(y + yIndex, 1);
         cup.data.unshift(this.createRow(cup.width));
       });
       this.generateCupView();
     });
 
+    await timeHelpers.sleep(300);
+
+    await this.onLinesClearedMechanics();
+
     return true;
   };
 
+  onLinesClearedMechanics = async () => {
+    const { gameOptions, gameData } = this.observables;
+    const { cup } = gameData;
+
+    if (gameOptions.groupsFallOnClear) {
+      if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.block) {
+        for (let iter = 0, blockMoved = true; iter < 100 && blockMoved; iter++) {
+          blockMoved = false;
+          runInAction(() => {
+            for (let y = cup.height - 2; y >= 0; y--) {
+              const currentRow = cup.data[y];
+              const lowerRow = cup.data[y + 1];
+              for (let x = 0; x < cup.width; x++) {
+                if (currentRow[x].type == constants.gameplay.cellType.empty) continue;
+                if (lowerRow[x].type != constants.gameplay.cellType.empty) continue;
+                lowerRow[x].type = currentRow[x].type;
+                currentRow[x].type = constants.gameplay.cellType.empty;
+                blockMoved = true;
+              }
+            }
+          });
+
+          if (blockMoved) {
+            this.generateCupView();
+            await timeHelpers.sleep(300);
+          }
+        }
+
+        await this.clearFullLines();
+      } else if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure) {
+        const blockGroupData = {
+          groupData: {},
+          groupList: [],
+          movedGroups: [],
+        };
+        for (let y = cup.height - 1; y >= 0; y--) {
+          for (let x = 0; x < cup.width; x++) {
+            const cellData = cup.data[y][x];
+            const groupID = cellData.figureIndex;
+            if (!groupID) continue;
+
+            const leftCellData = cup.data[y][x - 1];
+            const downCellData = cup.data[y + 1]?.[x];
+
+            if (
+              !blockGroupData.groupData[groupID] ||
+              (leftCellData && leftCellData.figureIndex == cellData.figureIndex) ||
+              (downCellData && downCellData.figureIndex == cellData.figureIndex)
+            ) {
+              if (!blockGroupData.groupData[groupID]) {
+                blockGroupData.groupData[groupID] = {
+                  blocks: [],
+                  lowestBlocks: [],
+                };
+                blockGroupData.groupList.push(groupID);
+              }
+
+              blockGroupData.groupData[groupID].blocks.push({
+                x,
+                y,
+                cellData: objectHelpers.deepCopy(cellData),
+              });
+            }
+          }
+        }
+
+        blockGroupData.groupList.forEach((groupID) => {
+          const groupData = blockGroupData.groupData[groupID];
+          groupData.blocks.forEach(({ x, y }) => {
+            const cellData = cup.data[y][x];
+            const lowerCellData = cup.data[y + 1]?.[x];
+            if (
+              !lowerCellData ||
+              lowerCellData.type == constants.gameplay.cellType.empty ||
+              lowerCellData.figureIndex != cellData.figureIndex
+            ) {
+              groupData.lowestBlocks.push({ x, y });
+            }
+          });
+        });
+
+        for (let iter = 0, groupMoved = true; iter < 100 && groupMoved; iter++) {
+          groupMoved = false;
+          runInAction(() => {
+            for (let _iter = 0, _groupMoved = true; _iter < 100 && _groupMoved; _iter++) {
+              _groupMoved = false;
+              blockGroupData.groupList.forEach((groupID) => {
+                const { blocks, lowestBlocks } = blockGroupData.groupData[groupID];
+
+                if (blockGroupData.movedGroups.some((_) => _ == groupID)) return;
+                if (
+                  !lowestBlocks.every(
+                    ({ x, y }) => cup.data[y + 1]?.[x] && cup.data[y + 1][x].type == constants.gameplay.cellType.empty
+                  )
+                )
+                  return;
+
+                blocks.forEach(({ x, y }) => {
+                  objectHelpers.clearOwnProperties(cup.data[y][x]);
+                  objectHelpers.copyOwnProperties(this.createCell(), cup.data[y][x]);
+                });
+                blocks.forEach((blockData) => {
+                  blockData.y++;
+                  objectHelpers.copyOwnProperties(blockData.cellData, cup.data[blockData.y][blockData.x]);
+                });
+                lowestBlocks.forEach((blockData) => {
+                  blockData.y++;
+                });
+                blockGroupData.movedGroups.push(groupID);
+                _groupMoved = true;
+                groupMoved = true;
+              });
+            }
+          });
+
+          if (groupMoved) {
+            blockGroupData.movedGroups = [];
+            this.generateCupView();
+            await timeHelpers.sleep(300);
+          }
+        }
+
+        await this.clearFullLines();
+      }
+    }
+  };
+
   generateCupView = () => {
-    const { gameData } = this.observables;
+    const { gameOptions, gameData } = this.observables;
     const { cup, currentFigure, shadowFigureY } = gameData;
 
     cup.view = [];
-    for (let _y = 0; _y < cup.height; _y++) {
+    for (let y = 0; y < cup.height; y++) {
       const cupRow = [];
-      for (let _x = 0; _x < cup.width; _x++) {
+      for (let x = 0; x < cup.width; x++) {
         const cellData = {};
         if (
-          _x >= currentFigure.x + currentFigure.cells.x &&
-          _x <= currentFigure.x + currentFigure.cells.x + currentFigure.cells.width - 1
+          x >= currentFigure.x + currentFigure.cells.x &&
+          x <= currentFigure.x + currentFigure.cells.x + currentFigure.cells.width - 1
         ) {
           cellData.isCurrentFigureColumn = true;
         }
 
-        cupRow.push({ ...cellData, ...cup.data[_y][_x] });
+        const currCellData = cup.data[y][x];
+        const upCellData = cup.data[y - 1]?.[x];
+        const downCellData = cup.data[y + 1]?.[x];
+        const leftCellData = cup.data[y][x - 1];
+        const rightCellData = cup.data[y][x + 1];
+        if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure && currCellData.figureIndex) {
+          if (upCellData && upCellData.figureIndex == currCellData.figureIndex) cellData.connectUp = true;
+          if (downCellData && downCellData.figureIndex == currCellData.figureIndex) cellData.connectDown = true;
+          if (leftCellData && leftCellData.figureIndex == currCellData.figureIndex) cellData.connectLeft = true;
+          if (rightCellData && rightCellData.figureIndex == currCellData.figureIndex) cellData.connectRight = true;
+        } else if (
+          gameOptions.cellGroupType == constants.gameplay.cellGroupType.type &&
+          currCellData.type != constants.gameplay.cellType.empty
+        ) {
+          if (upCellData && upCellData.type == currCellData.type) cellData.connectUp = true;
+          if (downCellData && downCellData.type == currCellData.type) cellData.connectDown = true;
+          if (leftCellData && leftCellData.type == currCellData.type) cellData.connectLeft = true;
+          if (rightCellData && rightCellData.type == currCellData.type) cellData.connectRight = true;
+        }
+
+        cupRow.push({ ...cellData, ...currCellData });
       }
       cup.view.push(cupRow);
     }

@@ -11,6 +11,12 @@ export function clearOwnProperties(obj) {
   });
 }
 
+export function copyOwnProperties(objFrom, objTo) {
+  Object.getOwnPropertyNames(objFrom).forEach((key) => {
+    objTo[key] = objFrom[key];
+  });
+}
+
 export async function forEachSync(array, callback) {
   for (let i = 0; i < array.length; i++) {
     const element = array[i];

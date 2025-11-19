@@ -637,7 +637,7 @@ class Storage {
       if (ev?.cancelable) ev?.preventDefault?.();
       return eventBus.fireEvent(constants.eventsData.eventType.bindInput, { input, state, deviceType });
     }
-    console.log("fire", input, state)
+    
     let deviceTypeChanged = false;
     if (deviceType != lastDeviceTypeUsed) {
       this.observables.lastDeviceTypeUsed = deviceType;

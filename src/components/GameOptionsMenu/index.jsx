@@ -151,6 +151,51 @@ export default observer(
                 };
               },
             },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "cellGroupType"],
+              component: Select,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { lang, gameOptions } = gameStore.observables;
+                const { getLangStringConverted } = constants.lang;
+
+                return {
+                  className: "cell-group-type-select",
+                  navElemID: `${viewID}-cellGroupTypeSelect`,
+                  value: gameOptions.cellGroupType,
+                  title: getLangStringConverted({ lang, pathArray: ["gameOptionsMenu", "gameMode", "cellGroupType"] }),
+                  options: constants.gameplay.cellGroupTypeList.map((cellGroupTypeID) => {
+                    return {
+                      id: cellGroupTypeID,
+                      name: getLangStringConverted({ lang, pathArray: ["cellGroupType", cellGroupTypeID] }),
+                    };
+                  }),
+                  onChange: (value) => {
+                    gameOptions.cellGroupType = value;
+                  },
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "groupsFallOnClear"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "groups-fall-on-clear-checkbox",
+                  navElemID: `${viewID}-groupsFallOnClearCheckbox`,
+                  value: gameOptions.groupsFallOnClear,
+                  onChange: (value) => {
+                    gameOptions.groupsFallOnClear = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
           ],
         },
         {

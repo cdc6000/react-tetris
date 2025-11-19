@@ -131,8 +131,9 @@ export const strings = {
         continueAfterMaxLevel: "Продолжать игру после максимального уровня",
         timeLimit: "Предел времени",
         linesLimit: "Предел линий",
-
         enableHold: "Разрешить запас фигур",
+        cellGroupType: "Тип группировки",
+        groupsFallOnClear: "Группы падают после очистки ряда",
       },
 
       gameView: {
@@ -170,6 +171,12 @@ export const strings = {
     },
 
     //
+
+    cellGroupType: {
+      [gameplay.cellGroupType.block]: "Нет",
+      [gameplay.cellGroupType.figure]: "Фигура",
+      [gameplay.cellGroupType.type]: "Тип",
+    },
 
     controlEventName: {
       [controls.controlEvent.menuNavUp]: "Вверх",

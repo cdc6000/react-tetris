@@ -105,7 +105,16 @@ export default observer(
                 >
                   {cup.view.map((cupRow, rIndex) => {
                     return cupRow.map((cupCell, cIndex) => {
-                      const { type, isCurrentFigure, isCurrentFigureColumn, isShadowFigure } = cupCell;
+                      const {
+                        type,
+                        isCurrentFigure,
+                        isCurrentFigureColumn,
+                        isShadowFigure,
+                        connectUp,
+                        connectDown,
+                        connectLeft,
+                        connectRight,
+                      } = cupCell;
                       const cellTypeData = constants.gameplay.cellTypeData[type] || {};
                       return (
                         <div
@@ -115,6 +124,10 @@ export default observer(
                             cellTypeData.class ? " " + cellTypeData.class : ""}${
                             isCurrentFigure ? " current-figure" : ""}${
                             isCurrentFigureColumn ? " current-figure-column" : ""}${
+                            connectUp ? " connect-up" : ""}${
+                            connectDown ? " connect-down" : ""}${
+                            connectLeft ? " connect-left" : ""}${
+                            connectRight ? " connect-right" : ""}${
                             isShadowFigure ? " shadow-figure" : ""
                           }`}
                         />
