@@ -290,16 +290,22 @@ class Storage {
     const { eventBus, viewStore, inputStore, navigationStore } = this;
     const { gameOptions, gameData } = this.observables;
     const { evenBusID } = this.nonObservables;
+    const { lastDeviceTypeUsed } = inputStore.observables;
     const { controlEvent } = constants.controls;
     const { eventType } = constants.eventsData;
 
-    eventBus.addEventListener(evenBusID, eventType.viewLayerUpdate, async ({ layerID }) => {
+    eventBus.addEventListener(evenBusID, eventType.viewLayerUpdate, ({ layerID }) => {
       if (layerID == constants.viewData.layer.mainMenu) {
         navigationStore.clearLastSelectedElemData();
       }
-      await timeHelpers.sleep(1);
-      navigationStore.updateMenuNavElem();
+
+      if (lastDeviceTypeUsed != constants.controls.deviceType.mouse) {
+        setTimeout(() => {
+          navigationStore.updateMenuNavElem();
+        }, 1);
+      }
     });
+
     eventBus.addEventListener(evenBusID, controlEvent.menuNavUp, ({ deviceType, deviceTypeChanged }) => {
       if (deviceTypeChanged) return;
       navigationStore.menuNavVertical(-1);
@@ -1029,8 +1035,10 @@ class Storage {
     }
 
     viewStore.shiftInputFocusToViewLayerID({ layerID, isPrevious: true });
-    inputStore.getInputDisable();
     this.checkControlsOverlap({ silentIfOk: true });
+    setTimeout(() => {
+      inputStore.getInputDisable();
+    }, 100);
 
     return input;
   };

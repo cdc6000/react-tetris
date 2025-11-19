@@ -239,7 +239,7 @@ class Storage {
       elem = this.getCurrentNavElem();
       if (!elem) return;
     }
-
+    
     let behavior = "smooth";
     const now = Date.now();
     const { scrollIntoViewLastTimestamp } = this.nonObservables;

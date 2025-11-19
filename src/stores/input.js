@@ -636,17 +636,17 @@ class Storage {
     if (getInputPromise) {
       if (ev?.cancelable) ev?.preventDefault?.();
       return eventBus.fireEvent(constants.eventsData.eventType.bindInput, { input, state, deviceType });
-    } else {
-      let deviceTypeChanged = false;
-      if (deviceType != lastDeviceTypeUsed) {
-        this.observables.lastDeviceTypeUsed = deviceType;
-        deviceTypeChanged = true;
-      }
-
-      const inputData = constants.controls.inputData[input] || {};
-      if (inputData.preventDefault) ev?.preventDefault?.();
-      return eventBus.fireEvent(constants.controls.getInputEvent(input), { state, deviceType, deviceTypeChanged });
     }
+    console.log("fire", input, state)
+    let deviceTypeChanged = false;
+    if (deviceType != lastDeviceTypeUsed) {
+      this.observables.lastDeviceTypeUsed = deviceType;
+      deviceTypeChanged = true;
+    }
+
+    const inputData = constants.controls.inputData[input] || {};
+    if (inputData.preventDefault) ev?.preventDefault?.();
+    return eventBus.fireEvent(constants.controls.getInputEvent(input), { state, deviceType, deviceTypeChanged });
   };
 
   //
