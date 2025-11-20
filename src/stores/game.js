@@ -37,6 +37,7 @@ class Storage {
         enableHold: true,
         cellGroupType: constants.gameplay.cellGroupType.block,
         groupsFallOnClear: false,
+        groupsConnectWhileFall: true,
 
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
@@ -1877,7 +1878,7 @@ class Storage {
 
   getSpawnFigureIndex = () => {
     this.nonObservables.spawnFigureIndex++;
-    if (this.nonObservables.spawnFigureIndex > 10000) {
+    if (this.nonObservables.spawnFigureIndex > 100000) {
       this.nonObservables.spawnFigureIndex = 1;
     }
     return this.nonObservables.spawnFigureIndex;
@@ -1904,11 +1905,12 @@ class Storage {
         };
       }
 
+      this.generateBlockGroups();
       this.generateCupView();
     }
   };
 
-  clearFullLines = async () => {
+  clearFullLines = async ({ cascadeIndex = 1 } = {}) => {
     const { gameData } = this.observables;
     const { cup } = gameData;
 
@@ -1923,26 +1925,28 @@ class Storage {
     // console.log({ fullLinesY });
     runInAction(() => {
       gameData.lines += fullLinesY.length;
-      this.addScore({ action: constants.gameplay.actionType.clearLines, scoreMult: fullLinesY.length });
+      this.addScore({ action: constants.gameplay.actionType.clearLines, scoreMult: fullLinesY.length * cascadeIndex });
 
-      const figureIndexMap = {};
       fullLinesY.forEach((y) => {
+        const figureIndexMap = {};
         cup.data[y].forEach((cellData) => {
           if (!figureIndexMap[cellData.figureIndex]) {
             figureIndexMap[cellData.figureIndex] = this.getSpawnFigureIndex();
           }
         });
+
+        for (let _y = y + 1; _y < cup.height; _y++) {
+          cup.data[_y].forEach((cellData, x) => {
+            if (cellData.type == constants.gameplay.cellType.empty) return;
+            if (!figureIndexMap[cellData.figureIndex]) return;
+            cellData.figureIndex = figureIndexMap[cellData.figureIndex];
+          });
+        }
+
         cup.data.splice(y, 1, this.createRow(cup.width));
       });
 
-      for (let _y = fullLinesY[fullLinesY.length - 1] + 1; _y < cup.height; _y++) {
-        cup.data[_y].forEach((cellData, x) => {
-          if (cellData.type == constants.gameplay.cellType.empty) return;
-          if (!figureIndexMap[cellData.figureIndex]) return;
-          cellData.figureIndex = figureIndexMap[cellData.figureIndex];
-        });
-      }
-
+      this.generateBlockGroups();
       this.generateCupView();
     });
 
@@ -1958,12 +1962,12 @@ class Storage {
 
     await timeHelpers.sleep(300);
 
-    await this.onLinesClearedMechanics();
+    await this.onLinesClearedMechanics({ cascadeIndex });
 
     return true;
   };
 
-  onLinesClearedMechanics = async () => {
+  onLinesClearedMechanics = async ({ cascadeIndex = 1 } = {}) => {
     const { gameOptions, gameData } = this.observables;
     const { cup } = gameData;
 
@@ -1991,58 +1995,12 @@ class Storage {
           }
         }
 
-        await this.clearFullLines();
-      } else if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure) {
-        const blockGroupData = {
-          groupData: {},
-          groupList: [],
-          movedGroups: [],
-        };
-        for (let y = cup.height - 1; y >= 0; y--) {
-          for (let x = 0; x < cup.width; x++) {
-            const cellData = cup.data[y][x];
-            const groupID = cellData.figureIndex;
-            if (!groupID) continue;
-
-            const leftCellData = cup.data[y][x - 1];
-            const downCellData = cup.data[y + 1]?.[x];
-
-            if (
-              !blockGroupData.groupData[groupID] ||
-              (leftCellData && leftCellData.figureIndex == cellData.figureIndex) ||
-              (downCellData && downCellData.figureIndex == cellData.figureIndex)
-            ) {
-              if (!blockGroupData.groupData[groupID]) {
-                blockGroupData.groupData[groupID] = {
-                  blocks: [],
-                  lowestBlocks: [],
-                };
-                blockGroupData.groupList.push(groupID);
-              }
-
-              blockGroupData.groupData[groupID].blocks.push({
-                x,
-                y,
-                cellData: objectHelpers.deepCopy(cellData),
-              });
-            }
-          }
-        }
-
-        blockGroupData.groupList.forEach((groupID) => {
-          const groupData = blockGroupData.groupData[groupID];
-          groupData.blocks.forEach(({ x, y }) => {
-            const cellData = cup.data[y][x];
-            const lowerCellData = cup.data[y + 1]?.[x];
-            if (
-              !lowerCellData ||
-              lowerCellData.type == constants.gameplay.cellType.empty ||
-              lowerCellData.figureIndex != cellData.figureIndex
-            ) {
-              groupData.lowestBlocks.push({ x, y });
-            }
-          });
-        });
+        await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
+      } else if (
+        gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
+        gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
+      ) {
+        let blockGroupData = this.generateBlockGroups();
 
         for (let iter = 0, groupMoved = true; iter < 100 && groupMoved; iter++) {
           groupMoved = false;
@@ -2079,13 +2037,18 @@ class Storage {
           });
 
           if (groupMoved) {
-            blockGroupData.movedGroups = [];
+            if (gameOptions.groupsConnectWhileFall) {
+              blockGroupData = this.generateBlockGroups();
+            } else {
+              blockGroupData.movedGroups = [];
+            }
             this.generateCupView();
             await timeHelpers.sleep(300);
           }
         }
 
-        await this.clearFullLines();
+        await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
+        this.generateBlockGroups();
       }
     }
   };
@@ -2107,23 +2070,18 @@ class Storage {
         }
 
         const currCellData = cup.data[y][x];
-        const upCellData = cup.data[y - 1]?.[x];
-        const downCellData = cup.data[y + 1]?.[x];
-        const leftCellData = cup.data[y][x - 1];
-        const rightCellData = cup.data[y][x + 1];
-        if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure && currCellData.figureIndex) {
-          if (upCellData && upCellData.figureIndex == currCellData.figureIndex) cellData.connectUp = true;
-          if (downCellData && downCellData.figureIndex == currCellData.figureIndex) cellData.connectDown = true;
-          if (leftCellData && leftCellData.figureIndex == currCellData.figureIndex) cellData.connectLeft = true;
-          if (rightCellData && rightCellData.figureIndex == currCellData.figureIndex) cellData.connectRight = true;
-        } else if (
-          gameOptions.cellGroupType == constants.gameplay.cellGroupType.type &&
-          currCellData.type != constants.gameplay.cellType.empty
-        ) {
-          if (upCellData && upCellData.type == currCellData.type) cellData.connectUp = true;
-          if (downCellData && downCellData.type == currCellData.type) cellData.connectDown = true;
-          if (leftCellData && leftCellData.type == currCellData.type) cellData.connectLeft = true;
-          if (rightCellData && rightCellData.type == currCellData.type) cellData.connectRight = true;
+        if (currCellData.type != constants.gameplay.cellType.empty) {
+          if (currCellData.groupID) {
+            const upCellData = cup.data[y - 1]?.[x];
+            const downCellData = cup.data[y + 1]?.[x];
+            const leftCellData = cup.data[y][x - 1];
+            const rightCellData = cup.data[y][x + 1];
+
+            if (upCellData && currCellData.groupID == upCellData.groupID) cellData.connectUp = true;
+            if (downCellData && currCellData.groupID == downCellData.groupID) cellData.connectDown = true;
+            if (leftCellData && currCellData.groupID == leftCellData.groupID) cellData.connectLeft = true;
+            if (rightCellData && currCellData.groupID == rightCellData.groupID) cellData.connectRight = true;
+          }
         }
 
         cupRow.push({ ...cellData, ...currCellData });
@@ -2137,6 +2095,22 @@ class Storage {
         const { figureData, figureCellData } = figureDataResult;
         for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
           let [_pX, _pY] = figureData[pIndex];
+          let connectUp = false;
+          let connectDown = false;
+          let connectLeft = false;
+          let connectRight = false;
+          if (
+            gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
+            gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
+          ) {
+            figureData.forEach(([x, y]) => {
+              if (x == _pX && y == _pY - 1) connectUp = true;
+              if (x == _pX && y == _pY + 1) connectDown = true;
+              if (x == _pX - 1 && y == _pY) connectLeft = true;
+              if (x == _pX + 1 && y == _pY) connectRight = true;
+            });
+          }
+
           let pX = currentFigure.x + _pX;
           let pY = currentFigure.y + _pY;
           if (cup.view[pY]?.[pX]) {
@@ -2144,6 +2118,10 @@ class Storage {
               ...cup.view[pY][pX],
               ...figureCellData,
               isCurrentFigure: true,
+              connectUp,
+              connectDown,
+              connectLeft,
+              connectRight,
             };
           }
 
@@ -2153,11 +2131,104 @@ class Storage {
               ...cup.view[pY][pX],
               ...figureCellData,
               isShadowFigure: true,
+              connectUp,
+              connectDown,
+              connectLeft,
+              connectRight,
             };
           }
         }
       }
     }
+  };
+
+  //
+
+  getBlockGroup = ({ x, y, checkCellsSameGroup }) => {
+    const { gameData } = this.observables;
+    const { cup } = gameData;
+
+    const blocks = [];
+
+    const cellData = cup.data[y][x];
+    blocks.push({ x, y, cellData: objectHelpers.deepCopy(cellData) });
+    cellData._processed = true;
+
+    [
+      [x - 1, y],
+      [x + 1, y],
+      [x, y - 1],
+      [x, y + 1],
+    ].forEach(([_x, _y]) => {
+      const _cellData = cup.data[_y]?.[_x];
+      if (
+        !_cellData ||
+        _cellData.type == constants.gameplay.cellType.empty ||
+        _cellData._processed ||
+        !checkCellsSameGroup(cellData, _cellData)
+      )
+        return;
+
+      blocks.push(...this.getBlockGroup({ x: _x, y: _y, checkCellsSameGroup }));
+    });
+
+    return blocks;
+  };
+
+  generateBlockGroups = () => {
+    const { gameOptions, gameData } = this.observables;
+    const { cup } = gameData;
+
+    const blockGroupData = {
+      groupData: {},
+      groupList: [],
+      movedGroups: [],
+    };
+    let groupIndex = 1;
+    const cellGroupTypeData = constants.gameplay.cellGroupTypeData[gameOptions.cellGroupType];
+    if (cellGroupTypeData) {
+      const { checkCellsSameGroup } = cellGroupTypeData;
+      if (checkCellsSameGroup) {
+        cup.data.forEach((row) => {
+          row.forEach((cellData) => {
+            cellData._processed = false;
+          });
+        });
+
+        for (let y = cup.height - 1; y >= 0; y--) {
+          cup.data[y].forEach((cellData, x) => {
+            if (cellData.type == constants.gameplay.cellType.empty) return;
+            if (cellData._processed) return;
+            const blocks = this.getBlockGroup({ x, y, checkCellsSameGroup });
+            const groupID = groupIndex++;
+            blockGroupData.groupData[groupID] = {
+              blocks,
+              lowestBlocks: [],
+            };
+            blockGroupData.groupList.push(groupID);
+          });
+        }
+
+        blockGroupData.groupList.forEach((groupID) => {
+          const groupData = blockGroupData.groupData[groupID];
+          groupData.blocks.forEach(({ x, y }) => {
+            const cellData = cup.data[y][x];
+            cellData.groupID = groupID;
+
+            const lowerCellData = cup.data[y + 1]?.[x];
+            if (
+              !lowerCellData ||
+              lowerCellData.type == constants.gameplay.cellType.empty ||
+              !checkCellsSameGroup(cellData, lowerCellData)
+            ) {
+              groupData.lowestBlocks.push({ x, y });
+            }
+          });
+        });
+      }
+    }
+
+    return blockGroupData;
   };
 
   //

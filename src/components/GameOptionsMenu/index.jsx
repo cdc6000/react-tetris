@@ -196,6 +196,25 @@ export default observer(
                 };
               },
             },
+            {
+              namePath: ["gameOptionsMenu", "gameMode", "groupsConnectWhileFall"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "groups-сщттусе-while-fall-checkbox",
+                  navElemID: `${viewID}-groupsConnectWhileFallCheckbox`,
+                  value: gameOptions.groupsConnectWhileFall,
+                  onChange: (value) => {
+                    gameOptions.groupsConnectWhileFall = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
           ],
         },
         {

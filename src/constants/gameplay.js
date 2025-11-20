@@ -383,3 +383,17 @@ export const cellGroupType = {
 };
 
 export const cellGroupTypeList = [cellGroupType.block, cellGroupType.figure, cellGroupType.type];
+
+export const cellGroupTypeData = {
+  [cellGroupType.block]: {},
+  [cellGroupType.figure]: {
+    checkCellsSameGroup: (cellData, otherCellData) => {
+      return cellData.figureIndex == otherCellData.figureIndex;
+    },
+  },
+  [cellGroupType.type]: {
+    checkCellsSameGroup: (cellData, otherCellData) => {
+      return cellData.type == otherCellData.type;
+    },
+  },
+};

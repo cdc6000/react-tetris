@@ -134,6 +134,7 @@ export const strings = {
         enableHold: "Разрешить запас фигур",
         cellGroupType: "Тип группировки",
         groupsFallOnClear: "Группы падают после очистки ряда",
+        groupsConnectWhileFall: "Группы соединяются в падении",
       },
 
       gameView: {

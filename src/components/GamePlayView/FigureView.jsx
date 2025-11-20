@@ -13,6 +13,7 @@ export default observer(
     render() {
       const { gameStore, type } = this.props;
       const { cellsMaxSizeInitRotation } = gameStore;
+      const { gameOptions } = gameStore.observables;
 
       const result = gameStore.generateFigureData({
         type,
@@ -30,12 +31,33 @@ export default observer(
         cellsX = cellsW;
         cellsY = cellsH;
         cellsData = result.cellsData
-          .map((row, rIndex) => {
-            if (rIndex < pYMin || rIndex > pYMax) return null;
+          .map((row, y) => {
+            if (y < pYMin || y > pYMax) return null;
             return row
-              .map((cell, cIndex) => {
-                if (cIndex < pXMin || cIndex > pXMax) return null;
-                return cell;
+              .map((cell, x) => {
+                if (x < pXMin || x > pXMax) return null;
+                let connectUp = false;
+                let connectDown = false;
+                let connectLeft = false;
+                let connectRight = false;
+                if (
+                  gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
+                  gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
+                ) {
+                  result.figureData.forEach(([_x, _y]) => {
+                    if (_x == x && _y == y - 1) connectUp = true;
+                    if (_x == x && _y == y + 1) connectDown = true;
+                    if (_x == x - 1 && _y == y) connectLeft = true;
+                    if (_x == x + 1 && _y == y) connectRight = true;
+                  });
+                }
+                return {
+                  ...cell,
+                  connectUp,
+                  connectDown,
+                  connectLeft,
+                  connectRight,
+                };
               })
               .filter(Boolean);
           })
@@ -47,13 +69,21 @@ export default observer(
           className="figure-view"
           style={{ "--cells-x": cellsX, "--cells-y": cellsY }}
         >
-          {cellsData.map((row, rIndex) => {
-            return row.map((cell, cIndex) => {
+          {cellsData.map((row, y) => {
+            return row.map((cell, x) => {
               const cellTypeData = constants.gameplay.cellTypeData[cell.type] || {};
+              const { connectUp, connectDown, connectLeft, connectRight } = cell;
               return (
                 <div
-                  key={rIndex + "-" + cIndex}
-                  className={`figure-cell${cellTypeData.class ? " " + cellTypeData.class : ""}`}
+                  key={y + "-" + x}
+                  // prettier-ignore
+                  className={`figure-cell${
+                    cellTypeData.class ? " " + cellTypeData.class : ""}${
+                    connectUp ? " connect-up" : ""}${
+                    connectDown ? " connect-down" : ""}${
+                    connectLeft ? " connect-left" : ""}${
+                    connectRight ? " connect-right" : ""
+                  }`}
                 />
               );
             });
