@@ -132,8 +132,13 @@ export default observer(
                 };
               },
             },
+          ],
+        },
+        {
+          namePath: ["gameOptionsMenu", "gameMechanics", "sectionTitle"],
+          settings: [
             {
-              namePath: ["gameOptionsMenu", "gameMode", "enableHold"],
+              namePath: ["gameOptionsMenu", "gameMechanics", "enableHold"],
               component: Checkbox,
               getProps: () => {
                 const { viewID } = this;
@@ -152,7 +157,7 @@ export default observer(
               },
             },
             {
-              namePath: ["gameOptionsMenu", "gameMode", "cellGroupType"],
+              namePath: ["gameOptionsMenu", "gameMechanics", "cellGroupType"],
               component: Select,
               getProps: () => {
                 const { viewID } = this;
@@ -178,7 +183,7 @@ export default observer(
               },
             },
             {
-              namePath: ["gameOptionsMenu", "gameMode", "groupsFallOnClear"],
+              namePath: ["gameOptionsMenu", "gameMechanics", "groupsFallOnClear"],
               component: Checkbox,
               getProps: () => {
                 const { viewID } = this;
@@ -197,7 +202,7 @@ export default observer(
               },
             },
             {
-              namePath: ["gameOptionsMenu", "gameMode", "groupsConnectWhileFall"],
+              namePath: ["gameOptionsMenu", "gameMechanics", "groupsConnectWhileFall"],
               component: Checkbox,
               getProps: () => {
                 const { viewID } = this;

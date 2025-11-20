@@ -131,6 +131,11 @@ export const strings = {
         continueAfterMaxLevel: "Продолжать игру после максимального уровня",
         timeLimit: "Предел времени",
         linesLimit: "Предел линий",
+      },
+      
+      gameMechanics: {
+        sectionTitle: "Механики",
+
         enableHold: "Разрешить запас фигур",
         cellGroupType: "Тип группировки",
         groupsFallOnClear: "Группы падают после очистки ряда",
