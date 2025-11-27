@@ -140,6 +140,7 @@ export const strings = {
         cellGroupType: "Тип группировки",
         groupsFallOnClear: "Группы падают после очистки ряда",
         groupsConnectWhileFall: "Группы соединяются в падении",
+        cellularAutomatonMode: "Режим клеточного автомата",
       },
 
       gameView: {

@@ -210,11 +210,30 @@ export default observer(
                 const { gameOptions } = gameStore.observables;
 
                 return {
-                  className: "groups-сщттусе-while-fall-checkbox",
+                  className: "groups-connect-while-fall-checkbox",
                   navElemID: `${viewID}-groupsConnectWhileFallCheckbox`,
                   value: gameOptions.groupsConnectWhileFall,
                   onChange: (value) => {
                     gameOptions.groupsConnectWhileFall = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonMode"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "game-of-life-mode-checkbox",
+                  navElemID: `${viewID}-gameOfLifeModeCheckbox`,
+                  value: gameOptions.cellularAutomatonMode,
+                  onChange: (value) => {
+                    gameOptions.cellularAutomatonMode = value;
                   },
                   children: <Fragment>&#x2714;</Fragment>,
                 };

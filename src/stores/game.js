@@ -32,16 +32,22 @@ class Storage {
       gameOptions: {
         maxLevels: 0,
         continueAfterMaxLevel: true,
+
         timeLimit: 0,
         linesLimit: 0,
+
         enableHold: true,
+
         cellGroupType: constants.gameplay.cellGroupType.block,
         groupsFallOnClear: false,
         groupsConnectWhileFall: true,
 
+        cellularAutomatonMode: false,
+
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
         enableNonBlockingHardDrop: false,
+
         figureLockDelay: 500,
         enableInfiniteRotation: false,
         enableInfiniteMove: false,
@@ -55,6 +61,7 @@ class Storage {
       },
       gameData: {
         figureTypesAllowed: [],
+        cellTypesAllowed: [],
         levelData: [],
         score: 0,
         time: 0,
@@ -62,6 +69,7 @@ class Storage {
         level: 0,
         gameLoopTimeoutMs: 1000,
         randomFigureTypePool: [],
+        randomCellTypePool: [],
 
         cup: {
           width: 10,
@@ -159,6 +167,9 @@ class Storage {
 
       moveCurrentFigureDown: action,
       gameLoop: action,
+
+      getNextRandomFigureType: action,
+      getNextRandomCellType: action,
 
       spawnFigure: action,
       generateCupView: action,
@@ -1247,6 +1258,17 @@ class Storage {
         constants.gameplay.figureType.T,
         constants.gameplay.figureType.O
       );
+
+      gameData.cellTypesAllowed = objectHelpers.deepCopy(gameDataDefaults.cellTypesAllowed);
+      gameData.cellTypesAllowed.push(
+        constants.gameplay.cellType.cyan,
+        constants.gameplay.cellType.blue,
+        constants.gameplay.cellType.orange,
+        constants.gameplay.cellType.yellow,
+        constants.gameplay.cellType.green,
+        constants.gameplay.cellType.purple,
+        constants.gameplay.cellType.red
+      );
     }
   };
 
@@ -1309,8 +1331,10 @@ class Storage {
       gameData.gameLoopTimeoutMs = gameDataDefaults.gameLoopTimeoutMs;
 
       gameData.figureTypesAllowed = objectHelpers.deepCopy(gameDataDefaults.figureTypesAllowed);
+      gameData.cellTypesAllowed = objectHelpers.deepCopy(gameDataDefaults.cellTypesAllowed);
       gameData.levelData = objectHelpers.deepCopy(gameDataDefaults.levelData);
       gameData.randomFigureTypePool = objectHelpers.deepCopy(gameDataDefaults.randomFigureTypePool);
+      gameData.randomCellTypePool = objectHelpers.deepCopy(gameDataDefaults.randomCellTypePool);
 
       cup.data = objectHelpers.deepCopy(gameDataDefaults.cup.data);
       cup.view = objectHelpers.deepCopy(gameDataDefaults.cup.view);
@@ -1727,6 +1751,8 @@ class Storage {
       this.spawnFigure(type, rotation, x, y);
     });
 
+    await this.onLockFigureMechanics();
+
     await this.clearFullLines();
 
     if (this.checkWinConditions()) return false;
@@ -1853,9 +1879,23 @@ class Storage {
     return gameData.randomFigureTypePool.shift();
   };
 
-  createCell = () => {
+  getNextRandomCellType = () => {
+    const { gameData } = this.observables;
+
+    if (gameData.randomCellTypePool.length < gameData.cellTypesAllowed.length) {
+      const pool = objectHelpers.deepCopy(gameData.cellTypesAllowed);
+      for (let i = 0; i < gameData.cellTypesAllowed.length; i++) {
+        gameData.randomCellTypePool.push(pool.splice(Math.round(Math.random() * (pool.length - 1)), 1)[0]);
+      }
+    }
+
+    return gameData.randomCellTypePool.shift();
+  };
+
+  createCell = ({ preset = {} } = {}) => {
     return {
       type: constants.gameplay.cellType.empty,
+      ...preset,
     };
   };
 
@@ -2050,6 +2090,91 @@ class Storage {
         await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
         this.generateBlockGroups();
       }
+    }
+  };
+
+  onLockFigureMechanics = async () => {
+    const { gameOptions } = this.observables;
+
+    if (gameOptions.cellularAutomatonMode) {
+      await this.cellularAutomatonMechanics();
+    }
+  };
+
+  cellularAutomatonMechanics = async () => {
+    const { gameOptions, gameData } = this.observables;
+    const { cup } = gameData;
+
+    await timeHelpers.sleep(300);
+
+    const emptyRow = this.createRow(cup.width);
+    const emptyCell = this.createCell();
+    const getNeighbours = ({ x, y, radius = 1 }) => {
+      const neighbours = [];
+      let aliveCount = 0;
+      for (let _y = y - radius; _y <= y + radius; _y++) {
+        let row = cup.data[_y];
+        if (_y < 0 || _y >= cup.height) {
+          row = emptyRow;
+        }
+
+        const _row = [];
+        for (let _x = x - radius; _x <= x + radius; _x++) {
+          let cell = row[_x];
+          if (_x < 0 || _x >= cup.width) {
+            cell = emptyCell;
+          }
+
+          if (_x == x && _y == y) {
+            _row.push(emptyCell);
+          } else {
+            if (cell.type != constants.gameplay.cellType.empty) {
+              aliveCount++;
+            }
+            _row.push(cell);
+          }
+        }
+
+        neighbours.push(_row);
+      }
+
+      return { neighbours, aliveCount };
+    };
+
+    const radius = 1;
+    const newCupData = objectHelpers.deepCopy(cup.data);
+    for (let y = 0; y < cup.data.length; y++) {
+      const row = cup.data[y];
+
+      for (let x = 0; x < row.length; x++) {
+        const cell = row[x];
+        const { aliveCount } = getNeighbours({ x, y, radius });
+
+        if (cell.type != constants.gameplay.cellType.empty) {
+          if (aliveCount < 2) {
+            newCupData[y][x] = this.createCell();
+          }
+        } else {
+          if (aliveCount == 3) {
+            newCupData[y][x] = this.createCell({
+              preset: {
+                type: this.getNextRandomCellType(),
+                figureIndex: this.getSpawnFigureIndex(),
+              },
+            });
+          }
+        }
+      }
+    }
+
+    if (JSON.stringify(cup.data) != JSON.stringify(newCupData)) {
+      runInAction(() => {
+        cup.data = newCupData;
+        this.generateBlockGroups();
+        this.generateCupView();
+      });
+
+      await timeHelpers.sleep(300);
     }
   };
 
