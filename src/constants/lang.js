@@ -141,6 +141,7 @@ export const strings = {
         groupsFallOnClear: "Группы падают после очистки ряда",
         groupsConnectWhileFall: "Группы соединяются в падении",
         cellularAutomatonMode: "Режим клеточного автомата",
+        cellularAutomatonIsMold: "Клеточный автомат порождает плесень",
       },
 
       gameView: {

@@ -16,6 +16,7 @@ export const figureType = {
 
 export const cellType = {
   empty: "empty",
+  
   cyan: "cyan",
   blue: "blue",
   orange: "orange",
@@ -23,12 +24,15 @@ export const cellType = {
   green: "green",
   purple: "purple",
   red: "red",
+
+  mold: "mold",
 };
 
 export const cellTypeData = {
   [cellType.empty]: {
     class: "empty",
   },
+
   [cellType.cyan]: {
     class: "cyan",
   },
@@ -49,6 +53,10 @@ export const cellTypeData = {
   },
   [cellType.red]: {
     class: "red",
+  },
+
+  [cellType.mold]: {
+    class: "mold",
   },
 };
 
@@ -397,3 +405,6 @@ export const cellGroupTypeData = {
     },
   },
 };
+
+export const maxFigureIndex = 100000;
+export const moldFigureIndex = 100001;

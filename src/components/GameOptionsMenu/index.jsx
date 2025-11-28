@@ -229,11 +229,30 @@ export default observer(
                 const { gameOptions } = gameStore.observables;
 
                 return {
-                  className: "game-of-life-mode-checkbox",
-                  navElemID: `${viewID}-gameOfLifeModeCheckbox`,
+                  className: "cellular-automaton-mode-checkbox",
+                  navElemID: `${viewID}-cellularAutomatonModeCheckbox`,
                   value: gameOptions.cellularAutomatonMode,
                   onChange: (value) => {
                     gameOptions.cellularAutomatonMode = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonIsMold"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "cellular-automaton-is-mold-checkbox",
+                  navElemID: `${viewID}-cellularAutomatonIsMoldCheckbox`,
+                  value: gameOptions.cellularAutomatonIsMold,
+                  onChange: (value) => {
+                    gameOptions.cellularAutomatonIsMold = value;
                   },
                   children: <Fragment>&#x2714;</Fragment>,
                 };

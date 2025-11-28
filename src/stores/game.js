@@ -43,6 +43,7 @@ class Storage {
         groupsConnectWhileFall: true,
 
         cellularAutomatonMode: false,
+        cellularAutomatonIsMold: false,
 
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
@@ -1918,7 +1919,7 @@ class Storage {
 
   getSpawnFigureIndex = () => {
     this.nonObservables.spawnFigureIndex++;
-    if (this.nonObservables.spawnFigureIndex > 100000) {
+    if (this.nonObservables.spawnFigureIndex > constants.gameplay.maxFigureIndex) {
       this.nonObservables.spawnFigureIndex = 1;
     }
     return this.nonObservables.spawnFigureIndex;
@@ -1970,6 +1971,7 @@ class Storage {
       fullLinesY.forEach((y) => {
         const figureIndexMap = {};
         cup.data[y].forEach((cellData) => {
+          if (cellData.figureIndex > constants.gameplay.maxFigureIndex) return;
           if (!figureIndexMap[cellData.figureIndex]) {
             figureIndexMap[cellData.figureIndex] = this.getSpawnFigureIndex();
           }
@@ -2158,8 +2160,12 @@ class Storage {
           if (aliveCount == 3) {
             newCupData[y][x] = this.createCell({
               preset: {
-                type: this.getNextRandomCellType(),
-                figureIndex: this.getSpawnFigureIndex(),
+                type:
+                  gameOptions.cellularAutomatonIsMold ? constants.gameplay.cellType.mold : this.getNextRandomCellType(),
+                figureIndex:
+                  gameOptions.cellularAutomatonIsMold ?
+                    constants.gameplay.moldFigureIndex
+                  : this.getSpawnFigureIndex(),
               },
             });
           }
