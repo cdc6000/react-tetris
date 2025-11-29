@@ -44,6 +44,9 @@ class Storage {
 
         cellularAutomatonMode: false,
         cellularAutomatonIsMold: false,
+        cellularAutomatonCellsNotDie: false,
+
+        addJunkRowsMode: true,
 
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
@@ -1295,9 +1298,9 @@ class Storage {
         }
       }
 
-      this.createGrid(cup.data, cup.width, cup.height);
+      this.createGrid({ source: cup.data, width: cup.width, height: cup.height });
 
-      this.createGrid(currentFigure.cells.data, cellsMaxSize.width, cellsMaxSize.height);
+      this.createGrid({ source: currentFigure.cells.data, width: cellsMaxSize.width, height: cellsMaxSize.height });
       this.generateCurrentFigure();
       this.gameViewDataUpdate();
       currentFigure.x = cup.figureStart.x;
@@ -1337,11 +1340,9 @@ class Storage {
       gameData.randomFigureTypePool = objectHelpers.deepCopy(gameDataDefaults.randomFigureTypePool);
       gameData.randomCellTypePool = objectHelpers.deepCopy(gameDataDefaults.randomCellTypePool);
 
-      cup.data = objectHelpers.deepCopy(gameDataDefaults.cup.data);
-      cup.view = objectHelpers.deepCopy(gameDataDefaults.cup.view);
-
-      currentFigure.type = gameDataDefaults.currentFigure.type;
-      currentFigure.cells.data = objectHelpers.deepCopy(gameDataDefaults.currentFigure.cells.data);
+      gameData.cup = objectHelpers.deepCopy(gameDataDefaults.cup);
+      gameData.currentFigure = objectHelpers.deepCopy(gameDataDefaults.currentFigure);
+      gameData.holdFigure = objectHelpers.deepCopy(gameDataDefaults.holdFigure);
     }
 
     this.stopGameLoop();
@@ -1873,7 +1874,7 @@ class Storage {
     if (gameData.randomFigureTypePool.length < gameData.figureTypesAllowed.length) {
       const pool = objectHelpers.deepCopy(gameData.figureTypesAllowed);
       for (let i = 0; i < gameData.figureTypesAllowed.length; i++) {
-        gameData.randomFigureTypePool.push(pool.splice(Math.round(Math.random() * (pool.length - 1)), 1)[0]);
+        gameData.randomFigureTypePool.push(pool.splice(objectHelpers.getRandomArrayIndex(pool), 1)[0]);
       }
     }
 
@@ -1886,38 +1887,42 @@ class Storage {
     if (gameData.randomCellTypePool.length < gameData.cellTypesAllowed.length) {
       const pool = objectHelpers.deepCopy(gameData.cellTypesAllowed);
       for (let i = 0; i < gameData.cellTypesAllowed.length; i++) {
-        gameData.randomCellTypePool.push(pool.splice(Math.round(Math.random() * (pool.length - 1)), 1)[0]);
+        gameData.randomCellTypePool.push(pool.splice(objectHelpers.getRandomArrayIndex(pool), 1)[0]);
       }
     }
 
     return gameData.randomCellTypePool.shift();
   };
 
-  createCell = ({ preset = {} } = {}) => {
+  createCell = ({ preset } = {}) => {
+    let _preset = preset || {};
+    if (typeof preset == "function") {
+      _preset = preset();
+    }
     return {
       type: constants.gameplay.cellType.empty,
-      ...preset,
+      ..._preset,
     };
   };
 
-  createRow = (width) => {
+  createRow = ({ width, preset }) => {
     const row = [];
     for (let wIndex = 0; wIndex < width; wIndex++) {
-      row.push(this.createCell());
+      row.push(this.createCell({ preset }));
     }
 
     return row;
   };
 
-  createGrid = (source, width, height) => {
+  createGrid = ({ source, width, height, preset }) => {
     for (let y = 0; y < height; y++) {
-      source.push(this.createRow(width));
+      source.push(this.createRow({ width, preset }));
     }
   };
 
   //
 
-  getSpawnFigureIndex = () => {
+  getNextFigureIndex = () => {
     this.nonObservables.spawnFigureIndex++;
     if (this.nonObservables.spawnFigureIndex > constants.gameplay.maxFigureIndex) {
       this.nonObservables.spawnFigureIndex = 1;
@@ -1932,7 +1937,7 @@ class Storage {
     const figureDataResult = this.generateFigureData({ type: figureType, rotation });
     if (figureDataResult) {
       const { figureData, figureCellData } = figureDataResult;
-      const figureIndex = this.getSpawnFigureIndex();
+      const figureIndex = this.getNextFigureIndex();
 
       for (let pIndex = 0; pIndex < figureData.length; pIndex++) {
         let [_pX, _pY] = figureData[pIndex];
@@ -1973,7 +1978,7 @@ class Storage {
         cup.data[y].forEach((cellData) => {
           if (cellData.figureIndex > constants.gameplay.maxFigureIndex) return;
           if (!figureIndexMap[cellData.figureIndex]) {
-            figureIndexMap[cellData.figureIndex] = this.getSpawnFigureIndex();
+            figureIndexMap[cellData.figureIndex] = this.getNextFigureIndex();
           }
         });
 
@@ -1985,7 +1990,7 @@ class Storage {
           });
         }
 
-        cup.data.splice(y, 1, this.createRow(cup.width));
+        cup.data.splice(y, 1, this.createRow({ width: cup.width }));
       });
 
       this.generateBlockGroups();
@@ -1997,7 +2002,7 @@ class Storage {
     runInAction(() => {
       fullLinesY.forEach((y, yIndex) => {
         cup.data.splice(y + yIndex, 1);
-        cup.data.unshift(this.createRow(cup.width));
+        cup.data.unshift(this.createRow({ width: cup.width }));
       });
       this.generateCupView();
     });
@@ -2013,85 +2018,12 @@ class Storage {
     const { gameOptions, gameData } = this.observables;
     const { cup } = gameData;
 
+    if (gameOptions.addJunkRowsMode) {
+      await this.addJunkRowsMechanics({ cascadeIndex });
+    }
+
     if (gameOptions.groupsFallOnClear) {
-      if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.block) {
-        for (let iter = 0, blockMoved = true; iter < 100 && blockMoved; iter++) {
-          blockMoved = false;
-          runInAction(() => {
-            for (let y = cup.height - 2; y >= 0; y--) {
-              const currentRow = cup.data[y];
-              const lowerRow = cup.data[y + 1];
-              for (let x = 0; x < cup.width; x++) {
-                if (currentRow[x].type == constants.gameplay.cellType.empty) continue;
-                if (lowerRow[x].type != constants.gameplay.cellType.empty) continue;
-                lowerRow[x].type = currentRow[x].type;
-                currentRow[x].type = constants.gameplay.cellType.empty;
-                blockMoved = true;
-              }
-            }
-          });
-
-          if (blockMoved) {
-            this.generateCupView();
-            await timeHelpers.sleep(300);
-          }
-        }
-
-        await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
-      } else if (
-        gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
-        gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
-      ) {
-        let blockGroupData = this.generateBlockGroups();
-
-        for (let iter = 0, groupMoved = true; iter < 100 && groupMoved; iter++) {
-          groupMoved = false;
-          runInAction(() => {
-            for (let _iter = 0, _groupMoved = true; _iter < 100 && _groupMoved; _iter++) {
-              _groupMoved = false;
-              blockGroupData.groupList.forEach((groupID) => {
-                const { blocks, lowestBlocks } = blockGroupData.groupData[groupID];
-
-                if (blockGroupData.movedGroups.some((_) => _ == groupID)) return;
-                if (
-                  !lowestBlocks.every(
-                    ({ x, y }) => cup.data[y + 1]?.[x] && cup.data[y + 1][x].type == constants.gameplay.cellType.empty
-                  )
-                )
-                  return;
-
-                blocks.forEach(({ x, y }) => {
-                  objectHelpers.clearOwnProperties(cup.data[y][x]);
-                  objectHelpers.copyOwnProperties(this.createCell(), cup.data[y][x]);
-                });
-                blocks.forEach((blockData) => {
-                  blockData.y++;
-                  objectHelpers.copyOwnProperties(blockData.cellData, cup.data[blockData.y][blockData.x]);
-                });
-                lowestBlocks.forEach((blockData) => {
-                  blockData.y++;
-                });
-                blockGroupData.movedGroups.push(groupID);
-                _groupMoved = true;
-                groupMoved = true;
-              });
-            }
-          });
-
-          if (groupMoved) {
-            if (gameOptions.groupsConnectWhileFall) {
-              blockGroupData = this.generateBlockGroups();
-            } else {
-              blockGroupData.movedGroups = [];
-            }
-            this.generateCupView();
-            await timeHelpers.sleep(300);
-          }
-        }
-
-        await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
-        this.generateBlockGroups();
-      }
+      await this.groupsFallMechanics({ cascadeIndex });
     }
   };
 
@@ -2103,13 +2035,97 @@ class Storage {
     }
   };
 
+  groupsFallMechanics = async ({ cascadeIndex = 1 } = {}) => {
+    const { gameOptions, gameData } = this.observables;
+    const { cup } = gameData;
+
+    if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.block) {
+      for (let iter = 0, blockMoved = true; iter < 100 && blockMoved; iter++) {
+        blockMoved = false;
+        runInAction(() => {
+          for (let y = cup.height - 2; y >= 0; y--) {
+            const currentRow = cup.data[y];
+            const lowerRow = cup.data[y + 1];
+            for (let x = 0; x < cup.width; x++) {
+              if (currentRow[x].type == constants.gameplay.cellType.empty) continue;
+              if (lowerRow[x].type != constants.gameplay.cellType.empty) continue;
+              lowerRow[x].type = currentRow[x].type;
+              currentRow[x].type = constants.gameplay.cellType.empty;
+              blockMoved = true;
+            }
+          }
+        });
+
+        if (blockMoved) {
+          this.generateCupView();
+          await timeHelpers.sleep(300);
+        }
+      }
+
+      await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
+    } else if (
+      gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
+      gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
+    ) {
+      let blockGroupData = this.generateBlockGroups();
+
+      for (let iter = 0, groupMoved = true; iter < 100 && groupMoved; iter++) {
+        groupMoved = false;
+        runInAction(() => {
+          for (let _iter = 0, _groupMoved = true; _iter < 100 && _groupMoved; _iter++) {
+            _groupMoved = false;
+            blockGroupData.groupList.forEach((groupID) => {
+              const { blocks, lowestBlocks } = blockGroupData.groupData[groupID];
+
+              if (blockGroupData.movedGroups.some((_) => _ == groupID)) return;
+              if (
+                !lowestBlocks.every(
+                  ({ x, y }) => cup.data[y + 1]?.[x] && cup.data[y + 1][x].type == constants.gameplay.cellType.empty
+                )
+              )
+                return;
+
+              blocks.forEach(({ x, y }) => {
+                objectHelpers.clearOwnProperties(cup.data[y][x]);
+                objectHelpers.copyOwnProperties(this.createCell(), cup.data[y][x]);
+              });
+              blocks.forEach((blockData) => {
+                blockData.y++;
+                objectHelpers.copyOwnProperties(blockData.cellData, cup.data[blockData.y][blockData.x]);
+              });
+              lowestBlocks.forEach((blockData) => {
+                blockData.y++;
+              });
+              blockGroupData.movedGroups.push(groupID);
+              _groupMoved = true;
+              groupMoved = true;
+            });
+          }
+        });
+
+        if (groupMoved) {
+          if (gameOptions.groupsConnectWhileFall) {
+            blockGroupData = this.generateBlockGroups();
+          } else {
+            blockGroupData.movedGroups = [];
+          }
+          this.generateCupView();
+          await timeHelpers.sleep(300);
+        }
+      }
+
+      await this.clearFullLines({ cascadeIndex: cascadeIndex + 1 });
+      this.generateBlockGroups();
+    }
+  };
+
   cellularAutomatonMechanics = async () => {
     const { gameOptions, gameData } = this.observables;
     const { cup } = gameData;
 
     await timeHelpers.sleep(300);
 
-    const emptyRow = this.createRow(cup.width);
+    const emptyRow = this.createRow({ width: cup.width });
     const emptyCell = this.createCell();
     const getNeighbours = ({ x, y, radius = 1 }) => {
       const neighbours = [];
@@ -2145,6 +2161,8 @@ class Storage {
 
     const radius = 1;
     const newCupData = objectHelpers.deepCopy(cup.data);
+    let cellType = this.getNextRandomCellType();
+    let figureIndex = this.getNextFigureIndex();
     for (let y = 0; y < cup.data.length; y++) {
       const row = cup.data[y];
 
@@ -2152,22 +2170,22 @@ class Storage {
         const cell = row[x];
         const { aliveCount } = getNeighbours({ x, y, radius });
 
-        if (cell.type != constants.gameplay.cellType.empty) {
-          if (aliveCount < 2) {
+        if (cell.type != constants.gameplay.cellType.empty && cell.type != constants.gameplay.cellType.junk) {
+          if (!gameOptions.cellularAutomatonCellsNotDie && aliveCount < 2) {
             newCupData[y][x] = this.createCell();
           }
-        } else {
+        } else if (cell.type == constants.gameplay.cellType.empty) {
           if (aliveCount == 3) {
-            newCupData[y][x] = this.createCell({
-              preset: {
-                type:
-                  gameOptions.cellularAutomatonIsMold ? constants.gameplay.cellType.mold : this.getNextRandomCellType(),
-                figureIndex:
-                  gameOptions.cellularAutomatonIsMold ?
-                    constants.gameplay.moldFigureIndex
-                  : this.getSpawnFigureIndex(),
-              },
-            });
+            let preset = {};
+            if (gameOptions.cellularAutomatonIsMold) {
+              preset.type = constants.gameplay.cellType.mold;
+              preset.figureIndex = constants.gameplay.moldFigureIndex;
+            } else {
+              preset.type = cellType;
+              preset.figureIndex = figureIndex;
+            }
+
+            newCupData[y][x] = this.createCell({ preset });
           }
         }
       }
@@ -2182,6 +2200,44 @@ class Storage {
 
       await timeHelpers.sleep(300);
     }
+  };
+
+  addJunkRowsMechanics = async ({ cascadeIndex = 1 } = {}) => {
+    const { gameOptions, gameData } = this.observables;
+    const { cup } = gameData;
+
+    if (cascadeIndex > 1) return;
+
+    let preset;
+    if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.block) {
+      preset = () => ({
+        type: constants.gameplay.cellType.junk,
+        figureIndex: this.getNextFigureIndex(),
+      });
+    } else if (
+      gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
+      gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
+    ) {
+      preset = {
+        type: constants.gameplay.cellType.junk,
+        figureIndex: this.getNextFigureIndex(),
+      };
+    }
+    const row = this.createRow({
+      width: cup.width,
+      preset,
+    });
+    row.splice(objectHelpers.getRandomArrayIndex(row), 1, this.createCell());
+
+    runInAction(() => {
+      cup.data.push(row);
+      cup.data.splice(0, 1);
+
+      this.generateBlockGroups();
+      this.generateCupView();
+    });
+
+    await timeHelpers.sleep(300);
   };
 
   generateCupView = () => {
@@ -2409,7 +2465,7 @@ class Storage {
     const figureCellData = figureTypeData.cellData;
 
     const cellsData = [];
-    this.createGrid(cellsData, cellsMaxSize.width, cellsMaxSize.height);
+    this.createGrid({ source: cellsData, width: cellsMaxSize.width, height: cellsMaxSize.height });
     let pXMin = 0;
     let pXMax = 0;
     let pYMin = 0;

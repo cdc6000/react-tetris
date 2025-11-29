@@ -26,6 +26,7 @@ export const cellType = {
   red: "red",
 
   mold: "mold",
+  junk: "junk",
 };
 
 export const cellTypeData = {
@@ -57,6 +58,9 @@ export const cellTypeData = {
 
   [cellType.mold]: {
     class: "mold",
+  },
+  [cellType.junk]: {
+    class: "junk",
   },
 };
 

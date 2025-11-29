@@ -169,7 +169,10 @@ export default observer(
                   className: "cell-group-type-select",
                   navElemID: `${viewID}-cellGroupTypeSelect`,
                   value: gameOptions.cellGroupType,
-                  title: getLangStringConverted({ lang, pathArray: ["gameOptionsMenu", "gameMode", "cellGroupType"] }),
+                  title: getLangStringConverted({
+                    lang,
+                    pathArray: ["gameOptionsMenu", "gameMechanics", "cellGroupType"],
+                  }),
                   options: constants.gameplay.cellGroupTypeList.map((cellGroupTypeID) => {
                     return {
                       id: cellGroupTypeID,
@@ -253,6 +256,44 @@ export default observer(
                   value: gameOptions.cellularAutomatonIsMold,
                   onChange: (value) => {
                     gameOptions.cellularAutomatonIsMold = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonCellsNotDie"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "cellular-automaton-cells-not-die-checkbox",
+                  navElemID: `${viewID}-cellularAutomatonCellsNotDieCheckbox`,
+                  value: gameOptions.cellularAutomatonCellsNotDie,
+                  onChange: (value) => {
+                    gameOptions.cellularAutomatonCellsNotDie = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMechanics", "addJunkRowsMode"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "add-junk-rows-mode-checkbox",
+                  navElemID: `${viewID}-addJunkRowsModeCheckbox`,
+                  value: gameOptions.addJunkRowsMode,
+                  onChange: (value) => {
+                    gameOptions.addJunkRowsMode = value;
                   },
                   children: <Fragment>&#x2714;</Fragment>,
                 };

@@ -17,8 +17,7 @@
       height: var(--figure-cell-size);
       box-sizing: border-box;
 
-      &::before {
-        content: "";
+      .back {
         position: absolute;
         left: 0;
         top: 0;
@@ -27,8 +26,7 @@
         box-sizing: border-box;
       }
 
-      &::after {
-        content: "";
+      .block {
         position: absolute;
         left: 0;
         top: 0;
@@ -41,49 +39,49 @@
       //
 
       &.cyan {
-        &::after {
+        .block {
           background-color: #00f0f0;
           border-color: #b3fbfb #34e0e0 #007878 #00d8d8;
         }
       }
 
       &.blue {
-        &::after {
+        .block {
           background-color: #0000f0;
           border-color: #b3b3fb #0000d8 #000078 #5454e5;
         }
       }
 
       &.orange {
-        &::after {
+        .block {
           background-color: #f0a000;
           border-color: #fbe3b3 #d89000 #785000 #d89000;
         }
       }
 
       &.yellow {
-        &::after {
+        .block {
           background-color: #f0f000;
           border-color: #fbfbb3 #d8d800 #787800 #d8d800;
         }
       }
 
       &.green {
-        &::after {
+        .block {
           background-color: #00f000;
           border-color: #b3fbb3 #00d800 #007800 #00d800;
         }
       }
 
       &.purple {
-        &::after {
+        .block {
           background-color: #a000f0;
           border-color: #e3b3fb #9000d8 #500078 #9000d8;
         }
       }
 
       &.red {
-        &::after {
+        .block {
           background-color: #f00000;
           border-color: #fbb3b3 #d80000 #780000 #d80000;
         }
@@ -92,7 +90,7 @@
       //
 
       &.mold {
-        &::after {
+        .block {
           background-color: #00f000;
           border-width: calc(var(--figure-cell-size) / 8);
           border-color: #b3fbb3 #00d800 #007800 #00d800;
@@ -100,10 +98,17 @@
         }
       }
 
+      &.junk {
+        .block {
+          background-color: #999;
+          border-color: #ccc #888 #555 #888;
+        }
+      }
+
       //
 
       &.connect-up {
-        &::after {
+        .block {
           border-top-width: 0;
           border-top-left-radius: 0;
           border-top-right-radius: 0;
@@ -111,7 +116,7 @@
       }
 
       &.connect-down {
-        &::after {
+        .block {
           border-bottom-width: 0;
           border-bottom-left-radius: 0;
           border-bottom-right-radius: 0;
@@ -119,7 +124,7 @@
       }
 
       &.connect-left {
-        &::after {
+        .block {
           border-left-width: 0;
           border-top-left-radius: 0;
           border-bottom-left-radius: 0;
@@ -127,7 +132,7 @@
       }
 
       &.connect-right {
-        &::after {
+        .block {
           border-right-width: 0;
           border-top-right-radius: 0;
           border-bottom-right-radius: 0;
@@ -276,19 +281,19 @@
             border: 1px solid #000;
 
             .figure-cell {
-              &::before {
+              .back {
                 background-color: #bbb;
                 border-right: 1px solid #999;
               }
 
               &.current-figure-column {
-                &::before {
+                .back {
                   background-color: #aaa;
                 }
               }
 
               &.shadow-figure:not(.current-figure) {
-                &::after {
+                .block {
                   opacity: 0.3;
                 }
               }

@@ -23,3 +23,7 @@ export async function forEachSync(array, callback) {
     await callback(element, i, array);
   }
 }
+
+export function getRandomArrayIndex(array) {
+  return Math.round(Math.random() * (array.length - 1));
+}

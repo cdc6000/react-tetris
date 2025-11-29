@@ -132,7 +132,7 @@ export const strings = {
         timeLimit: "Предел времени",
         linesLimit: "Предел линий",
       },
-      
+
       gameMechanics: {
         sectionTitle: "Механики",
 
@@ -142,6 +142,8 @@ export const strings = {
         groupsConnectWhileFall: "Группы соединяются в падении",
         cellularAutomatonMode: "Режим клеточного автомата",
         cellularAutomatonIsMold: "Клеточный автомат порождает плесень",
+        cellularAutomatonCellsNotDie: "Клетки не умирают",
+        addJunkRowsMode: "Режим добавления мусорных рядов",
       },
 
       gameView: {

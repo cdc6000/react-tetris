@@ -2,6 +2,8 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import FigureCell from "./FigureCell";
+
 import * as constants from "@constants/index";
 
 export default observer(
@@ -25,7 +27,7 @@ export default observer(
       let cellsY = cellsMaxSizeInitRotation.height;
       if (!result) {
         cellsData = [];
-        gameStore.createGrid(cellsData, cellsX, cellsY);
+        gameStore.createGrid({ source: cellsData, width: cellsX, height: cellsY });
       } else {
         const { pXMin, pXMax, pYMin, pYMax, cellsW, cellsH } = result;
         cellsX = cellsW;
@@ -69,21 +71,13 @@ export default observer(
           className="figure-view"
           style={{ "--cells-x": cellsX, "--cells-y": cellsY }}
         >
-          {cellsData.map((row, y) => {
-            return row.map((cell, x) => {
-              const cellTypeData = constants.gameplay.cellTypeData[cell.type] || {};
-              const { connectUp, connectDown, connectLeft, connectRight } = cell;
+          {cellsData.map((rowData, rIndex) => {
+            return rowData.map((cellData, cIndex) => {
               return (
-                <div
-                  key={y + "-" + x}
-                  // prettier-ignore
-                  className={`figure-cell${
-                    cellTypeData.class ? " " + cellTypeData.class : ""}${
-                    connectUp ? " connect-up" : ""}${
-                    connectDown ? " connect-down" : ""}${
-                    connectLeft ? " connect-left" : ""}${
-                    connectRight ? " connect-right" : ""
-                  }`}
+                <FigureCell
+                  key={rIndex + "-" + cIndex}
+                  gameStore={gameStore}
+                  cellData={cellData}
                 />
               );
             });

@@ -2,6 +2,7 @@ import React, { Component, Fragment } from "react";
 import { autorun, runInAction } from "mobx";
 import { observer } from "mobx-react";
 
+import FigureCell from "./FigureCell";
 import FigureView from "./FigureView";
 
 import * as timeHelpers from "@utils/time-helpers";
@@ -105,31 +106,11 @@ export default observer(
                 >
                   {cup.view.map((cupRow, rIndex) => {
                     return cupRow.map((cupCell, cIndex) => {
-                      const {
-                        type,
-                        isCurrentFigure,
-                        isCurrentFigureColumn,
-                        isShadowFigure,
-                        connectUp,
-                        connectDown,
-                        connectLeft,
-                        connectRight,
-                      } = cupCell;
-                      const cellTypeData = constants.gameplay.cellTypeData[type] || {};
                       return (
-                        <div
+                        <FigureCell
                           key={rIndex + "-" + cIndex}
-                          // prettier-ignore
-                          className={`figure-cell${
-                            cellTypeData.class ? " " + cellTypeData.class : ""}${
-                            isCurrentFigure ? " current-figure" : ""}${
-                            isCurrentFigureColumn ? " current-figure-column" : ""}${
-                            connectUp ? " connect-up" : ""}${
-                            connectDown ? " connect-down" : ""}${
-                            connectLeft ? " connect-left" : ""}${
-                            connectRight ? " connect-right" : ""}${
-                            isShadowFigure ? " shadow-figure" : ""
-                          }`}
+                          gameStore={gameStore}
+                          cellData={cupCell}
                         />
                       );
                     });
