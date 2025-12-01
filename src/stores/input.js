@@ -580,7 +580,7 @@ class Storage {
             return false;
           },
           time: inputRepeatRate,
-          timeoutCallback: (timeout) => {
+          setTimeoutCallback: (timeout) => {
             state.interval = timeout;
           },
         });

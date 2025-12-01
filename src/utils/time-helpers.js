@@ -6,7 +6,7 @@ export function sleep(milliseconds) {
   });
 }
 
-export function setTimeoutAdjusting({ onStep, time, adjTime, timeoutCallback }) {
+export function setTimeoutAdjusting({ onStep, time, adjTime, setTimeoutCallback }) {
   if (!time || !adjTime) return false;
 
   const steps = Math.ceil(time / adjTime);
@@ -19,15 +19,15 @@ export function setTimeoutAdjusting({ onStep, time, adjTime, timeoutCallback }) 
       const targetTimeElapsed = step * adjTime;
       const timeError = timeElapsed - targetTimeElapsed;
       const timeout = setTimeout(onTimeStep, adjTime - timeError);
-      timeoutCallback?.(timeout);
+      setTimeoutCallback?.(timeout);
     }
   };
 
   const timeout = setTimeout(onTimeStep, adjTime);
-  timeoutCallback?.(timeout);
+  setTimeoutCallback?.(timeout);
 }
 
-export function setIntervalAdjusting({ onStep, time, targetTimeElapsedReset = 24 * 60 * 60 * 1000, timeoutCallback }) {
+export function setIntervalAdjusting({ onStep, time, targetTimeElapsedReset = 24 * 60 * 60 * 1000, setTimeoutCallback }) {
   if (!time) return false;
 
   let start = Date.now();
@@ -44,20 +44,21 @@ export function setIntervalAdjusting({ onStep, time, targetTimeElapsedReset = 24
         targetTimeElapsed = time;
       }
       timeout = setTimeout(onTimeStep, time - timeError);
-      timeoutCallback?.(timeout);
+      setTimeoutCallback?.(timeout);
     }
   };
 
   const updateTime = (newTime, restart = true) => {
-    clearTimeout(timeout);
-
     time = newTime;
+
     if (restart) {
+      clearTimeout(timeout);
+
       start = Date.now();
       targetTimeElapsed = time;
 
       timeout = setTimeout(onTimeStep, time);
-      timeoutCallback?.(timeout);
+      setTimeoutCallback?.(timeout);
     }
   };
 
@@ -68,11 +69,11 @@ export function setIntervalAdjusting({ onStep, time, targetTimeElapsedReset = 24
     targetTimeElapsed = ms;
 
     timeout = setTimeout(onTimeStep, ms);
-    timeoutCallback?.(timeout);
+    setTimeoutCallback?.(timeout);
   };
 
   timeout = setTimeout(onTimeStep, time);
-  timeoutCallback?.(timeout);
+  setTimeoutCallback?.(timeout);
 
   return {
     updateTime,

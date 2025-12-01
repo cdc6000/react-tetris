@@ -243,21 +243,31 @@ export default observer(
               },
             },
             {
-              namePath: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonIsMold"],
-              component: Checkbox,
+              namePath: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonCellGroupType"],
+              component: Select,
               getProps: () => {
                 const { viewID } = this;
                 const { gameStore } = this.props;
-                const { gameOptions } = gameStore.observables;
+                const { lang, gameOptions } = gameStore.observables;
+                const { getLangStringConverted } = constants.lang;
 
                 return {
-                  className: "cellular-automaton-is-mold-checkbox",
-                  navElemID: `${viewID}-cellularAutomatonIsMoldCheckbox`,
-                  value: gameOptions.cellularAutomatonIsMold,
+                  className: "cellular-automaton-cell-group-type-select",
+                  navElemID: `${viewID}-cellularAutomatonCellGroupTypeSelect`,
+                  value: gameOptions.cellularAutomatonCellGroupType,
+                  title: getLangStringConverted({
+                    lang,
+                    pathArray: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonCellGroupType"],
+                  }),
+                  options: constants.gameplay.cellGroupTypeList.map((cellGroupTypeID) => {
+                    return {
+                      id: cellGroupTypeID,
+                      name: getLangStringConverted({ lang, pathArray: ["cellGroupType", cellGroupTypeID] }),
+                    };
+                  }),
                   onChange: (value) => {
-                    gameOptions.cellularAutomatonIsMold = value;
+                    gameOptions.cellularAutomatonCellGroupType = value;
                   },
-                  children: <Fragment>&#x2714;</Fragment>,
                 };
               },
             },
@@ -281,6 +291,25 @@ export default observer(
               },
             },
             {
+              namePath: ["gameOptionsMenu", "gameMechanics", "cellularAutomatonIsMold"],
+              component: Checkbox,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { gameOptions } = gameStore.observables;
+
+                return {
+                  className: "cellular-automaton-is-mold-checkbox",
+                  navElemID: `${viewID}-cellularAutomatonIsMoldCheckbox`,
+                  value: gameOptions.cellularAutomatonIsMold,
+                  onChange: (value) => {
+                    gameOptions.cellularAutomatonIsMold = value;
+                  },
+                  children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
               namePath: ["gameOptionsMenu", "gameMechanics", "addJunkRowsMode"],
               component: Checkbox,
               getProps: () => {
@@ -296,6 +325,35 @@ export default observer(
                     gameOptions.addJunkRowsMode = value;
                   },
                   children: <Fragment>&#x2714;</Fragment>,
+                };
+              },
+            },
+            {
+              namePath: ["gameOptionsMenu", "gameMechanics", "junkRowsCellGroupType"],
+              component: Select,
+              getProps: () => {
+                const { viewID } = this;
+                const { gameStore } = this.props;
+                const { lang, gameOptions } = gameStore.observables;
+                const { getLangStringConverted } = constants.lang;
+
+                return {
+                  className: "junk-rows-cell-group-type-select",
+                  navElemID: `${viewID}-junkRowsCellGroupTypeSelect`,
+                  value: gameOptions.junkRowsCellGroupType,
+                  title: getLangStringConverted({
+                    lang,
+                    pathArray: ["gameOptionsMenu", "gameMechanics", "junkRowsCellGroupType"],
+                  }),
+                  options: constants.gameplay.cellGroupTypeList.map((cellGroupTypeID) => {
+                    return {
+                      id: cellGroupTypeID,
+                      name: getLangStringConverted({ lang, pathArray: ["cellGroupType", cellGroupTypeID] }),
+                    };
+                  }),
+                  onChange: (value) => {
+                    gameOptions.junkRowsCellGroupType = value;
+                  },
                 };
               },
             },

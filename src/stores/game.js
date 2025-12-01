@@ -43,10 +43,12 @@ class Storage {
         groupsConnectWhileFall: true,
 
         cellularAutomatonMode: false,
-        cellularAutomatonIsMold: false,
+        cellularAutomatonCellGroupType: constants.gameplay.cellGroupType.block,
         cellularAutomatonCellsNotDie: false,
+        cellularAutomatonIsMold: false,
 
         addJunkRowsMode: true,
+        junkRowsCellGroupType: constants.gameplay.cellGroupType.block,
 
         enableNonBlockingMoveDown: true,
         enableNonBlockingSoftDrop: true,
@@ -262,7 +264,7 @@ class Storage {
     const copyKeyContent = (dataFrom, dataTo, keys) => {
       keys.forEach((key) => {
         if (!dataFrom[key]) return;
-        objectHelpers.copyOwnProperties(dataFrom[key], dataTo[key]);
+        objectHelpers.copyOwnProperties(dataFrom[key], dataTo[key], true);
       });
     };
 
@@ -1798,7 +1800,7 @@ class Storage {
     const { callNextIn, updateTime } = timeHelpers.setIntervalAdjusting({
       onStep: this.gameLoop,
       time: gameLoopTimeoutMs,
-      timeoutCallback: (timeout) => {
+      setTimeoutCallback: (timeout) => {
         gameLoopData.timeout = timeout;
       },
     });
@@ -1838,15 +1840,23 @@ class Storage {
     const { gameOptions, gameState, gameData } = this.observables;
     const { currentFigure } = gameData;
     const { gameLoopData } = this.nonObservables;
-    // console.log("game loop");
 
-    if (currentFigure.type == constants.gameplay.figureType.none) return false;
-    if (gameState == constants.gameplay.gameState.pause) return false;
+    if (currentFigure.type == constants.gameplay.figureType.none) {
+      this.stopGameLoop();
+      return false;
+    }
+    if (gameState == constants.gameplay.gameState.pause) {
+      this.stopGameLoop();
+      return false;
+    }
 
     const now = Date.now();
     gameData.time += now - gameLoopData.lastTimestamp;
     gameLoopData.lastTimestamp = now;
-    if (this.checkWinConditions()) return false;
+    if (this.checkWinConditions()) {
+      this.stopGameLoop();
+      return false;
+    }
 
     let continueLoop = false;
     if (this.moveCurrentFigureDown()) {
@@ -2161,8 +2171,8 @@ class Storage {
 
     const radius = 1;
     const newCupData = objectHelpers.deepCopy(cup.data);
-    let cellType = this.getNextRandomCellType();
-    let figureIndex = this.getNextFigureIndex();
+    let cellType;
+    let figureIndex;
     for (let y = 0; y < cup.data.length; y++) {
       const row = cup.data[y];
 
@@ -2181,6 +2191,17 @@ class Storage {
               preset.type = constants.gameplay.cellType.mold;
               preset.figureIndex = constants.gameplay.moldFigureIndex;
             } else {
+              if (!cellType || gameOptions.cellularAutomatonCellGroupType == constants.gameplay.cellGroupType.block) {
+                cellType = this.getNextRandomCellType();
+              }
+              if (
+                !figureIndex ||
+                gameOptions.cellularAutomatonCellGroupType == constants.gameplay.cellGroupType.block ||
+                gameOptions.cellularAutomatonCellGroupType == constants.gameplay.cellGroupType.type
+              ) {
+                figureIndex = this.getNextFigureIndex();
+              }
+
               preset.type = cellType;
               preset.figureIndex = figureIndex;
             }
@@ -2209,19 +2230,21 @@ class Storage {
     if (cascadeIndex > 1) return;
 
     let preset;
-    if (gameOptions.cellGroupType == constants.gameplay.cellGroupType.block) {
+    if (gameOptions.junkRowsCellGroupType == constants.gameplay.cellGroupType.block) {
       preset = () => ({
-        type: constants.gameplay.cellType.junk,
+        type: this.getNextRandomCellType(),
         figureIndex: this.getNextFigureIndex(),
       });
-    } else if (
-      gameOptions.cellGroupType == constants.gameplay.cellGroupType.figure ||
-      gameOptions.cellGroupType == constants.gameplay.cellGroupType.type
-    ) {
+    } else if (gameOptions.junkRowsCellGroupType == constants.gameplay.cellGroupType.figure) {
       preset = {
         type: constants.gameplay.cellType.junk,
         figureIndex: this.getNextFigureIndex(),
       };
+    } else if (gameOptions.junkRowsCellGroupType == constants.gameplay.cellGroupType.type) {
+      preset = () => ({
+        type: constants.gameplay.cellType.junk,
+        figureIndex: this.getNextFigureIndex(),
+      });
     }
     const row = this.createRow({
       width: cup.width,

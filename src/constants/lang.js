@@ -137,13 +137,18 @@ export const strings = {
         sectionTitle: "Механики",
 
         enableHold: "Разрешить запас фигур",
+        
         cellGroupType: "Тип группировки",
         groupsFallOnClear: "Группы падают после очистки ряда",
         groupsConnectWhileFall: "Группы соединяются в падении",
+        
         cellularAutomatonMode: "Режим клеточного автомата",
-        cellularAutomatonIsMold: "Клеточный автомат порождает плесень",
-        cellularAutomatonCellsNotDie: "Клетки не умирают",
+        cellularAutomatonCellGroupType: "Клеточный автомат: тип группировки созданных за шаг клеток",
+        cellularAutomatonCellsNotDie: "Клеточный автомат: клетки не умирают",
+        cellularAutomatonIsMold: "Клеточный автомат: создаёт плесень",
+
         addJunkRowsMode: "Режим добавления мусорных рядов",
+        junkRowsCellGroupType: "Мусорные ряды: тип группировки созданных за шаг клеток",
       },
 
       gameView: {

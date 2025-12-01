@@ -11,8 +11,9 @@ export function clearOwnProperties(obj) {
   });
 }
 
-export function copyOwnProperties(objFrom, objTo) {
+export function copyOwnProperties(objFrom, objTo, checkExists = false) {
   Object.getOwnPropertyNames(objFrom).forEach((key) => {
+    if (checkExists && !(key in objTo)) return;
     objTo[key] = objFrom[key];
   });
 }
